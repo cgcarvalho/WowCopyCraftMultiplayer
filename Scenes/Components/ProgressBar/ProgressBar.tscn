@@ -1,0 +1,49 @@
+[gd_scene load_steps=5 format=3 uid="uid://bluw6md5spb4h"]
+
+[ext_resource type="Script" uid="uid://b2sk0xubrag8o" path="res://Scenes/Components/ProgressBar/Progress_bar.gd" id="1_ersa7"]
+[ext_resource type="Texture2D" uid="uid://s1a8oru6flo2" path="res://Art/Stuff/circle_mask.png" id="2_ht4gu"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ersa7"]
+bg_color = Color(0.682353, 0.435294, 0.180392, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dsj16"]
+bg_color = Color(0.215686, 1, 0.309804, 1)
+
+[node name="ProgressBar" type="Control"]
+visible = false
+z_index = 5
+layout_mode = 3
+anchor_right = 0.221
+anchor_bottom = 0.041
+offset_right = -254.592
+offset_bottom = -26.568
+script = ExtResource("1_ersa7")
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 120.0
+offset_top = 40.0
+offset_right = 375.0
+offset_bottom = 67.0
+theme_override_styles/background = SubResource("StyleBoxFlat_ersa7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_dsj16")
+metadata/_edit_use_anchors_ = true
+
+[node name="Border" type="Sprite2D" parent="."]
+modulate = Color(0.223862, 0.0992101, 0.0819705, 1)
+position = Vector2(72, 48)
+scale = Vector2(0.285823, 0.292683)
+texture = ExtResource("2_ht4gu")
+
+[node name="Mask" type="Sprite2D" parent="."]
+self_modulate = Color(0.47788, 0.47788, 0.47788, 1)
+clip_children = 2
+position = Vector2(72, 48)
+scale = Vector2(0.256098, 0.256098)
+texture = ExtResource("2_ht4gu")
+
+[node name="Portrait" type="Sprite2D" parent="Mask"]
+unique_name_in_owner = true
+position = Vector2(97.619, 101.524)
+scale = Vector2(0.592006, 0.592006)

@@ -1,0 +1,48 @@
+extends Area2D
+class_name Character
+
+var state_machine: StateStrategy
+var ui_handler: UIHandler
+@export var speed = 5.0
+var portraitImagePath : String
+
+#region Character Properties
+#HP
+var charTotalLife: int
+var charCurrentLife: int
+
+#Basic Stats
+var charName: String
+
+#Skills
+var skillList : Dictionary[String, Skill] 
+
+#Target
+var charCurrentTarget : Character
+
+#endregion
+
+func _enter_tree() -> void:
+	set_multiplayer_authority(name.to_int())
+	var main = get_parent().get_parent()
+	state_machine = StateStrategy.new($AnimatedSprite2D, self, main)
+	ui_handler = UIHandler.new(main)
+	
+	
+func _physics_process(delta: float) -> void:
+	if not is_multiplayer_authority(): return
+	
+	state_machine._physics_process(delta)
+
+func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				ui_handler.showHPBar(charTotalLife, charCurrentLife, portraitImagePath)
+				MultiplayerManager.playerList.get(multiplayer.get_unique_id()).charCurrentTarget = self
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			if event.pressed:
+				ui_handler.hideHPBar()
+				MultiplayerManager.playerList.get(multiplayer.get_unique_id()).charCurrentTarget = null
+
+	
