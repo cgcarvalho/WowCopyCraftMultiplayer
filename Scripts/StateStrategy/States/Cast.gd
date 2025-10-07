@@ -10,19 +10,15 @@ func enter() -> void:
 	
 
 func physics_process(delta: float) -> void:
+
 	if Input.is_action_just_released("skill_1") and playerCast.charCurrentTarget:
-		var skill = playerCast.skillList["skill_1"]
-		skillHandler = SKillHandler.new(skill.skillScenePath, state_machine.mainScene, playerCast)
-		
+		skillHandler = SKillHandler.new(playerCast.skillList["skill_1"].skillScenePath, state_machine.mainScene, playerCast)
 	if Input.is_action_just_released("skill_2") and playerCast.charCurrentTarget:
-		skillHandler.skillCast = playerCast.skillList["skill_2"]
+		skillHandler = SKillHandler.new(playerCast.skillList["skill_2"].skillScenePath, state_machine.mainScene, playerCast)
 	if Input.is_action_just_released("skill_3") and playerCast.charCurrentTarget:
-		skillHandler.skillCast = playerCast.skillList["skill_3"]
+		skillHandler = SKillHandler.new(playerCast.skillList["skill_3"].skillScenePath, state_machine.mainScene, playerCast)
 	if Input.is_action_just_released("skill_4") and playerCast.charCurrentTarget:
-		skillHandler.skillCast = playerCast.skillList["skill_4"]
-	
-	if skillHandler:
-		skillHandler._physics_process(delta)
+		skillHandler = SKillHandler.new(playerCast.skillList["skill_4"].skillScenePath, state_machine.mainScene, playerCast)
 	
 	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	
@@ -31,4 +27,4 @@ func physics_process(delta: float) -> void:
 
 		
 func exit() -> void:
-	pass
+	state_machine.set_state(Idle.new())

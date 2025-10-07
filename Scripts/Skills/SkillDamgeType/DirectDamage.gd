@@ -3,10 +3,9 @@ extends Skill
 class_name DirectDamege
 
 
-
+var count = 0
 
 func enter() -> void:
-	skill_handler.animatedSprite.play()
 	global_position = skill_handler.playerCaster.global_position
 
 
@@ -20,4 +19,5 @@ func physics_process(delta: float) -> void:
 	
 	
 func exit() -> void:
+	skill_handler.exit()
 	queue_free()

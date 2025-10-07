@@ -1,6 +1,6 @@
-extends Node
 
-class_name SKillHandler
+
+class_name SKillHandler extends Node
 
 
 var currentSkill: Skill
@@ -12,14 +12,20 @@ var playerCaster : Character
 func _init(path : String, main : Node, player : Character) -> void:
 	mainScene = main
 	playerCaster = player
-	loadSkillScene(path)
 	
+	loadSkillScene(path)
+	enter()
+	
+
+func enter() -> void:
+	mainScene.add_child(self)
+	currentSkill.enter()
+	animatedSprite.play()
 
 
 func _physics_process(delta: float) -> void:
 	if currentSkill:
 		currentSkill.physics_process(delta)
-
 
 
 func loadSkillScene(filePath : String) -> void:
@@ -29,6 +35,7 @@ func loadSkillScene(filePath : String) -> void:
 	currentSkill.z_index = 5
 	animatedSprite = loadSkill.get_node("AnimatedSprite2D")
 	mainScene.add_child(loadSkill)
-	currentSkill.enter()
 	
 	
+func exit() -> void:
+	queue_free()
