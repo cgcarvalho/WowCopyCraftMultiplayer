@@ -2,26 +2,33 @@ extends Node
 
 class_name SKillHandler
 
-var skillCast : Skill
+
+var currentSkill: Skill
+var animatedSprite : AnimatedSprite2D
 var mainScene : Node
 var playerCaster : Character
-var playerTarget : Character
-var hold : bool = true
-var scenePath : String
-
-func _init(main : Node, caster: Character, target : Character, skill : Skill) -> void:
-	pass
 
 
-func loadScene() -> void:
-	var loadSkill = load(scenePath).instantiate().duplicate()
+func _init(path : String, main : Node, player : Character) -> void:
+	mainScene = main
+	playerCaster = player
+	loadSkillScene(path)
+	
+
+
+func _physics_process(delta: float) -> void:
+	if currentSkill:
+		currentSkill.physics_process(delta)
+
+
+
+func loadSkillScene(filePath : String) -> void:
+	var loadSkill : Skill = load(filePath).instantiate().duplicate()
+	currentSkill = loadSkill
+	currentSkill.skill_handler = self
+	currentSkill.z_index = 5
+	animatedSprite = loadSkill.get_node("AnimatedSprite2D")
 	mainScene.add_child(loadSkill)
-
-
-func cast(caster : Vector2, target : Vector2):
-	if target != null:
-		#scale = Vector2(0.2, 0.2)
-		#$AnimatedSprite2D.z_index = 1
-		#$AnimatedSprite2D.play()
-		#skillCaster = caster
-		#skillTarget = target
+	currentSkill.enter()
+	
+	
