@@ -20,7 +20,9 @@ func join_game():
 
 func add_player(id: int):
 	var player_instance
-	
+	var listLen = MultiplayerManager.playerList.size()
+
+
 	if id == 1:
 		player_instance = player_scene.instantiate()
 	else:
@@ -29,8 +31,15 @@ func add_player(id: int):
 	player_instance.name = str(id) 
 	player_instance.set_multiplayer_authority(id)
 	player_instance.z_index = 1
-	MultiplayerManager.playerList[id] = player_instance
 	
+	if id == 1:
+		player_instance.charTeam = Character.Teams.RED
+	else:
+		player_instance.charTeam = Character.Teams.BLUE
+	
+	MultiplayerManager.playerList[id] = player_instance
+	player_instance.global_position = %Players.get_child(listLen).global_position
+
 	return player_instance
 
 func on_peer_connected(id: int):
