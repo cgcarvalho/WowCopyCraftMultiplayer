@@ -2,40 +2,10 @@
 
 class_name SKillHandler extends Node
 
-
-var currentSkill: Skill
-var animatedSprite : AnimatedSprite2D
-var mainScene : Node
-var playerCaster : Character
-
-
-func _init(path : String, main : Node, player : Character) -> void:
-	mainScene = main
-	playerCaster = player
+@rpc("any_peer", "call_local")
+func loadSkillScene(filePath : String, startPosition : Vector2, idTargetChar : int) -> void:
+	var loadSkill = load(filePath).instantiate()
+	var target_player = MultiplayerManager.playerList.get(idTargetChar)
 	
-	loadSkillScene(path)
-	enter()
-	
-
-func enter() -> void:
-	mainScene.add_child(self)
-	currentSkill.enter()
-	animatedSprite.play()
-
-
-func _physics_process(delta: float) -> void:
-	if currentSkill:
-		currentSkill.physics_process(delta)
-
-
-func loadSkillScene(filePath : String) -> void:
-	var loadSkill : Skill = load(filePath).instantiate().duplicate()
-	currentSkill = loadSkill
-	currentSkill.skill_handler = self
-	currentSkill.z_index = 5
-	animatedSprite = loadSkill.get_node("AnimatedSprite2D")
-	mainScene.add_child(loadSkill)
-	
-	
-func exit() -> void:
-	queue_free()
+	get_parent().add_child(loadSkill)
+	loadSkill.cast(startPosition, target_player)
