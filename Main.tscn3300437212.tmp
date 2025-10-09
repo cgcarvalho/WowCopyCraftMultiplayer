@@ -58,7 +58,6 @@ spawn_path = NodePath("../Players")
 [node name="CurrentMap" type="Node" parent="."]
 
 [node name="TeamHP" parent="." instance=ExtResource("2_uu6xs")]
-unique_name_in_owner = true
 
 [node name="EnemyHP" parent="." instance=ExtResource("2_uu6xs")]
 offset_right = 0.0

@@ -7,11 +7,9 @@ var image_path = "res://Art/Chars/Aurora - Warlock/AuroraStand.png"
 	
 func _ready():
 	charName = "Aurora"
-	#charType = Character.HeroType.HERO
 	charTotalLife = 100
 	charCurrentLife = 100
 	portraitImagePath = image_path
-	#charPlayerNumber = PlayerNumber.PLAYER2
 	
 	addSkillsChar()
 	

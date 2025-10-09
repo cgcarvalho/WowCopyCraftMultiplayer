@@ -33,6 +33,7 @@ animations = [{
 size = Vector2(253, 702)
 
 [node name="GreaterHeal" type="Area2D"]
+scale = Vector2(0.6, 0.6)
 script = ExtResource("1_24yio")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

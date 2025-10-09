@@ -19,6 +19,7 @@ radius = 156.978
 
 [node name="Corruption" type="Area2D"]
 z_index = 5
+scale = Vector2(0.4, 0.4)
 script = ExtResource("1_thtaf")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

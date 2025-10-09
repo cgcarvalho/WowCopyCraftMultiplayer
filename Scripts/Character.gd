@@ -9,7 +9,9 @@ var portraitImagePath : String
 #region Character Properties
 #HP
 var charTotalLife: int
-var charCurrentLife: int
+var charCurrentLife: int:
+	set(value):
+		charCurrentLife = clamp(value, 0, charTotalLife)
 
 #Basic Stats
 var charName: String
@@ -38,7 +40,7 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
-				ui_handler.showHPBar(charTotalLife, charCurrentLife, portraitImagePath)
+				ui_handler.showHPBar(self)
 				MultiplayerManager.playerList.get(multiplayer.get_unique_id()).charCurrentTarget = self
 		if event.button_index == MOUSE_BUTTON_RIGHT:
 			if event.pressed:

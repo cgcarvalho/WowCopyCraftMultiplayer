@@ -9,10 +9,9 @@ func _init(main : Node) -> void:
 	mainNode = main
 	teamHP = mainNode.get_node("TeamHP")
 	
-
-func showHPBar(totalLife : int, currentLife : int, portraitPath : String) -> void:
+func showHPBar(player : Character) -> void:
 	teamHP.visible = true
-	teamHP.show(totalLife, currentLife, portraitPath)
+	teamHP.targetPlayer = player
 	
 func hideHPBar() -> void:
 	teamHP.visible = false
