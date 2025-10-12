@@ -12,7 +12,7 @@ var casterPosition : Vector2
 var skillName : String
 
 func _enter_tree() -> void:
-	z_index = 5
+	z_index = 2
 
 func physics_process(delta: float) -> void:
 	pass

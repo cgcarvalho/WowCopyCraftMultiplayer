@@ -7,3 +7,5 @@ func _process(delta: float) -> void:
 		$ProgressBar.max_value = targetPlayer.charTotalLife
 		$ProgressBar.value = targetPlayer.charCurrentLife
 		%Portrait.texture = load(targetPlayer.portraitImagePath)
+		$RichTextLabel.text = targetPlayer.charName
+		$RichTextLabel.push_color("#FFF")

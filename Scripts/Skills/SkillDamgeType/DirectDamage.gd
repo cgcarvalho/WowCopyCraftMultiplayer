@@ -23,3 +23,7 @@ func _physics_process(delta: float) -> void:
 
 func deal_damage() -> void:
 	targetCharacter.charCurrentLife -= skillBaseDamage
+	
+	var damageLocation = targetCharacter.global_position
+	damageLocation.y += - 150
+	DamageNumbers.display_number(skillBaseDamage, damageLocation, false)

@@ -2,8 +2,7 @@ extends State
 class_name Cast
 
 var playerCast : Character
-var skillHander : SKillHandler
-
+var skillHander : SKillHandler 
 
 func enter() -> void:
 	playerCast = state_machine.statePlayer
