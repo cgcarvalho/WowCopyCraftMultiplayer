@@ -33,8 +33,7 @@ func _enter_tree() -> void:
 	ui_handler = UIHandler.new(main)
 	
 	if is_multiplayer_authority(): 
-		ui_handler.showPlayerHPBar(self)
-	
+		ui_handler.showPlayerHPBar(self, true)
 	
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
@@ -48,7 +47,7 @@ func _input_event(viewport: Viewport, event: InputEvent, shape_idx: int) -> void
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				localPlayer.charCurrentTarget = self
-				ui_handler.showTargetHPBar(self)
+				ui_handler.showTargetHPBar(self, localPlayer == self)
 				
 		if event.button_index == MOUSE_BUTTON_RIGHT:
 			if event.pressed:

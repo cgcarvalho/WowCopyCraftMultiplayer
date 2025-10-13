@@ -6,7 +6,7 @@ extends Area2D
 var skillScenePath : String
 var projectileSpeed : int
 var targetCharacter : Character
-var casterPosition : Vector2
+var casterCharacter : Character
 
 #Basic Stats
 var skillName : String
@@ -17,7 +17,7 @@ func _enter_tree() -> void:
 func physics_process(delta: float) -> void:
 	pass
 
-func cast(casterGP : Vector2, targetChar : Character) -> void:
+func cast(casterChar : Character, targetChar : Character) -> void:
 	pass
 
 func setSkillInicialPosition() -> void:

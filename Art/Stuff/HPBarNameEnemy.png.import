@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cn0iao7n67k56"
-path="res://.godot/imported/HPBarName.png-97c169af6e230fd98944e7512120a85a.ctex"
+uid="uid://ced2qr5fabe5h"
+path="res://.godot/imported/HPBarNameEnemy.png-95820d4b950f9e79cdcbd26439ae578c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Art/Stuff/HPBarName.png"
-dest_files=["res://.godot/imported/HPBarName.png-97c169af6e230fd98944e7512120a85a.ctex"]
+source_file="res://Art/Stuff/HPBarNameEnemy.png"
+dest_files=["res://.godot/imported/HPBarNameEnemy.png-95820d4b950f9e79cdcbd26439ae578c.ctex"]
 
 [params]
 

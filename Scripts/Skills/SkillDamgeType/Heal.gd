@@ -4,9 +4,10 @@ class_name Heal
 
 var skillBaseHeal : float
 
-func cast(casterPosition : Vector2, targetChar : Character) -> void:
-	targetCharacter = targetChar
-	global_position = casterPosition
+func cast(casterChar : Character, targerChar : Character) -> void:
+	global_position = casterChar.global_position
+	targetCharacter = targerChar
+	
 	animatedSprite.play()
 	setSkillInicialPosition()
 
@@ -23,3 +24,7 @@ func _physics_process(delta: float) -> void:
 
 func deal_heal() -> void:
 	targetCharacter.charCurrentLife += skillBaseHeal
+	
+	var healLocation = targetCharacter.global_position
+	healLocation.y += - 150
+	DamageNumbers.display_number(skillBaseHeal, healLocation, false, true)

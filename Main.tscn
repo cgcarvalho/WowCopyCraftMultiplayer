@@ -71,11 +71,13 @@ position = Vector2(1062, 100)
 [node name="CurrentMap" type="Node" parent="."]
 
 [node name="PlayerHP" parent="." instance=ExtResource("2_uu6xs")]
+visible = false
 offset_top = 10.0
 offset_right = 0.0
 offset_bottom = 10.0
 
 [node name="TargetHP" parent="." instance=ExtResource("2_uu6xs")]
+visible = false
 offset_left = 750.0
 offset_top = 10.0
 offset_right = 750.0

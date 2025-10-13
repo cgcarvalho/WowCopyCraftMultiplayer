@@ -11,12 +11,14 @@ func _init(main : Node) -> void:
 	playerHP = mainNode.get_node("PlayerHP")
 	targetHP = mainNode.get_node("TargetHP")
 
-func showPlayerHPBar(player : Character) -> void:
+func showPlayerHPBar(player : Character, targetSelf : bool) -> void:
 		playerHP.visible = true
+		playerHP.targetSelf = targetSelf
 		playerHP.targetPlayer = player
 			
-func showTargetHPBar(player : Character) -> void:
+func showTargetHPBar(player : Character, targetSelf : bool) -> void:
 		targetHP.visible = true
+		targetHP.targetSelf = targetSelf
 		targetHP.targetPlayer = player
 	
 func hideTargetHPBar() -> void:

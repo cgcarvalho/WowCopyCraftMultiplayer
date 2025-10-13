@@ -4,14 +4,14 @@ class_name DirectDamage
 
 var skillBaseDamage : float
 
-func cast(casterGP : Vector2, targetChar : Character) -> void:
-	targetCharacter = targetChar
-	casterPosition = casterGP
+func cast(casterChar : Character, targerChar : Character) -> void:
+	casterCharacter = casterChar
+	targetCharacter = targerChar
 	animatedSprite.play()
 	setSkillInicialPosition()
 	
 func setSkillInicialPosition() -> void:
-	global_position = casterPosition
+	global_position = casterCharacter.global_position
 		
 
 func _physics_process(delta: float) -> void:

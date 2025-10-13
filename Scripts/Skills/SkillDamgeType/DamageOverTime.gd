@@ -7,9 +7,9 @@ var skillDotSeconds : int
 var timer = 0.0
 var skillTimer = 0.0
 
-func cast(casterGP : Vector2, targetChar : Character) -> void:
-	targetCharacter = targetChar
-	casterPosition = casterGP
+func cast(casterChar : Character, targerChar : Character) -> void:
+	casterCharacter = casterChar
+	targetCharacter = targerChar
 	animatedSprite.play()
 	setSkillInicialPosition()
 	
