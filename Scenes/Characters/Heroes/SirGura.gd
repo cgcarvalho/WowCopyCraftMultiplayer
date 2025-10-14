@@ -4,13 +4,12 @@ extends Character
 
 var image_path = "res://Art/Chars/Sir Gura Targao/stand.png"
 	
-func _ready():
+func _enter_tree() -> void:
 	charName = "Sir Gura"
-	#charType = Character.HeroType.HERO
 	charTotalLife = 100
 	charCurrentLife = 100
 	portraitImagePath = image_path
-	#charPlayerNumber = PlayerNumber.PLAYER2
+	
 	addSkillsChar()
 	
 

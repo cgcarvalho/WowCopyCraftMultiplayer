@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://rm8fmkqjgf2i"]
+
+[ext_resource type="Script" uid="uid://b6wrtyiv2qm8p" path="res://Scenes/Components/SkillBar/Skill_bar.gd" id="1_syg8g"]
+
+[node name="SkillBar" type="Control"]
+z_index = 5
+layout_mode = 3
+anchors_preset = 0
+offset_right = 250.0
+offset_bottom = 60.0
+script = ExtResource("1_syg8g")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 60.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer"]
+layout_mode = 2

@@ -2,7 +2,7 @@ extends Skill
 
 class_name DamageOverTime
 
-var skillBaseDamage : float
+var skillBaseDamage : int
 var skillDotSeconds : int
 var timer = 0.0
 var skillTimer = 0.0

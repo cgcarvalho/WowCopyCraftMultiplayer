@@ -2,7 +2,7 @@ extends Skill
 
 class_name DirectDamage
 
-var skillBaseDamage : float
+var skillBaseDamage : int
 
 func cast(casterChar : Character, targerChar : Character) -> void:
 	casterCharacter = casterChar

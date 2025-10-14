@@ -5,7 +5,7 @@ extends Character
 	
 var image_path = "res://Art/Chars/Aurora - Warlock/AuroraStand.png"
 	
-func _ready():
+func _enter_tree() -> void:
 	charName = "Aurora"
 	charTotalLife = 100
 	charCurrentLife = 100

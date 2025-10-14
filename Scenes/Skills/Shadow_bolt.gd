@@ -3,6 +3,8 @@ class_name ShadowBolt
 extends DirectDamage
 
 const filePath : String = "res://Scenes/Skills/Shadow_bolt.tscn"
+const iconFilePath : String = "res://Art/Skills/Shadowbolt Icon.png"
+
 const  speed = 500
 const  damage = 10
 

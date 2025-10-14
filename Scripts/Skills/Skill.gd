@@ -14,10 +14,10 @@ var skillName : String
 func _enter_tree() -> void:
 	z_index = 2
 
-func physics_process(delta: float) -> void:
+func physics_process(_delta: float) -> void:
 	pass
 
-func cast(casterChar : Character, targetChar : Character) -> void:
+func cast(_casterChar : Character, _targetChar : Character) -> void:
 	pass
 
 func setSkillInicialPosition() -> void:

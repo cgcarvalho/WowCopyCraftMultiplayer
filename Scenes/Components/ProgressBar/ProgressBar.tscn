@@ -35,6 +35,7 @@ offset_left = 120.0
 offset_top = 40.0
 offset_right = 375.0
 offset_bottom = 67.0
+theme_override_constants/outline_size = 6
 theme_override_styles/background = SubResource("StyleBoxFlat_ersa7")
 theme_override_styles/fill = SubResource("StyleBoxFlat_dsj16")
 metadata/_edit_use_anchors_ = true

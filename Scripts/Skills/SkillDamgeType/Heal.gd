@@ -2,7 +2,7 @@ extends Skill
 
 class_name Heal
 
-var skillBaseHeal : float
+var skillBaseHeal : int
 
 func cast(casterChar : Character, targerChar : Character) -> void:
 	global_position = casterChar.global_position
@@ -17,7 +17,7 @@ func setSkillInicialPosition() -> void:
 	global_position.y = targetCharacter.global_position.y + 50 
 	
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if not animatedSprite.is_playing():
 		queue_free()
 		deal_heal()

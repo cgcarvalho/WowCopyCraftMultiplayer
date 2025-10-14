@@ -4,6 +4,7 @@ extends Heal
 
 
 const filePath : String = "res://Scenes/Skills/Greater_heal.tscn"
+const iconFilePath : String = "res://Art/Skills/Heal icon.png"
 const  heal = 20
 
 func _init() -> void:

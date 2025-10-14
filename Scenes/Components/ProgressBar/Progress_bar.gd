@@ -3,7 +3,7 @@ extends Node
 var targetPlayer : Character
 var targetSelf : bool
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if targetPlayer:
 		$ProgressBar.max_value = targetPlayer.charTotalLife
 		$ProgressBar.value = targetPlayer.charCurrentLife

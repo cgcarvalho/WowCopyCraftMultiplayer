@@ -8,7 +8,8 @@ func enter() -> void:
 	playerCast = state_machine.statePlayer
 	skillHander = state_machine.mainScene.get_node("SkillHandler")
 
-func physics_process(delta: float) -> void:
+
+func physics_process(_delta: float) -> void:
 	if Input.is_action_just_released("skill_1") and playerCast.charCurrentTarget:
 		skillHander.loadSkillScene.rpc(playerCast.skillList["skill_1"].skillScenePath, int(playerCast.name), int(playerCast.charCurrentTarget.name))
 	
