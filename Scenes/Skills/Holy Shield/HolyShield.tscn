@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3 uid="uid://cex8joi4pn5jq"]
+
+[ext_resource type="Texture2D" uid="uid://5bs3sy4h1ddk" path="res://Art/Skills/Holy Shield.png" id="1_k1imf"]
+[ext_resource type="Script" uid="uid://7rceujarrse1" path="res://Scenes/Skills/Holy Shield/HolyShield.gd" id="1_uxv5x"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_uxv5x"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_k1imf")
+}],
+"loop": true,
+"name": &"Holy Shield",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_k1imf"]
+radius = 356.261
+
+[node name="HolyShield" type="Area2D"]
+script = ExtResource("1_uxv5x")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+self_modulate = Color(1, 1, 1, 0.458824)
+scale = Vector2(0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_uxv5x")
+animation = &"Holy Shield"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(6, 10)
+shape = SubResource("CircleShape2D_k1imf")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 10.0
+one_shot = true
+
+[connection signal="timeout" from="Timer" to="." method="endShield"]

@@ -5,8 +5,14 @@ var targetSelf : bool
 
 func _process(_delta: float) -> void:
 	if targetPlayer:
-		$ProgressBar.max_value = targetPlayer.charTotalLife
-		$ProgressBar.value = targetPlayer.charCurrentLife
+		$HPBar.max_value = targetPlayer.charTotalLife
+		$HPBar.value = targetPlayer.charCurrentLife
+		if targetPlayer.charTotalMana > 0:
+			$ManaBar.max_value = targetPlayer.charTotalMana
+			$ManaBar.value = targetPlayer.charCurrentMana
+		else:
+			$ManaBar.visible = false
+		
 		%Portrait.texture = load(targetPlayer.portraitImagePath)
 		$RichTextLabel.text = targetPlayer.charName
 		

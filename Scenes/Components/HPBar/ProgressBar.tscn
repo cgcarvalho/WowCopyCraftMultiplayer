@@ -1,6 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://bluw6md5spb4h"]
+[gd_scene load_steps=9 format=3 uid="uid://bluw6md5spb4h"]
 
-[ext_resource type="Script" uid="uid://b2sk0xubrag8o" path="res://Scenes/Components/ProgressBar/Progress_bar.gd" id="1_ersa7"]
+[ext_resource type="Script" uid="uid://b2sk0xubrag8o" path="res://Scenes/Components/HPBar/Progress_bar.gd" id="1_ersa7"]
 [ext_resource type="Texture2D" uid="uid://s1a8oru6flo2" path="res://Art/Stuff/circle_mask.png" id="2_ht4gu"]
 [ext_resource type="Texture2D" uid="uid://cn0iao7n67k56" path="res://Art/Stuff/HPBarNameAlly.png" id="3_ygnwc"]
 [ext_resource type="Texture2D" uid="uid://ced2qr5fabe5h" path="res://Art/Stuff/HPBarNameEnemy.png" id="4_d1xmk"]
@@ -10,6 +10,11 @@ bg_color = Color(0.682353, 0.435294, 0.180392, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dsj16"]
 bg_color = Color(0.215686, 1, 0.309804, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m1hn3"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5edkh"]
+bg_color = Color(0, 0.290196, 0.960784, 1)
 
 [node name="ProgressBar" type="Control"]
 z_index = 5
@@ -28,7 +33,7 @@ offset_top = 6.0
 offset_right = 288.0
 offset_bottom = 31.0
 
-[node name="ProgressBar" type="ProgressBar" parent="."]
+[node name="HPBar" type="ProgressBar" parent="."]
 layout_mode = 1
 anchors_preset = -1
 offset_left = 120.0
@@ -39,6 +44,16 @@ theme_override_constants/outline_size = 6
 theme_override_styles/background = SubResource("StyleBoxFlat_ersa7")
 theme_override_styles/fill = SubResource("StyleBoxFlat_dsj16")
 metadata/_edit_use_anchors_ = true
+
+[node name="ManaBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 67.0
+offset_right = 375.0
+offset_bottom = 77.0
+theme_override_styles/background = SubResource("StyleBoxFlat_m1hn3")
+theme_override_styles/fill = SubResource("StyleBoxFlat_5edkh")
+show_percentage = false
 
 [node name="Border" type="Sprite2D" parent="."]
 modulate = Color(0.223862, 0.0992101, 0.0819705, 1)

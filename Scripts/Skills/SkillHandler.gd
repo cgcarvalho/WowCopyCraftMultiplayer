@@ -8,5 +8,6 @@ func loadSkillScene(filePath : String, idCasterChar : int, idTargetChar : int) -
 	var target_player = MultiplayerManager.playerList.get(idTargetChar)
 	var caster_player = MultiplayerManager.playerList.get(idCasterChar)
 	
+	caster_player.charCurrentMana -= loadSkill.skillManaCost
 	get_parent().add_child(loadSkill)
 	loadSkill.cast(caster_player, target_player)

@@ -11,10 +11,21 @@ var charTeam : Teams
 
 #region Character Properties
 #HP
-var charTotalLife: int
+var charTotalLife: int = 0
 var charCurrentLife: int:
 	set(value):
 		charCurrentLife = clamp(value, 0, charTotalLife)
+
+#Mana
+var charTotalMana: float = 0
+var charCurrentMana:float:
+	set(value):
+		charCurrentMana = clamp(value, 0, charTotalMana)
+var manaRegen : float = 0
+
+#Defense
+var charShield : int = 0
+
 
 #Basic Stats
 var charName: String
@@ -42,6 +53,9 @@ func _physics_process(delta: float) -> void:
 	
 	state_machine._physics_process(delta)
 	
+	if charTotalMana > 0:
+		charCurrentMana += manaRegen * delta
+	
 	if charCurrentTarget:
 		$AnimatedSprite2D.flip_h = global_position.x > charCurrentTarget.global_position.x
 		
@@ -61,4 +75,18 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 				ui_handler.hideTargetHPBar()
 				localPlayer.charCurrentTarget = null
 
-	
+func deal_damage(damage : int) -> void:
+	if charShield - damage < 0:
+		charShield = 0
+		damage = damage - charShield
+		charCurrentLife -= damage
+		DamageNumbers.display_number(damage, global_position, false)
+	else:
+		charShield -= damage
+
+func apply_heal(heal : int) -> void:
+	charCurrentLife += heal
+	DamageNumbers.display_number(heal, global_position, false, true)	
+
+func apply_shield(shield : int) -> void:
+	charShield = shield

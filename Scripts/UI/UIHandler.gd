@@ -13,6 +13,7 @@ func _init(main : Node) -> void:
 	targetHP = mainNode.get_node("TargetHP")
 	skillBar = mainNode.get_node("SkillBar")
 
+#region HP Bar
 func showPlayerHPBar(player : Character, targetSelf : bool) -> void:
 		playerHP.visible = true
 		playerHP.targetSelf = targetSelf
@@ -25,7 +26,7 @@ func showTargetHPBar(player : Character, targetSelf : bool) -> void:
 	
 func hideTargetHPBar() -> void:
 		targetHP.visible = false
-	
+#endregion
 
 func createSkillBar() -> void:
 	skillBar.createButtons()

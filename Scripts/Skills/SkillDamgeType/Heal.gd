@@ -20,11 +20,4 @@ func setSkillInicialPosition() -> void:
 func _physics_process(_delta: float) -> void:
 	if not animatedSprite.is_playing():
 		queue_free()
-		deal_heal()
-
-func deal_heal() -> void:
-	targetCharacter.charCurrentLife += skillBaseHeal
-	
-	var healLocation = targetCharacter.global_position
-	healLocation.y += - 150
-	DamageNumbers.display_number(skillBaseHeal, healLocation, false, true)
+		targetCharacter.apply_heal(skillBaseHeal)

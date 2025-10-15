@@ -11,7 +11,6 @@ func cast(casterChar : Character, targerChar : Character) -> void:
 	casterCharacter = casterChar
 	targetCharacter = targerChar
 	animatedSprite.play()
-	setSkillInicialPosition()
 	
 func setSkillInicialPosition() -> void:
 	global_position = targetCharacter.global_position
@@ -19,19 +18,13 @@ func setSkillInicialPosition() -> void:
 		
 
 func _physics_process(delta: float) -> void:
+	setSkillInicialPosition()
 	timer += delta
 	skillTimer += delta
 	
 	if timer >= 1.0 and skillTimer <= skillDotSeconds + 1:
-		deal_damage()
+		targetCharacter.deal_damage(skillBaseDamage)
 		timer = 0.0 
 	elif skillTimer >= skillDotSeconds:
 		queue_free()
 		
-
-func deal_damage() -> void:
-	targetCharacter.charCurrentLife -= skillBaseDamage
-	
-	var damageLocation = targetCharacter.global_position
-	damageLocation.y += - 150
-	DamageNumbers.display_number(skillBaseDamage, damageLocation, false)

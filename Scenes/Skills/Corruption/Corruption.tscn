@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://d3fbxwg6vbbf"]
 
-[ext_resource type="Script" uid="uid://d2pn3q24vamdu" path="res://Scenes/Skills/Corrupiton.gd" id="1_thtaf"]
+[ext_resource type="Script" uid="uid://d2pn3q24vamdu" path="res://Scenes/Skills/Corruption/Corruption.gd" id="1_thtaf"]
 [ext_resource type="Texture2D" uid="uid://dyjxel68okw1" path="res://Art/Skills/corruption.png" id="2_sj31p"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_svoy1"]

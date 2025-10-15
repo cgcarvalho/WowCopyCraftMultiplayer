@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://cxrbp5gbim3b8"]
 
-[ext_resource type="Script" uid="uid://bsjxekj4q0350" path="res://Scenes/Skills/Greater_heal.gd" id="1_24yio"]
+[ext_resource type="Script" uid="uid://bsjxekj4q0350" path="res://Scenes/Skills/Greater Heal/Greater_heal.gd" id="1_24yio"]
 [ext_resource type="Texture2D" uid="uid://c2p4s52r06fxi" path="res://Art/Skills/heal1.png" id="2_yce4w"]
 [ext_resource type="Texture2D" uid="uid://opaxpd7oyygr" path="res://Art/Skills/heal2.png" id="3_crvvx"]
 [ext_resource type="Texture2D" uid="uid://0m66rjd4ds1d" path="res://Art/Skills/heal3.png" id="4_4lovn"]

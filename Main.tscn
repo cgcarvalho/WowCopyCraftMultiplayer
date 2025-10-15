@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://2w0y2hbgixoq" path="res://Scripts/GameManager.gd" id="1_glv2v"]
 [ext_resource type="Script" uid="uid://bp6bu4o7dlmw1" path="res://Scripts/Skills/SkillHandler.gd" id="2_r0du0"]
-[ext_resource type="PackedScene" uid="uid://bluw6md5spb4h" path="res://Scenes/Components/ProgressBar/ProgressBar.tscn" id="2_uu6xs"]
+[ext_resource type="PackedScene" uid="uid://bluw6md5spb4h" path="res://Scenes/Components/HPBar/ProgressBar.tscn" id="2_uu6xs"]
 [ext_resource type="PackedScene" uid="uid://rm8fmkqjgf2i" path="res://Scenes/Components/SkillBar/SkillBar.tscn" id="4_cm0pq"]
 
 [node name="Main" type="Node2D"]
@@ -72,12 +72,14 @@ position = Vector2(1062, 100)
 [node name="CurrentMap" type="Node" parent="."]
 
 [node name="PlayerHP" parent="." instance=ExtResource("2_uu6xs")]
+unique_name_in_owner = true
 visible = false
 offset_top = 10.0
 offset_right = 0.0
 offset_bottom = 10.0
 
 [node name="TargetHP" parent="." instance=ExtResource("2_uu6xs")]
+unique_name_in_owner = true
 visible = false
 offset_left = 750.0
 offset_top = 10.0
@@ -85,6 +87,8 @@ offset_right = 750.0
 offset_bottom = 10.0
 
 [node name="SkillBar" parent="." instance=ExtResource("4_cm0pq")]
+unique_name_in_owner = true
+visible = false
 offset_left = 100.0
 offset_top = 550.0
 offset_right = 100.0

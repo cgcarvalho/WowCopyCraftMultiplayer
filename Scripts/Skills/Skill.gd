@@ -10,6 +10,8 @@ var casterCharacter : Character
 
 #Basic Stats
 var skillName : String
+var skillCoolDownTime : float
+var skillManaCost : int = 0
 
 func _enter_tree() -> void:
 	z_index = 2
@@ -19,6 +21,6 @@ func physics_process(_delta: float) -> void:
 
 func cast(_casterChar : Character, _targetChar : Character) -> void:
 	pass
-
+	
 func setSkillInicialPosition() -> void:
 	pass

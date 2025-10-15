@@ -10,6 +10,7 @@ const outline_color : String = "#000"
 
 
 func display_number(value : int, position : Vector2, is_critical : bool = false, is_heal : bool = false) -> void:
+	position.y -= 150
 	create_number(value, position, is_critical, is_heal)
 
 func create_number(value : int, position : Vector2, is_critical : bool, is_heal : bool) -> void:
