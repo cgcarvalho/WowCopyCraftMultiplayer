@@ -14,7 +14,7 @@ func cast(casterChar : Character, targerChar : Character) -> void:
 	
 func setSkillInicialPosition() -> void:
 	global_position = targetCharacter.global_position
-	global_position.y = targetCharacter.global_position.y - 170
+	global_position.y -= 170
 		
 
 func _physics_process(delta: float) -> void:

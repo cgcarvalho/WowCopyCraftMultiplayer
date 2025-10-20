@@ -5,6 +5,7 @@ enum Teams {RED, BLUE}
 
 var state_machine: StateStrategy
 var ui_handler: UIHandler
+var isCrit : bool = false
 @export var speed = 5.0
 var portraitImagePath : String
 var charTeam : Teams
@@ -29,9 +30,10 @@ var charShield : int = 0
 
 #Basic Stats
 var charName: String
+var charCritChance : float = Constants.defaultCritChance
 
 #Skills
-var skillList : Dictionary[String, Skill] 
+var skillList : Array[Skill] 
 
 #Target
 var charCurrentTarget : Character
@@ -58,7 +60,9 @@ func _physics_process(delta: float) -> void:
 	
 	if charCurrentTarget:
 		$AnimatedSprite2D.flip_h = global_position.x > charCurrentTarget.global_position.x
-		
+	
+	if charCurrentLife <= 0:
+		die()
 
 
 func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
@@ -76,17 +80,34 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 				localPlayer.charCurrentTarget = null
 
 func deal_damage(damage : int) -> void:
+	damage = apply_crit(damage)
+	
 	if charShield - damage < 0:
 		charShield = 0
 		damage = damage - charShield
 		charCurrentLife -= damage
-		DamageNumbers.display_number(damage, global_position, false)
+		DamageNumbers.display_number(damage, global_position, isCrit)
 	else:
 		charShield -= damage
+		
+	
 
 func apply_heal(heal : int) -> void:
 	charCurrentLife += heal
-	DamageNumbers.display_number(heal, global_position, false, true)	
+	DamageNumbers.display_number(heal, global_position, isCrit, true)	
 
 func apply_shield(shield : int) -> void:
 	charShield = shield
+
+func apply_crit(damage : int) -> int:
+	var random_value = randf()
+	var newDamage = damage
+	isCrit = random_value < charCritChance
+
+	if isCrit:
+		newDamage = damage * Constants.critMultiplier
+	
+	return newDamage
+
+func die() -> void:
+	visible = false

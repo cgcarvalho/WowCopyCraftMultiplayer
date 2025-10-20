@@ -1,7 +1,7 @@
 extends Node
 
 const SERVER_PORT = 8080
-const SERVER_IP = "127.0.0.1"
+const SERVER_IP = "192.168.50.60"
 
 var playerList : Dictionary[int, Character]
 

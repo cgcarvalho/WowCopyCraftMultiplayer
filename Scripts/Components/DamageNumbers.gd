@@ -1,6 +1,7 @@
 extends Node
 
 const font_size : int = 18
+const crit_font_size : int = 36
 const outline_size : int = 1
 const color_damage : String = "#FFF"
 const color_critical : String =  "#B22"
@@ -27,7 +28,7 @@ func create_number(value : int, position : Vector2, is_critical : bool, is_heal 
 		color = color_fail
 		
 	number.label_settings.font_color = color
-	number.label_settings.font_size = font_size
+	number.label_settings.font_size = crit_font_size if is_critical else font_size
 	number.label_settings.outline_color = outline_color
 	number.label_settings.outline_size = outline_size
 	

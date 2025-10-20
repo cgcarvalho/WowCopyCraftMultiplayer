@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3 uid="uid://gud14t6bcsog"]
+
+[ext_resource type="Script" uid="uid://b4rmv8g2fcqrp" path="res://Scenes/Skills/Rain of Fire/RainOfFire.gd" id="1_1pax5"]
+[ext_resource type="Texture2D" uid="uid://c3dlvk08tgx53" path="res://Art/Skills/Rain of Fire 1.png" id="1_i2kav"]
+[ext_resource type="Texture2D" uid="uid://dk0ca6y2bek04" path="res://Art/Skills/Rain of Fire 2.png" id="2_1pax5"]
+[ext_resource type="Texture2D" uid="uid://dvp270e6jrywi" path="res://Art/Skills/Rain of Fire 3.png" id="3_8okkj"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2vxuv"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_i2kav")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_1pax5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_8okkj")
+}],
+"loop": true,
+"name": &"Rain of Fire",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i2kav"]
+size = Vector2(1003, 1102)
+
+[node name="RainOfFire" type="Area2D"]
+scale = Vector2(0.4, 0.4)
+script = ExtResource("1_1pax5")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_2vxuv")
+animation = &"Rain of Fire"
+frame_progress = 0.822632
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-4.5, -87)
+shape = SubResource("RectangleShape2D_i2kav")
+
+[connection signal="area_entered" from="." to="." method="_area_entered"]
+[connection signal="area_exited" from="." to="." method="_area_exited"]

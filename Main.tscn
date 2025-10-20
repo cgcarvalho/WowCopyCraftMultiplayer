@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://bjwvaoein1co"]
+[gd_scene load_steps=6 format=3 uid="uid://bjwvaoein1co"]
 
 [ext_resource type="Script" uid="uid://2w0y2hbgixoq" path="res://Scripts/GameManager.gd" id="1_glv2v"]
 [ext_resource type="Script" uid="uid://bp6bu4o7dlmw1" path="res://Scripts/Skills/SkillHandler.gd" id="2_r0du0"]
 [ext_resource type="PackedScene" uid="uid://bluw6md5spb4h" path="res://Scenes/Components/HPBar/ProgressBar.tscn" id="2_uu6xs"]
 [ext_resource type="PackedScene" uid="uid://rm8fmkqjgf2i" path="res://Scenes/Components/SkillBar/SkillBar.tscn" id="4_cm0pq"]
+[ext_resource type="PackedScene" uid="uid://r61okoh8dbhh" path="res://Scenes/Components/BuffList/BuffList.tscn" id="5_fos0i"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_glv2v")
@@ -93,6 +94,10 @@ offset_left = 100.0
 offset_top = 550.0
 offset_right = 100.0
 offset_bottom = 550.0
+
+[node name="BuffList" parent="." instance=ExtResource("5_fos0i")]
+unique_name_in_owner = true
+visible = false
 
 [connection signal="pressed" from="MultiplayerHUD/Panel/VBoxContainer/Host" to="." method="become_host"]
 [connection signal="pressed" from="MultiplayerHUD/Panel/VBoxContainer/Join" to="." method="join_game"]

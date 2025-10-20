@@ -7,8 +7,7 @@ func createButtons() -> void:
 	if player:
 		visible = true
 		var hotKey = 1
-		for key in player.skillList.keys():
-			var skill = player.skillList[key]
+		for skill in player.skillList:
 			var button = skillButtonPath.instantiate().duplicate()
 			button.skillPlayer = player
 			button.skillCast = skill

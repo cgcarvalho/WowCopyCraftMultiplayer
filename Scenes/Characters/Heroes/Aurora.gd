@@ -18,15 +18,9 @@ func _enter_tree() -> void:
 	
 
 func addSkillsChar() -> void:
-	var skill1 = ShadowBolt.new()
-	skillList["skill_1"] = skill1
-	
-	var skill2 = Corruption.new()
-	skillList["skill_2"] = skill2
-	
-	var skill3 = GreaterHeal.new()
-	skillList["skill_3"] = skill3
-	
-	var skill4 = HolyShield.new()
-	skillList["skill_4"] = skill4
-	
+	skillList.append(ShadowBolt.new())
+	skillList.append(Corruption.new())
+	skillList.append(GreaterHeal.new())
+	skillList.append(HolyShield.new())
+	skillList.append(RainOfFire.new())
+	#skillList.append(Might.new())

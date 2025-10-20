@@ -1,15 +1,16 @@
 extends Skill
 
-class_name Heal
+class_name Buff
 
-var skillBaseHeal : int
+var buffDuration : float
 
 func cast(casterChar : Character, targerChar : Character) -> void:
 	global_position = casterChar.global_position
 	targetCharacter = targerChar
 	
-	animatedSprite.play()
-	setSkillInicialPosition()
+	casterChar.ui_handler.createBuffs(self)
+	#animatedSprite.play()
+	#setSkillInicialPosition()
 
 
 func setSkillInicialPosition() -> void:
@@ -18,6 +19,4 @@ func setSkillInicialPosition() -> void:
 	
 
 func _physics_process(_delta: float) -> void:
-	if not animatedSprite.is_playing():
-		queue_free()
-		targetCharacter.apply_heal(skillBaseHeal)
+	pass

@@ -50,11 +50,15 @@ func _on_timer_timeout() -> void:
 func castSkill() -> void:
 	var path = skillCast.skillScenePath
 	var idPlayer = int(skillPlayer.name)
-	var idTarget = int(skillPlayer.charCurrentTarget.name)
+	var idTarget = int(skillPlayer.charCurrentTarget.name) if skillPlayer.charCurrentTarget else 0
 
 	skillHander.loadSkillScene.rpc(path, idPlayer, idTarget)
 
 func validateCast() -> bool:
+	if skillCast is AreaDamage:
+		return skillPlayer.charCurrentMana >= skillCast.skillManaCost
+	
 	var idTarget = int(skillPlayer.charCurrentTarget.name) if skillPlayer.charCurrentTarget else 0
+	
 	return idTarget > 0 and skillPlayer.charCurrentMana >= skillCast.skillManaCost
 	

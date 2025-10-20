@@ -6,12 +6,14 @@ var mainNode : Node
 var playerHP
 var targetHP
 var skillBar
+var buffList
 
 func _init(main : Node) -> void:
 	mainNode = main
 	playerHP = mainNode.get_node("PlayerHP")
 	targetHP = mainNode.get_node("TargetHP")
 	skillBar = mainNode.get_node("SkillBar")
+	buffList = mainNode.get_node("BuffList")
 
 #region HP Bar
 func showPlayerHPBar(player : Character, targetSelf : bool) -> void:
@@ -30,3 +32,6 @@ func hideTargetHPBar() -> void:
 
 func createSkillBar() -> void:
 	skillBar.createButtons()
+
+func createBuffs(skill : Skill) -> void:
+	buffList.createBuff(skill)

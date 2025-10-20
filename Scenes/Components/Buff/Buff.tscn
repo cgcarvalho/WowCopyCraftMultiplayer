@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://dogqdt4hjjaiw"]
+
+[ext_resource type="Script" uid="uid://bdj0l0rovy5wh" path="res://Scenes/Components/Buff/Buff.gd" id="1_cm8mq"]
+
+[node name="Buff" type="TextureButton"]
+offset_right = 50.0
+offset_bottom = 49.0
+script = ExtResource("1_cm8mq")
+
+[node name="Timer" type="Timer" parent="."]
+
+[node name="Time" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
