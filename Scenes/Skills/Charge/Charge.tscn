@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3 uid="uid://cmrdrirxdhwy8"]
+
+[ext_resource type="Texture2D" uid="uid://bvd2hrclycpex" path="res://Art/Skills/Charge.png" id="1_b72gv"]
+[ext_resource type="Script" uid="uid://2ckit88o1rpi" path="res://Scenes/Skills/Charge/Charge.gd" id="1_fpkyo"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fpkyo"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_b72gv")
+}],
+"loop": true,
+"name": &"Charge",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b72gv"]
+size = Vector2(882.5, 321)
+
+[node name="Charge" type="Area2D"]
+scale = Vector2(0.2, 0.2)
+script = ExtResource("1_fpkyo")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_fpkyo")
+animation = &"Charge"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-23.25, 355)
+shape = SubResource("RectangleShape2D_b72gv")

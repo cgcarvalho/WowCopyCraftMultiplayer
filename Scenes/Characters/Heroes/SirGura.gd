@@ -17,7 +17,7 @@ func _enter_tree() -> void:
 	
 
 func addSkillsChar() -> void:
-	skillList.append(ShadowBolt.new())
+	skillList.append(Charge.new())
 	skillList.append(Corruption.new())
 	skillList.append(GreaterHeal.new())
 	skillList.append(HolyShield.new())

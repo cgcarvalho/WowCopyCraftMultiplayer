@@ -30,7 +30,7 @@ var charShield : int = 0
 
 #Basic Stats
 var charName: String
-var charCritChance : float = Constants.defaultCritChance
+var charCritChance : float = Constants.DEFAULT_CRIT_CHANCE
 
 #Skills
 var skillList : Array[Skill] 
@@ -105,7 +105,7 @@ func apply_crit(damage : int) -> int:
 	isCrit = random_value < charCritChance
 
 	if isCrit:
-		newDamage = damage * Constants.critMultiplier
+		newDamage = damage * Constants.CRIT_MULTIPLIER
 	
 	return newDamage
 

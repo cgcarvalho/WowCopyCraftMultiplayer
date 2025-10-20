@@ -8,7 +8,7 @@ extends TextureButton
 var skillCast : Skill
 var skillPlayer : Character
 var skillHander
-
+var selfCast = false
 
 var changeKey = "":
 	set(value):
@@ -19,8 +19,10 @@ var changeKey = "":
 		var input_key = InputEventKey.new()
 		input_key.keycode = value.unicode_at(0)
 		
-		shortcut.events = [input_key]
-
+		var input_keyAuto = InputEventKey.new()
+		input_keyAuto.keycode = value.unicode_at(0)
+		input_keyAuto.alt_pressed = true
+		shortcut.events = [input_key, input_keyAuto]
 
 func _ready() -> void:
 	skillHander = get_tree().current_scene.get_node("SkillHandler")
@@ -35,6 +37,8 @@ func _process(_delta: float) -> void:
 	
 
 func _on_pressed() -> void:
+	selfCast = Input.is_key_pressed(KEY_ALT)
+		
 	if validateCast():
 		timer.start()
 		disabled = true
@@ -52,7 +56,10 @@ func castSkill() -> void:
 	var idPlayer = int(skillPlayer.name)
 	var idTarget = int(skillPlayer.charCurrentTarget.name) if skillPlayer.charCurrentTarget else 0
 
-	skillHander.loadSkillScene.rpc(path, idPlayer, idTarget)
+	if selfCast:
+		skillHander.loadSkillScene.rpc(path, idPlayer, idPlayer)
+	else:
+		skillHander.loadSkillScene.rpc(path, idPlayer, idTarget)
 
 func validateCast() -> bool:
 	if skillCast is AreaDamage:
@@ -60,5 +67,6 @@ func validateCast() -> bool:
 	
 	var idTarget = int(skillPlayer.charCurrentTarget.name) if skillPlayer.charCurrentTarget else 0
 	
-	return idTarget > 0 and skillPlayer.charCurrentMana >= skillCast.skillManaCost
+	
+	return (idTarget > 0 or selfCast) and skillPlayer.charCurrentMana >= skillCast.skillManaCost
 	
