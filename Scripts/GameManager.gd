@@ -1,7 +1,7 @@
 extends Node
 
 @export var player_scene: PackedScene = preload("res://Scenes/Characters/Heroes/Aurora.tscn")
-@export var player_scene2: PackedScene = preload("res://Scenes/Characters/Heroes/SirGura.tscn")
+@export var player_scene2: PackedScene = preload("res://Scenes/Characters/Heroes/Lulu.tscn")
 
 func _ready():
 	multiplayer.peer_connected.connect(on_peer_connected)

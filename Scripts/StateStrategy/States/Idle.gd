@@ -2,6 +2,8 @@ extends State
 class_name Idle
 
 
+func enter() -> void:
+	state_machine.animatedSprite.play("idle")
 
 func physics_process(_delta: float) -> void:
 	var input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")

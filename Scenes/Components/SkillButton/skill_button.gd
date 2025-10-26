@@ -34,11 +34,16 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	time.text = "%3.1f" % timer.time_left
 	progress_bar.value = timer.time_left
-	
+		
+	if skillCast.resetCoolDown:
+		skillCast.resetCoolDown = false
+		timer.timeout.emit()
+		progress_bar.value = 0
+		
 
 func _on_pressed() -> void:
 	selfCast = Input.is_key_pressed(KEY_ALT)
-		
+
 	if validateCast():
 		timer.start()
 		disabled = true
@@ -62,11 +67,10 @@ func castSkill() -> void:
 		skillHander.loadSkillScene.rpc(path, idPlayer, idTarget)
 
 func validateCast() -> bool:
-	if skillCast is AreaDamage:
+	if (skillCast is AreaDamage) or selfCast:
 		return skillPlayer.charCurrentMana >= skillCast.skillManaCost
 	
 	var idTarget = int(skillPlayer.charCurrentTarget.name) if skillPlayer.charCurrentTarget else 0
 	
-	
-	return (idTarget > 0 or selfCast) and skillPlayer.charCurrentMana >= skillCast.skillManaCost
+	return idTarget > 0 and skillPlayer.charCurrentMana >= skillCast.skillManaCost
 	

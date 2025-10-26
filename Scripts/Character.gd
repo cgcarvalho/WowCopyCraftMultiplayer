@@ -34,6 +34,7 @@ var charCritChance : float = Constants.DEFAULT_CRIT_CHANCE
 
 #Skills
 var skillList : Array[Skill] 
+var passiveSkill : PassiveSkill
 
 #Target
 var charCurrentTarget : Character
@@ -53,13 +54,17 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	
-	state_machine._physics_process(delta)
+	if state_machine:
+		state_machine._physics_process(delta)
+	
+	if passiveSkill:
+		passiveSkill.physics_process(delta)
 	
 	if charTotalMana > 0:
 		charCurrentMana += manaRegen * delta
 	
 	if charCurrentTarget:
-		$AnimatedSprite2D.flip_h = global_position.x > charCurrentTarget.global_position.x
+		$AnimatedSprite2D.flip_h = global_position.x < charCurrentTarget.global_position.x
 	
 	if charCurrentLife <= 0:
 		die()
@@ -110,4 +115,5 @@ func apply_crit(damage : int) -> int:
 	return newDamage
 
 func die() -> void:
-	visible = false
+	pass
+	#visible = false

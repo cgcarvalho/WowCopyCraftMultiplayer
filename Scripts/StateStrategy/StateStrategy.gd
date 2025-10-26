@@ -8,10 +8,10 @@ var mainScene : Node
 
 
 func _init(sprite : AnimatedSprite2D, player : Character, main : Node) -> void:
-	set_state(Idle.new())
 	animatedSprite = sprite
 	statePlayer = player
 	mainScene = main
+	set_state(Idle.new())
 
 func _physics_process(delta: float) -> void:
 	if current_state:

@@ -8,6 +8,8 @@ var projectileSpeed : int
 var targetCharacter : Character
 var casterCharacter : Character
 
+var resetCoolDown : bool = false
+
 #Basic Stats
 var skillName : String
 var skillCoolDownTime : float

@@ -6,7 +6,7 @@ const speed = 400
 
 
 func enter() -> void:
-	state_machine.animatedSprite.play()
+	state_machine.animatedSprite.play("walk")
 
 func physics_process(delta: float) -> void:
 	velocity = Vector2.ZERO 
@@ -25,8 +25,7 @@ func physics_process(delta: float) -> void:
 	
 	state_machine.statePlayer.position += velocity * delta
 	
-	var input_key = Input.get_vector("skill_1", "skill_2", "skill_3", "skill_4")
-	if input_key.length() > 0:
+	if Input.is_key_pressed(KEY_NUMBERSIGN):
 		state_machine.set_state(Cast.new())
 		
 	if velocity.length() == 0:

@@ -7,7 +7,7 @@ const iconFilePath : String = "res://Art/Skills/Shadowbolt Icon.png"
 
 const  speed = 500
 const  damage = 10
-const  coolDowntime = 1.5
+const  coolDowntime = 20#1.5
 const manaCost = 10
 
 func _init() -> void:

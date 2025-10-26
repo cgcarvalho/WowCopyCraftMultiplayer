@@ -2,6 +2,8 @@ extends Skill
 
 class_name DamageOverTime
 
+signal onDamage
+
 var skillBaseDamage : int
 var skillDotSeconds : int
 var timer = 0.0
@@ -21,10 +23,11 @@ func _physics_process(delta: float) -> void:
 	setSkillInicialPosition()
 	timer += delta
 	skillTimer += delta
-	
+
 	if timer >= 1.0 and skillTimer <= skillDotSeconds + 1:
 		targetCharacter.deal_damage(skillBaseDamage)
 		timer = 0.0 
+		onDamage.emit()
 	elif skillTimer >= skillDotSeconds:
 		queue_free()
 		
