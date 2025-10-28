@@ -793,12 +793,11 @@ properties/1/replication_mode = 1
 [node name="Aurora" type="Area2D"]
 scale = Vector2(0.5, 0.5)
 script = ExtResource("1_tvsvk")
-speed = null
 metadata/_edit_group_ = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_ww42m")
-animation = &"cast"
+animation = &"walk"
 flip_h = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

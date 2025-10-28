@@ -1,11 +1,11 @@
 class_name DotMaster
 extends PassiveSkill
 
-var procChance : float = 0.8
+var procChance : float = 0.05
 
 func _init(chararcater: Character) -> void:
 	casterCharacter = chararcater
-	getSKillDot()	
+
 
 func on_proc() -> void:
 	var chance = randf()
@@ -19,16 +19,3 @@ func on_proc() -> void:
 
 func physics_process(_delta: float) -> void:
 	pass
-
-
-func getSKillDot() -> void:
-	var list = casterCharacter.skillList.filter(func(element): return element is DamageOverTime)
-	if len(list) > 0:
-		for skill : DamageOverTime in list:
-			var ret = skill.onDamage.connect(on_proc)
-			var a = skill.onDamage.get_connections()
-			pass
-
-	
-	
-	

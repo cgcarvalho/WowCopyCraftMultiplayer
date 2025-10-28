@@ -31,6 +31,7 @@ var charShield : int = 0
 #Basic Stats
 var charName: String
 var charCritChance : float = Constants.DEFAULT_CRIT_CHANCE
+var lifeStealPercent : float = Constants.DEFAULT_LIFE_STEAL
 
 #Skills
 var skillList : Array[Skill] 
@@ -65,6 +66,7 @@ func _physics_process(delta: float) -> void:
 	
 	if charCurrentTarget:
 		$AnimatedSprite2D.flip_h = global_position.x < charCurrentTarget.global_position.x
+
 	
 	if charCurrentLife <= 0:
 		die()

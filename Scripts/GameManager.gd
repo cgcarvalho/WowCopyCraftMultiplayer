@@ -1,13 +1,13 @@
 extends Node
 
 @export var player_scene: PackedScene = preload("res://Scenes/Characters/Heroes/Aurora.tscn")
-@export var player_scene2: PackedScene = preload("res://Scenes/Characters/Heroes/Lulu.tscn")
+@export var player_scene2: PackedScene = preload("res://Scenes/Characters/Heroes/Charger.tscn")
 
 func _ready():
 	multiplayer.peer_connected.connect(on_peer_connected)
 	multiplayer.peer_disconnected.connect(on_peer_disconnected)
 	$MultiplayerSpawner.spawn_function = add_player
-	loadMap()
+	loadMainScreen()
 
 func become_host():
 	%MultiplayerHUD.hide()
@@ -30,7 +30,7 @@ func add_player(id: int):
 		
 	player_instance.name = str(id) 
 	player_instance.set_multiplayer_authority(id)
-	player_instance.z_index = 1
+	player_instance.z_index = Constants.PLAYER_Z_INDEX
 	
 	if id == 1:
 		player_instance.charTeam = Character.Teams.RED
@@ -56,3 +56,7 @@ func on_peer_disconnected(id: int):
 func loadMap():
 	var map = load("res://Scenes/Maps/MapForest.tscn").instantiate()
 	get_node_or_null("CurrentMap").add_child(map)
+	
+func loadMainScreen():
+	var map = load("res://Scenes/Components/MainScreen/MainScreen.tscn").instantiate()
+	get_node_or_null("CurrentMap").add_child(map)	

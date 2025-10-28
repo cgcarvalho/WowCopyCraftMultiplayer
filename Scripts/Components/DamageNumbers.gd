@@ -18,7 +18,7 @@ func create_number(value : int, position : Vector2, is_critical : bool, is_heal 
 	var number = Label.new()
 	number.global_position = position
 	number.text = str(value)
-	number.z_index = 5
+	number.z_index = Constants.DAMAGE_NUMBERS_Z_INDEX
 	number.label_settings = LabelSettings.new()
 	
 	var color = color_heal if is_heal else color_damage 

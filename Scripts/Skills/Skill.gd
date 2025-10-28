@@ -16,7 +16,7 @@ var skillCoolDownTime : float
 var skillManaCost : int = 0
 
 func _enter_tree() -> void:
-	z_index = 2
+	z_index = Constants.SKILL_Z_INDEX
 
 func physics_process(_delta: float) -> void:
 	pass
