@@ -1,62 +1,69 @@
 extends Node
 
-@export var player_scene: PackedScene = preload("res://Scenes/Characters/Heroes/Aurora.tscn")
-@export var player_scene2: PackedScene = preload("res://Scenes/Characters/Heroes/Charger.tscn")
+@onready var players: Node = %Players
+@onready var multiplayer_spawner: MultiplayerSpawner = %MultiplayerSpawner
+@onready var uiHanlder : UIHandler = UIHandler.new(self)
 
 func _ready():
-	multiplayer.peer_connected.connect(on_peer_connected)
 	multiplayer.peer_disconnected.connect(on_peer_disconnected)
-	$MultiplayerSpawner.spawn_function = add_player
-	loadMainScreen()
+	multiplayer_spawner.spawn_function = add_player
+	uiHanlder.changeScene(Constants.MAIN_SCREEN)
 
 func become_host():
 	%MultiplayerHUD.hide()
 	MultiplayerManager.become_host()
-	$MultiplayerSpawner.spawn(1)
+	loadCharSelectionScreen()
 	
 func join_game():
 	%MultiplayerHUD.hide()
 	MultiplayerManager.join_game()
+	loadCharSelectionScreen()
 
-func add_player(id: int):
-	var player_instance
+@rpc("any_peer", "call_local", "reliable")
+func add_player(spawn_data):
+	var id = spawn_data["id"]
+	var path = spawn_data["path"]
+	var player_instance = load(path).instantiate()
 	var listLen = MultiplayerManager.playerList.size()
-
-
-	if id == 1:
-		player_instance = player_scene.instantiate()
-	else:
-		player_instance = player_scene2.instantiate()
-		
+	
 	player_instance.name = str(id) 
 	player_instance.set_multiplayer_authority(id)
 	player_instance.z_index = Constants.PLAYER_Z_INDEX
 	
-	if id == 1:
-		player_instance.charTeam = Character.Teams.RED
-	else:
-		player_instance.charTeam = Character.Teams.BLUE
-	
 	MultiplayerManager.playerList[id] = player_instance
-	player_instance.global_position = %Players.get_child(listLen).global_position
-
-	return player_instance
-
-func on_peer_connected(id: int):
-	if multiplayer.is_server():
-		$MultiplayerSpawner.spawn(id)
+	player_instance.global_position = players.get_child(listLen).global_position
 	
+	if id != 1:
+		players.add_child(player_instance, true)
+	else:
+		return player_instance
+
 func on_peer_disconnected(id: int):
 	if multiplayer.is_server():
-		var player_node = $MultiplayerSpawner.get_node_for_peer(id)
+		var player_node = multiplayer_spawner.get_node_for_peer(id)
 		if player_node:
 			player_node.queue_free()
 
-
-func loadMap():
-	var map = load("res://Scenes/Maps/MapForest.tscn").instantiate()
-	get_node_or_null("CurrentMap").add_child(map)
 	
-func loadMainScreen():
-	var map = load("res://Scenes/Components/MainScreen/MainScreen.tscn").instantiate()
-	get_node_or_null("CurrentMap").add_child(map)	
+	
+	#map.connect("playerSelected", characterSelect)
+
+
+	
+func loadCharSelectionScreen() -> void:
+	var map = uiHanlder.changeScene(Constants.PLAYER_SELECT_SCREEN)
+	map.connect("playerSelected", characterSelect)
+
+	
+func characterSelect(character : Character) -> void:
+	var spawn_data = {
+			"id": multiplayer.get_unique_id(),
+			"path": character.scenePath
+		}
+	if multiplayer.is_server():
+		multiplayer_spawner.spawn(spawn_data)
+	else:
+		add_player.rpc(spawn_data)
+	
+	uiHanlder.changeScene(Constants.MAP_FOREST)
+	

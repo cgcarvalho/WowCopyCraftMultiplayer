@@ -1,5 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://dj3i217l0nuf2"]
+[gd_scene load_steps=3 format=3 uid="uid://dj3i217l0nuf2"]
 
+[ext_resource type="Script" uid="uid://gxey8goxabek" path="res://Scenes/Components/PlayerSelect/PlayerSelect.gd" id="1_sp8p2"]
 [ext_resource type="Texture2D" uid="uid://jajfkx7q6p5e" path="res://Art/UI/Char Select BG.png" id="1_yed2s"]
 
 [node name="PlayerSelect" type="Control"]
@@ -7,8 +8,17 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
+script = ExtResource("1_sp8p2")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 1376.0
+offset_bottom = 736.0
+scale = Vector2(0.838582, 0.878584)
+texture = ExtResource("1_yed2s")
 
 [node name="Panel" type="Panel" parent="."]
+z_index = 1
 layout_mode = 0
 offset_left = 176.0
 offset_top = 120.0
@@ -16,13 +26,8 @@ offset_right = 976.0
 offset_bottom = 520.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel"]
+z_index = 2
 layout_mode = 0
 offset_right = 800.0
 offset_bottom = 400.0
-
-[node name="TextureRect" type="TextureRect" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-scale = Vector2(0.838582, 0.878584)
-texture = ExtResource("1_yed2s")
+theme_override_constants/separation = 110

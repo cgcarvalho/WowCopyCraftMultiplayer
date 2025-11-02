@@ -8,6 +8,7 @@ var ui_handler: UIHandler
 var isCrit : bool = false
 @export var speed = 5.0
 var portraitImagePath : String
+var scenePath : String
 var charTeam : Teams
 
 #region Character Properties

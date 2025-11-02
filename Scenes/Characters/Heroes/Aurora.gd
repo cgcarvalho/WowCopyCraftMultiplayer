@@ -4,6 +4,7 @@ extends Character
 
 	
 var image_path = "res://Art/Chars/Aurora - Warlock/AuroraStand.png"
+var scene_path = "res://Scenes/Characters/Heroes/Aurora.tscn"
 	
 func _enter_tree() -> void:
 	charName = "Aurora"
@@ -13,6 +14,7 @@ func _enter_tree() -> void:
 	charCurrentMana = 100
 	manaRegen = 2.0
 	portraitImagePath = image_path
+	scenePath = scene_path
 	
 	addSkillsChar()
 	

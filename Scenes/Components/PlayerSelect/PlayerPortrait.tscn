@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://8me3h7n0nlce"]
+
+[ext_resource type="Texture2D" uid="uid://dxj88cv7uwseg" path="res://Art/UI/Char Frame.png" id="1_82pil"]
+[ext_resource type="Script" uid="uid://b37w3w4qn4ca0" path="res://Scenes/Components/PlayerSelect/PlayerPortrait.gd" id="1_tbwil"]
+
+[node name="PlayerPortrait" type="Control"]
+z_index = 5
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_tbwil")
+
+[node name="Character" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 101.0
+offset_bottom = 98.0
+expand_mode = 2
+
+[node name="Frame" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("1_82pil")
+
+[node name="Button" type="Button" parent="."]
+self_modulate = Color(1, 1, 1, 0.627451)
+z_index = 9
+z_as_relative = false
+layout_mode = 0
+offset_right = 98.0
+offset_bottom = 100.0
+
+[connection signal="mouse_entered" from="Button" to="." method="_on_button_mouse_entered"]
+[connection signal="mouse_exited" from="Button" to="." method="_on_button_mouse_exited"]
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

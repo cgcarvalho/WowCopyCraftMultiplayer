@@ -13,3 +13,8 @@ const DAMAGE_NUMBERS_Z_INDEX : int = 5
 const GRAVITY = 9.8
 const JUMP_FORCE = -400
 const POGO_FORCE = -600
+
+#Scenes
+const MAP_FOREST = "res://Scenes/Maps/MapForest.tscn"
+const MAIN_SCREEN = "res://Scenes/Components/MainScreen/MainScreen.tscn"
+const PLAYER_SELECT_SCREEN = "res://Scenes/Components/PlayerSelect/PlayerSelect.tscn"

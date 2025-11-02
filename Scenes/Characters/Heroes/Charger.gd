@@ -4,7 +4,8 @@ extends Character
 
 	
 var image_path = "res://Art/Chars/Charger/Charger.png"
-	
+var scene_path = "res://Scenes/Characters/Heroes/Charger.tscn"
+
 func _enter_tree() -> void:
 	charName = "Charger"
 	charTotalLife = 100
@@ -13,7 +14,8 @@ func _enter_tree() -> void:
 	charCurrentMana = 100
 	manaRegen = 2.0
 	portraitImagePath = image_path
-	
+	scenePath = scene_path
+
 	addSkillsChar()
 	
 

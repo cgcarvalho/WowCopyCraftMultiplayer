@@ -3,7 +3,8 @@ class_name SirGura
 extends Character
 
 var image_path = "res://Art/Chars/Sir Gura Targao/stand.png"
-	
+var scene_path = "res://Scenes/Characters/Heroes/SirGura.tscn"
+
 func _enter_tree() -> void:
 	charName = "Sir Gura"
 	charTotalLife = 100
@@ -12,7 +13,8 @@ func _enter_tree() -> void:
 	charTotalMana = 100
 	charCurrentMana = 100
 	manaRegen = 2.0
-	
+	scenePath = scene_path
+
 	addSkillsChar()
 	
 

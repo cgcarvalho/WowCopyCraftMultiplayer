@@ -3,7 +3,8 @@ class_name Lulu
 extends Character
 
 var image_path = "res://Art/Chars/Lulu - Hunter/Lulu Stand.png"
-	
+var scene_path = "res://Scenes/Characters/Heroes/Lulu.tscn"
+
 func _enter_tree() -> void:
 	charName = "Lulu"
 	charTotalLife = 100
@@ -12,7 +13,8 @@ func _enter_tree() -> void:
 	charTotalMana = 100
 	charCurrentMana = 100
 	manaRegen = 2.0
-	
+	scenePath = scene_path
+
 	addSkillsChar()
 	
 
