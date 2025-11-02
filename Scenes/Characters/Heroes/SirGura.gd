@@ -14,6 +14,8 @@ func _enter_tree() -> void:
 	charCurrentMana = 100
 	manaRegen = 2.0
 	scenePath = scene_path
+	charBaseDamage = 5
+	charRange = Constants.DEFAULT_RANGE_MELEE
 
 	addSkillsChar()
 	

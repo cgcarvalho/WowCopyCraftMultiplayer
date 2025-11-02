@@ -31,8 +31,10 @@ var charShield : int = 0
 
 #Basic Stats
 var charName: String
+var charBaseDamage : int
 var charCritChance : float = Constants.DEFAULT_CRIT_CHANCE
-var lifeStealPercent : float = Constants.DEFAULT_LIFE_STEAL
+var charLifeStealPercent : float = Constants.DEFAULT_LIFE_STEAL
+var charRange : float
 
 #Skills
 var skillList : Array[Skill] 
@@ -67,7 +69,6 @@ func _physics_process(delta: float) -> void:
 	
 	if charCurrentTarget:
 		$AnimatedSprite2D.flip_h = global_position.x < charCurrentTarget.global_position.x
-
 	
 	if charCurrentLife <= 0:
 		die()
@@ -82,10 +83,10 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 				localPlayer.charCurrentTarget = self
 				ui_handler.showTargetHPBar(self, localPlayer == self)
 				
-		if event.button_index == MOUSE_BUTTON_RIGHT:
-			if event.pressed:
-				ui_handler.hideTargetHPBar()
-				localPlayer.charCurrentTarget = null
+		#if event.button_index == MOUSE_BUTTON_RIGHT:
+		#	if event.pressed:
+		#		ui_handler.hideTargetHPBar()
+		#		localPlayer.charCurrentTarget = null
 
 func deal_damage(damage : int) -> void:
 	damage = apply_crit(damage)

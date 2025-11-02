@@ -550,7 +550,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"auto_attack",
-"speed": 5.0
+"speed": 35.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -780,7 +780,7 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sweqy"]
-size = Vector2(580, 783.333)
+size = Vector2(382, 444)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_r658b"]
 properties/0/path = NodePath(".:position")
@@ -799,9 +799,10 @@ metadata/_edit_group_ = true
 position = Vector2(-180, 35)
 sprite_frames = SubResource("SpriteFrames_hqtel")
 animation = &"auto_attack"
+frame_progress = 0.0891029
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(15, 11.6666)
+position = Vector2(-171, 36)
 shape = SubResource("RectangleShape2D_sweqy")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

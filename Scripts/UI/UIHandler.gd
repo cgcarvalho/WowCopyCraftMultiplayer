@@ -36,7 +36,6 @@ func createSkillBar() -> void:
 func createBuffs(skill : Skill) -> void:
 	buffList.createBuff(skill)
 
-
 func changeScene(path : String) -> Node:
 	var map = mainNode.get_node("CurrentMap")
 	if map.get_child_count() > 0:

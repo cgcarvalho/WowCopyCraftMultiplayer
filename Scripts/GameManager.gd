@@ -47,13 +47,10 @@ func on_peer_disconnected(id: int):
 	
 	
 	#map.connect("playerSelected", characterSelect)
-
-
 	
 func loadCharSelectionScreen() -> void:
 	var map = uiHanlder.changeScene(Constants.PLAYER_SELECT_SCREEN)
 	map.connect("playerSelected", characterSelect)
-
 	
 func characterSelect(character : Character) -> void:
 	var spawn_data = {
