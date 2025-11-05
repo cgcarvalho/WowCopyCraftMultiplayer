@@ -3,6 +3,7 @@ class_name Cast
 
 func enter() -> void:
 	state_machine.animatedSprite.play("cast")
+	
 
 	
 func physics_process(_delta: float) -> void:

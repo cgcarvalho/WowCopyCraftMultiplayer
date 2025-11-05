@@ -5,10 +5,11 @@ extends DirectDamage
 const filePath : String = "res://Scenes/Skills/ShadowBolt/Shadow_bolt.tscn"
 const iconFilePath : String = "res://Art/Skills/Shadowbolt Icon.png"
 
-const  speed = 500
-const  damage = 10
-const  coolDowntime = 20#1.5
+const speed = 500
+const damage = 10
+const coolDowntime = 20
 const manaCost = 10
+const castTime = 1
 
 func _init() -> void:
 	skillScenePath = filePath
@@ -17,3 +18,4 @@ func _init() -> void:
 	skillCoolDownTime = coolDowntime
 	skillManaCost = manaCost
 	skillName = "Shadow Bolt"
+	skillCastTime = castTime

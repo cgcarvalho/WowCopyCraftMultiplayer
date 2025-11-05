@@ -1,5 +1,7 @@
 extends TextureButton
 
+@onready var player_cast_bar: Control = $"../../../../PlayerCastBar"
+@onready var target_cast_bar: Control = $"../../../../TargetCastBar"
 @onready var progress_bar: TextureProgressBar = $TextureProgressBar
 @onready var timer: Timer = $Timer
 @onready var time: Label = $Time
@@ -61,6 +63,15 @@ func castSkill() -> void:
 	var idPlayer = int(skillPlayer.name)
 	var idTarget = int(skillPlayer.charCurrentTarget.name) if skillPlayer.charCurrentTarget else 0
 
+
+	if skillCast.skillCastTime > 0:
+		if not skillCast.resetCastTime:
+			skillHander.castBar(skillCast.skillName, skillCast.skillCastTime)
+			await player_cast_bar.castEnd
+		else:
+			skillCast.resetCastTime = false
+			
+			
 	if selfCast:
 		skillHander.loadSkillScene.rpc(path, idPlayer, idPlayer)
 	else:

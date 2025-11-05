@@ -9,11 +9,13 @@ var targetCharacter : Character
 var casterCharacter : Character
 
 var resetCoolDown : bool = false
+var resetCastTime : bool = false
 
 #Basic Stats
 var skillName : String
 var skillCoolDownTime : float
 var skillManaCost : int = 0
+var skillCastTime : float = 0
 
 func _enter_tree() -> void:
 	z_index = Constants.SKILL_Z_INDEX

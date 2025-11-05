@@ -13,8 +13,9 @@ func on_proc() -> void:
 	if procChance >= chance:
 		var list = casterCharacter.skillList.filter(func(element): return element is ShadowBolt)
 		if len(list) > 0:
-			var skill = list[0]
+			var skill : Skill = list[0]
 			skill.resetCoolDown = true
+			skill.resetCastTime = true
 
 
 func physics_process(_delta: float) -> void:

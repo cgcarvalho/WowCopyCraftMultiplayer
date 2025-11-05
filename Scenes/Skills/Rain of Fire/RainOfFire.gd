@@ -8,6 +8,7 @@ const duration = 10
 const coolDowntime = 30
 const manaCost = 20
 const damage = 5
+const castTime = 0
 
 func _init() -> void:
 	skillScenePath = filePath
@@ -16,3 +17,4 @@ func _init() -> void:
 	skillBaseDamage = damage
 	skillManaCost = manaCost
 	skillName = "Rain of Fire"
+	skillCastTime = castTime

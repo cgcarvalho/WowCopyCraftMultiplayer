@@ -1,6 +1,9 @@
 
 
 class_name SKillHandler extends Node
+@onready var player_cast_bar: Control = $"../PlayerCastBar"
+@onready var target_cast_bar: Control = $"../TargetCastBar"
+
 
 @rpc("any_peer", "call_local")
 func loadSkillScene(filePath : String, idCasterChar : int, idTargetChar : int) -> void:
@@ -11,9 +14,10 @@ func loadSkillScene(filePath : String, idCasterChar : int, idTargetChar : int) -
 	caster_player.charCurrentMana -= loadSkill.skillManaCost
 	
 	checkPassive(loadSkill, caster_player)
-
+	
 	get_parent().add_child(loadSkill)
 	loadSkill.cast(caster_player, target_player)
+	
 
 
 func checkPassive(skill : Skill, caster : Character) -> void:
@@ -22,3 +26,7 @@ func checkPassive(skill : Skill, caster : Character) -> void:
 			skill.onDamage.connect(caster.passiveSkill.on_proc)
 		
 		
+func castBar(skillName : String, castTime : float) -> void:
+	player_cast_bar.start_cast(skillName, castTime) 
+	target_cast_bar.start_cast(skillName, castTime) 
+	

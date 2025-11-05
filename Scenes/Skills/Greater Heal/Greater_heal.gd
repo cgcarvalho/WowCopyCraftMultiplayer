@@ -8,6 +8,7 @@ const iconFilePath : String = "res://Art/Skills/Heal icon.png"
 const  heal = 20
 const coolDowntime = 10
 const manaCost = 20
+const castTime = 2
 
 func _init() -> void:
 	skillScenePath = filePath
@@ -15,3 +16,4 @@ func _init() -> void:
 	skillCoolDownTime = coolDowntime
 	skillManaCost = manaCost
 	skillName = "Greater Heal"
+	skillCastTime = castTime

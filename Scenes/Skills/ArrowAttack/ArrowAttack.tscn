@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://cd8wmm8utfrce"]
+
+[ext_resource type="Texture2D" uid="uid://bwhsvfoe6pu4t" path="res://Art/Skills/Arrow.png" id="1_pbwdb"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_n5qr4"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_pbwdb")
+}],
+"loop": true,
+"name": &"auto_attack",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_k205w"]
+size = Vector2(757, 85)
+
+[node name="ArrowAttack" type="Area2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_n5qr4")
+animation = &"auto_attack"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-17.5, 0.5)
+shape = SubResource("RectangleShape2D_k205w")
