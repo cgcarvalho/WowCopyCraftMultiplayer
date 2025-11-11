@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://cd8wmm8utfrce"]
+[gd_scene load_steps=5 format=3 uid="uid://cd8wmm8utfrce"]
 
+[ext_resource type="Script" uid="uid://darbwvjg4ldyw" path="res://Scenes/Skills/ArrowAttack/ArrowAttack.gd" id="1_n5qr4"]
 [ext_resource type="Texture2D" uid="uid://bwhsvfoe6pu4t" path="res://Art/Skills/Arrow.png" id="1_pbwdb"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_n5qr4"]
@@ -17,6 +18,7 @@ animations = [{
 size = Vector2(757, 85)
 
 [node name="ArrowAttack" type="Area2D"]
+script = ExtResource("1_n5qr4")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_n5qr4")

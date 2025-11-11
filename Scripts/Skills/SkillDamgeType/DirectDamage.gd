@@ -17,6 +17,38 @@ func setSkillInicialPosition() -> void:
 func _physics_process(delta: float) -> void:
 	global_position = global_position.move_toward(targetCharacter.global_position, delta * projectileSpeed)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	animatedSprite.flip_h = global_position.x > targetCharacter.global_position.x
 			
 	if global_position.is_equal_approx(targetCharacter.global_position):
