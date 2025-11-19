@@ -38,6 +38,8 @@ var charRange : float
 
 #Skills
 var skillList : Array[Skill] 
+var buffList : Array[Skill]
+var debuffList : Array[Skill]
 var passiveSkill : PassiveSkill
 
 #Target

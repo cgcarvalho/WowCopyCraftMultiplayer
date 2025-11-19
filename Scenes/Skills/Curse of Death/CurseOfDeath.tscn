@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3 uid="uid://b04tl5dd1tin"]
+
+[ext_resource type="Texture2D" uid="uid://cyewpp4dpi6w1" path="res://Art/Skills/Curse of Death.png" id="1_boboi"]
+[ext_resource type="Script" uid="uid://cxpnnvxxodu80" path="res://Scenes/Skills/Curse of Death/CurseOfDeath.gd" id="1_m0vtp"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_m0vtp"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_boboi")
+}],
+"loop": true,
+"name": &"Curse of Death",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boboi"]
+size = Vector2(374, 514)
+
+[node name="CurseOfDeath" type="Area2D"]
+scale = Vector2(0.1, 0.1)
+script = ExtResource("1_m0vtp")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_m0vtp")
+animation = &"Curse of Death"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(2, 5)
+shape = SubResource("RectangleShape2D_boboi")

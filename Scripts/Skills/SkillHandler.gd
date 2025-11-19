@@ -15,8 +15,13 @@ func loadSkillScene(filePath : String, idCasterChar : int, idTargetChar : int) -
 	
 	checkPassive(loadSkill, caster_player)
 	
-	get_parent().add_child(loadSkill)
-	loadSkill.cast(caster_player, target_player)
+	var listSkill = target_player.debuffList.filter(func(n): return typeof(n) == typeof(loadSkill))
+	if len(listSkill) > 0:
+		var skill : DamageOverTime  = listSkill[0]
+		skill.renewDot()
+	else:
+		get_parent().add_child(loadSkill)
+		loadSkill.cast(caster_player, target_player)
 	
 
 

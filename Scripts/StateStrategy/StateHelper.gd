@@ -53,7 +53,6 @@ static func checkRange(state_machine : StateStrategy) -> void:
 		if not state_machine.animatedSprite.flip_h:
 			distance -= 200
 		
-		print(distance)
 		if distance <= player.charRange:
 			state_machine.animatedSprite.play("auto_attack")
 		else:

@@ -10,7 +10,7 @@ var cast_time = 2.0
 func _ready():
 	cast_bar.hide()
 
-func start_cast(skill_name: String, duration: float):
+func start_cast(_skill_name: String, duration: float):
 	if is_casting:
 		return
 
