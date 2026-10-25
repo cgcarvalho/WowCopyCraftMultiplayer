@@ -39,7 +39,8 @@ func _process(_delta: float) -> void:
 		
 	if skillCast.resetCoolDown:
 		skillCast.resetCoolDown = false
-		timer.timeout.emit()
+		timer.stop()
+		_on_timer_timeout()
 		progress_bar.value = 0
 		
 
@@ -67,15 +68,15 @@ func castSkill() -> void:
 	if skillCast.skillCastTime > 0:
 		if not skillCast.resetCastTime:
 			skillHander.castBar(skillCast.skillName, skillCast.skillCastTime)
-			await player_cast_bar.castEnd
+
 		else:
 			skillCast.resetCastTime = false
 			
 			
 	if selfCast:
-		skillHander.loadSkillScene.rpc(path, idPlayer, idPlayer)
+		skillHander.loadSkillScene.rpc_id(1, path, idPlayer, idPlayer)
 	else:
-		skillHander.loadSkillScene.rpc(path, idPlayer, idTarget)
+		skillHander.loadSkillScene.rpc_id(1, path, idPlayer, idTarget)
 
 func validateCast() -> bool:
 	if (skillCast is AreaDamage) or selfCast:
@@ -85,3 +86,4 @@ func validateCast() -> bool:
 	
 	return idTarget > 0 and skillPlayer.charCurrentMana >= skillCast.skillManaCost
 	
+

@@ -16,7 +16,12 @@ func on_proc() -> void:
 			var skill : Skill = list[0]
 			skill.resetCoolDown = true
 			skill.resetCastTime = true
+			var owner_id = int(casterCharacter.name)
+			casterCharacter.get_tree().current_scene.get_node("SkillHandler").proc_ready[owner_id] = skill.skillScenePath
+			if owner_id != 1:
+				casterCharacter.get_tree().current_scene.get_node("SkillHandler").reset_skill.rpc_id(owner_id, skill.skillScenePath, owner_id)
 
 
 func physics_process(_delta: float) -> void:
 	pass
+

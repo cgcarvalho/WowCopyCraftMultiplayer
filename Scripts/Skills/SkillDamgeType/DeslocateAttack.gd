@@ -20,9 +20,13 @@ func setSkillInicialPosition() -> void:
 		
 
 func _physics_process(delta: float) -> void:
+	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
+		queue_free()
+		return
 	setSkillInicialPosition()
 	
-	casterCharacter.global_position = casterCharacter.global_position.move_toward(targetCharacter.global_position, delta * deslocateSpeed)
+	if casterCharacter.is_multiplayer_authority():
+		casterCharacter.global_position = casterCharacter.global_position.move_toward(targetCharacter.global_position, delta * deslocateSpeed)
 			
 	if casterCharacter.global_position.is_equal_approx(targetCharacter.global_position):
 		targetCharacter.deal_damage(skillBaseDamage)
@@ -36,3 +40,4 @@ func _area_entered(body : Area2D) -> void:
 func _area_exited(body : Area2D) -> void:
 	if body.has_method("deal_damage"):
 		playersInArea.erase(body)	
+

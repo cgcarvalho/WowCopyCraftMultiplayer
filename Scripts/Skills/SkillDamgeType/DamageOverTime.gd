@@ -38,6 +38,9 @@ func setSkillInicialPosition() -> void:
 		
 
 func _physics_process(delta: float) -> void:
+	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
+		queue_free()
+		return
 	setSkillInicialPosition()
 	timer += delta
 	skillTimer += delta
@@ -53,3 +56,4 @@ func _physics_process(delta: float) -> void:
 		
 func renewDot() -> void:
 	skillTimer = 0.0		
+

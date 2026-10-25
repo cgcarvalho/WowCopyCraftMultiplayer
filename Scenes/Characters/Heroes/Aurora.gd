@@ -7,6 +7,7 @@ var image_path = "res://Art/Chars/Aurora - Warlock/AuroraStand.png"
 var scene_path = "res://Scenes/Characters/Heroes/Aurora.tscn"
 	
 func _enter_tree() -> void:
+	super._enter_tree()
 	charName = "Aurora"
 	charTotalLife = 100
 	charCurrentLife = 100
@@ -25,3 +26,4 @@ func addSkillsChar() -> void:
 	skillList.append(CurseOfDeath.new())
 	
 	passiveSkill = DotMaster.new(self)
+

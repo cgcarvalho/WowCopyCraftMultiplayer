@@ -7,6 +7,7 @@ var image_path = "res://Art/Chars/Charger/Charger.png"
 var scene_path = "res://Scenes/Characters/Heroes/Charger.tscn"
 
 func _enter_tree() -> void:
+	super._enter_tree()
 	charName = "Charger"
 	charTotalLife = 100
 	charCurrentLife = 100
@@ -23,3 +24,4 @@ func addSkillsChar() -> void:
 	skillList.append(Consecration.new())
 	skillList.append(GreaterHeal.new())
 	
+
