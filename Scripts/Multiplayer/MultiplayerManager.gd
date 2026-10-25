@@ -3,6 +3,11 @@ extends Node
 const SERVER_PORT = 8080
 const MAX_PLAYERS = 4
 var playerList: Dictionary[int, Character]
+var enemies: Dictionary[int, Character]
+
+func get_character(id: int) -> Character:
+	return playerList.get(id) if id > 0 else enemies.get(id)
+
 
 func become_host() -> Error:
 	var peer = ENetMultiplayerPeer.new()
@@ -24,3 +29,4 @@ func reset_session() -> void:
 	multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	playerList.clear()
+	enemies.clear()

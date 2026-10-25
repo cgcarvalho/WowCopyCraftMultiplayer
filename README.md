@@ -36,4 +36,45 @@ Teste também um endereço indisponível e uma porta já ocupada.
 O servidor valida a identidade de quem lança, o conjunto de habilidades,
 mana, cooldown e tempo de conjuração, e replica os atributos de combate.
 O movimento continua sob autoridade do cliente; não há proteção completa
-contra adulteração de posição. Equipes, vitória e respawn ainda não estão implementados.
+contra adulteração de posição. Respawn e reinício de encontro ainda não estão implementados.
+
+## Primeiro boss: Jefferson Wizard
+
+Ao selecionar o primeiro personagem, o encontro começa automaticamente.
+Jefferson tem **300 HP**, escolhe o jogador vivo mais próximo, persegue e causa
+**8 de dano corpo a corpo**, com intervalo de **1,6 segundo** entre ataques.
+
+A cada **6 segundos** (após uma abertura de 3 segundos), ele marca um círculo
+na posição de um jogador. O círculo fica **fixo** por **2 segundos**; saia dele
+antes da detonação para evitar **25 de dano**. O boss para de andar durante o aviso.
+O dano considera a posição do personagem, não a extensão da imagem.
+
+Clique no boss para selecioná-lo. Habilidades de dano e ataques básicos podem
+atingi-lo; cura e escudo são para aliados. Áreas dos jogadores não atingem aliados.
+A barra superior mostra a vida do boss e o tempo restante do aviso.
+
+A luta termina com **vitória** ao zerar a vida do boss ou **derrota** quando não
+há jogadores vivos. Avisos e habilidades pendentes são cancelados. Para outra
+tentativa, reinicie a sessão. Ainda não há fases, loot, aggro por ameaça ou respawn.
+O servidor controla a IA, as posições dos avisos e os danos; clientes recebem o
+estado do encontro, inclusive ao entrar com a luta em andamento.
+
+### Testes do boss
+
+```sh
+godot --headless --path . res://tests/boss_fight.tscn
+```
+
+Para testar replicação real, execute em dois terminais (porta UDP 18081):
+
+```sh
+# Terminal 1
+godot --headless --path . res://tests/boss_network.tscn -- --server
+# Terminal 2, após aparecer NETWORK_SERVER_READY
+godot --headless --path . res://tests/boss_network.tscn -- --client
+```
+
+Os processos encerram automaticamente. Os logs devem mostrar
+`NETWORK_CLIENT_PASS` e `NETWORK_SERVER_PASS`. Este teste cobre entrada tardia,
+vida/posição/aviso do boss, ataque com identidade adulterada, habilidade do cliente,
+vitória e desconexão.

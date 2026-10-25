@@ -799,13 +799,13 @@ script = ExtResource("1_i3pqv")
 metadata/_edit_group_ = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-position = Vector2(-180, 35)
+position = Vector2(0, 0)
 sprite_frames = SubResource("SpriteFrames_hqtel")
 animation = &"auto_attack"
 frame_progress = 0.0891029
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-171, 36)
+position = Vector2(0, 0)
 shape = SubResource("RectangleShape2D_sweqy")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

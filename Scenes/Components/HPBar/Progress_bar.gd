@@ -4,10 +4,11 @@ var targetPlayer : Character
 var targetSelf : bool
 
 func _process(_delta: float) -> void:
-	if targetPlayer:
+	if is_instance_valid(targetPlayer):
 		$HPBar.max_value = targetPlayer.charTotalLife
 		$HPBar.value = targetPlayer.charCurrentLife
 		if targetPlayer.charTotalMana > 0:
+			$ManaBar.visible = true
 			$ManaBar.max_value = targetPlayer.charTotalMana
 			$ManaBar.value = targetPlayer.charCurrentMana
 		else:

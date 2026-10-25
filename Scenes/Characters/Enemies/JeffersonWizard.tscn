@@ -15,16 +15,17 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_26s5a"]
-size = Vector2(786.667, 920)
+size = Vector2(96, 120)
 
-[node name="Jefferson - Wizard" type="Area2D"]
+[node name="-1" type="Area2D"]
 collision_layer = 2
 script = ExtResource("1_rdow1")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.16, 0.16)
 sprite_frames = SubResource("SpriteFrames_cepvb")
 animation = &"walk"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-16.6667, 36.6667)
+position = Vector2(0, 0)
 shape = SubResource("RectangleShape2D_26s5a")

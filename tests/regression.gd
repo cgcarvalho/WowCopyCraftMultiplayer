@@ -43,17 +43,19 @@ func run() -> void:
 	check(caster.charCurrentMana == mana, "Reject spoofed caster")
 	handler.loadSkillScene("res://Scenes/Skills/Corruption/Corruption.tscn", 1, 999)
 	check(caster.charCurrentMana == mana, "Reject missing target")
+	var enemy: Character = MultiplayerManager.enemies.get(-1)
+	check(is_instance_valid(enemy), "Boss registered as combat target")
 	var dot_path = "res://Scenes/Skills/Corruption/Corruption.tscn"
-	handler.loadSkillScene(dot_path, 1, 1)
-	check(caster.debuffList.size() == 1, "First DoT applied")
+	handler.loadSkillScene(dot_path, 1, -1)
+	check(enemy.debuffList.size() == 1, "First DoT applied")
 	mana = caster.charCurrentMana
-	handler.loadSkillScene(dot_path, 1, 1)
+	handler.loadSkillScene(dot_path, 1, -1)
 	check(caster.charCurrentMana == mana, "Server rejects cooldown bypass")
-	var dot = caster.debuffList[0]
+	var dot = enemy.debuffList[0]
 	dot.skillTimer = 5
 	handler.cooldowns.clear()
-	handler.loadSkillScene(dot_path, 1, 1)
-	check(caster.debuffList.size() == 1 and dot.skillTimer == 0, "Recast renews matching DoT")
+	handler.loadSkillScene(dot_path, 1, -1)
+	check(enemy.debuffList.size() == 1 and dot.skillTimer == 0, "Recast renews matching DoT")
 	handler.loadSkillScene("res://Scenes/Skills/Holy Shield/HolyShield.tscn", 1, 1)
 	check(caster.charShield == 20, "Shield works while a DoT is active")
 	mana = caster.charCurrentMana
@@ -61,7 +63,7 @@ func run() -> void:
 	check(caster.charCurrentMana == mana - 20, "Area skill without target uses caster")
 	caster.charCurrentMana = 0
 	handler.cooldowns.clear()
-	handler.loadSkillScene(dot_path, 1, 1)
+	handler.loadSkillScene(dot_path, 1, -1)
 	check(caster.charCurrentMana == 0, "Insufficient mana rejected")
 	main.request_player("res://Scenes/Characters/Heroes/Aurora.tscn")
 	check(MultiplayerManager.playerList.size() == 1, "Duplicate spawn rejected")
@@ -74,4 +76,5 @@ func run() -> void:
 	get_tree().current_scene = self
 	main.queue_free()
 	await get_tree().process_frame
+	await get_tree().create_timer(1.0).timeout
 	get_tree().quit(1 if failures else 0)
