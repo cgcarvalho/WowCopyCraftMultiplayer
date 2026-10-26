@@ -15,6 +15,9 @@ func setSkillInicialPosition() -> void:
 		
 
 func _physics_process(delta: float) -> void:
+	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
+		queue_free()
+		return
 	global_position = global_position.move_toward(targetCharacter.global_position, delta * projectileSpeed)
 
 
@@ -54,3 +57,4 @@ func _physics_process(delta: float) -> void:
 	if global_position.is_equal_approx(targetCharacter.global_position):
 		queue_free()
 		targetCharacter.deal_damage(skillBaseDamage)
+

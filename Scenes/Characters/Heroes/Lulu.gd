@@ -6,6 +6,7 @@ var image_path = "res://Art/Chars/Lulu - Hunter/Lulu Stand.png"
 var scene_path = "res://Scenes/Characters/Heroes/Lulu.tscn"
 
 func _enter_tree() -> void:
+	super._enter_tree()
 	charName = "Lulu"
 	charTotalLife = 100
 	charCurrentLife = 100
@@ -26,3 +27,4 @@ func addSkillsChar() -> void:
 	skillList.append(GreaterHeal.new())
 	skillList.append(HolyShield.new())
 	skillList.append(RainOfFire.new())
+

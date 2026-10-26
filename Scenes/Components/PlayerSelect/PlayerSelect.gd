@@ -26,3 +26,9 @@ func loadCharList() -> void:
 
 func playerPortraitSelected(character : Character) -> void:
 	playerSelected.emit(character)
+
+
+func _exit_tree() -> void:
+	for character in charList:
+		if is_instance_valid(character):
+			character.free()

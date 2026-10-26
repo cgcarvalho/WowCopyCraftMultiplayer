@@ -1,17 +1,26 @@
 extends Node
 
 const SERVER_PORT = 8080
-const SERVER_IP = "192.168.50.60"
+const MAX_PLAYERS = 4
+var playerList: Dictionary[int, Character]
 
-var playerList : Dictionary[int, Character]
+func become_host() -> Error:
+	var peer = ENetMultiplayerPeer.new()
+	var error = peer.create_server(SERVER_PORT, MAX_PLAYERS - 1)
+	if error == OK:
+		multiplayer.multiplayer_peer = peer
+	return error
 
-func become_host():
-	var server_peer = ENetMultiplayerPeer.new()
-	server_peer.create_server(SERVER_PORT)
-	multiplayer.multiplayer_peer = server_peer
-	
-	
-func join_game():
-	var client_peer = ENetMultiplayerPeer.new()
-	client_peer.create_client(SERVER_IP, SERVER_PORT)
-	multiplayer.multiplayer_peer = client_peer
+func join_game(address: String) -> Error:
+	if address.strip_edges().is_empty():
+		return ERR_INVALID_PARAMETER
+	var peer = ENetMultiplayerPeer.new()
+	var error = peer.create_client(address.strip_edges(), SERVER_PORT)
+	if error == OK:
+		multiplayer.multiplayer_peer = peer
+	return error
+
+func reset_session() -> void:
+	multiplayer.multiplayer_peer.close()
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	playerList.clear()

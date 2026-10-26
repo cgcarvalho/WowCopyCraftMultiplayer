@@ -20,6 +20,9 @@ func setSkillInicialPosition() -> void:
 		
 
 func _physics_process(delta: float) -> void:
+	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
+		queue_free()
+		return
 	
 	timer += delta
 	skillTimer += delta
@@ -38,3 +41,4 @@ func _area_entered(body : Area2D) -> void:
 func _area_exited(body : Area2D) -> void:
 	if body.has_method("deal_damage"):
 		playersInArea.erase(body)	
+

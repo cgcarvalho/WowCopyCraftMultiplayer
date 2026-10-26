@@ -47,6 +47,20 @@ var charCurrentTarget : Character
 
 #endregion
 
+func _enter_tree() -> void:
+	if not is_inside_tree():
+		return
+	var config = SceneReplicationConfig.new()
+	for property in ["charCurrentLife", "charCurrentMana", "charShield"]:
+		var path = NodePath(".:" + property)
+		config.add_property(path)
+		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
+	var sync = MultiplayerSynchronizer.new()
+	sync.name = "CombatSynchronizer"
+	sync.replication_config = config
+	sync.set_multiplayer_authority(1)
+	add_child(sync)
+
 func _ready() -> void:
 	var main = get_parent().get_parent()
 	state_machine = StateStrategy.new($AnimatedSprite2D, self, main)
@@ -58,18 +72,18 @@ func _ready() -> void:
 
 	
 func _physics_process(delta: float) -> void:
+	if multiplayer.is_server():
+		if passiveSkill:
+			passiveSkill.physics_process(delta)
+		if charTotalMana > 0:
+			charCurrentMana += manaRegen * delta
 	if not is_multiplayer_authority(): return
 	
 	if state_machine:
 		state_machine._physics_process(delta)
 	
-	if passiveSkill:
-		passiveSkill.physics_process(delta)
 	
-	if charTotalMana > 0:
-		charCurrentMana += manaRegen * delta
-	
-	if charCurrentTarget:
+	if is_instance_valid(charCurrentTarget):
 		$AnimatedSprite2D.flip_h = global_position.x < charCurrentTarget.global_position.x
 	
 	if charCurrentLife <= 0:
@@ -80,6 +94,8 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 	if event is InputEventMouseButton:
 		var localPlayer : Character = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
 		
+		if not is_instance_valid(localPlayer):
+			return
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				localPlayer.charCurrentTarget = self
@@ -91,23 +107,26 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		#		localPlayer.charCurrentTarget = null
 
 func deal_damage(damage : int) -> void:
+	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0:
+		return
 	damage = apply_crit(damage)
-	
-	if charShield - damage < 0:
-		charShield = 0
-		damage = damage - charShield
-		charCurrentLife -= damage
-		DamageNumbers.display_number(damage, global_position, isCrit)
-	else:
-		charShield -= damage
+	var absorbed = mini(charShield, damage)
+	charShield -= absorbed
+	damage -= absorbed
+	charCurrentLife -= damage
+	DamageNumbers.display_number(damage, global_position, isCrit)
 		
 	
 
 func apply_heal(heal : int) -> void:
+	if not multiplayer.is_server():
+		return
 	charCurrentLife += heal
 	DamageNumbers.display_number(heal, global_position, isCrit, true)	
 
 func apply_shield(shield : int) -> void:
+	if not multiplayer.is_server():
+		return
 	charShield = shield
 
 func apply_crit(damage : int) -> int:
@@ -121,5 +140,20 @@ func apply_crit(damage : int) -> int:
 	return newDamage
 
 func die() -> void:
-	pass
+	set_physics_process(false)
 	#visible = false
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		for skill in skillList:
+			if is_instance_valid(skill) and not skill.is_inside_tree():
+				skill.free()
+		if is_instance_valid(passiveSkill):
+			passiveSkill.free()
+		if is_instance_valid(state_machine):
+			if is_instance_valid(state_machine.current_state):
+				state_machine.current_state.free()
+			state_machine.free()
+		if is_instance_valid(ui_handler):
+			ui_handler.free()

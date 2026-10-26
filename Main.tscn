@@ -104,14 +104,27 @@ offset_bottom = 33.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="ServerAddress" type="LineEdit" parent="MultiplayerHUD/Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "127.0.0.1"
+placeholder_text = "IP ou hostname do servidor"
+
+[node name="ConnectionStatus" type="Label" parent="MultiplayerHUD/Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="Host" type="Button" parent="MultiplayerHUD/Panel/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Host Game"
 
 [node name="Join" type="Button" parent="MultiplayerHUD/Panel/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 8
 text = "Join Game"
 
 [connection signal="pressed" from="MultiplayerHUD/Panel/VBoxContainer/Host" to="." method="become_host"]
 [connection signal="pressed" from="MultiplayerHUD/Panel/VBoxContainer/Join" to="." method="join_game"]
+

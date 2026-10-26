@@ -21,11 +21,15 @@ func setSkillInicialPosition() -> void:
 	
 
 func _physics_process(_delta: float) -> void:
+	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
+		queue_free()
+		return
 	setSkillInicialPosition()
 	
-	if targetCharacter.charShield <= 0:
+	if multiplayer.is_server() and targetCharacter.charShield <= 0:
 		endShield()
 	
 
 func endShield() -> void:
 	queue_free()
+

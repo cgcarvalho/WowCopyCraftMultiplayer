@@ -47,13 +47,11 @@ static func checkAnimationPlaying(state_machine : StateStrategy) -> void:
 static func checkRange(state_machine : StateStrategy) -> void:
 	var player = state_machine.statePlayer
 	var target = state_machine.statePlayer.charCurrentTarget
-	if target:
+	if is_instance_valid(target):
 		var distance = player.global_position.distance_to(target.global_position)
-		
-		if not state_machine.animatedSprite.flip_h:
-			distance -= 200
 		
 		if distance <= player.charRange:
 			state_machine.animatedSprite.play("auto_attack")
 		else:
 			state_machine.set_state(Idle.new())
+

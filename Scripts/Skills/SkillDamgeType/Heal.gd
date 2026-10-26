@@ -18,6 +18,10 @@ func setSkillInicialPosition() -> void:
 	
 
 func _physics_process(_delta: float) -> void:
+	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
+		queue_free()
+		return
 	if not animatedSprite.is_playing():
 		queue_free()
 		targetCharacter.apply_heal(skillBaseHeal)
+

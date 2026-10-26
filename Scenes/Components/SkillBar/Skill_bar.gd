@@ -8,7 +8,7 @@ func createButtons() -> void:
 		visible = true
 		var hotKey = 1
 		for skill in player.skillList:
-			var button = skillButtonPath.instantiate().duplicate()
+			var button = skillButtonPath.instantiate()
 			button.skillPlayer = player
 			button.skillCast = skill
 			
@@ -19,3 +19,4 @@ func createButtons() -> void:
 			button.changeKey = str(hotKey)
 			button.timer.wait_time = skill.skillCoolDownTime
 			hotKey += 1
+
