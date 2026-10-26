@@ -107,7 +107,10 @@ ameaça, árvores, limites, colisão dos orbes, esquiva da lança, escape, escud
 
 ## Menu e leitura dos efeitos
 
-O menu inicial usa um painel central e fundo com proporção preservada. É possível
+O menu inicial reúne fundo, botões Host Game / Join Game, endereço e mensagens
+na cena `Scenes/Components/MainScreen/MainScreen.tscn`. Containers centralizam o
+painel e mantêm margens ao redimensionar a janela, sem posicionamento por script.
+O fundo preserva sua proporção e o vídeo para durante a partida. É possível
 usar Tab para navegar e Enter no endereço para entrar na partida. O projeto usa
 uma referência de 1152 × 648 com ajuste de canvas para outras proporções de janela.
 

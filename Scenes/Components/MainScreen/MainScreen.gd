@@ -5,6 +5,7 @@ extends Control
 
 func _ready() -> void:
 	resized.connect(fit_video)
+	visibility_changed.connect(sync_playback)
 	fit_video()
 	timer.start()
 
@@ -25,3 +26,10 @@ func _on_timer_timeout() -> void:
 func _on_video_stream_player_finished() -> void:
 	video_player.stop()
 	timer.start()
+
+func sync_playback() -> void:
+	if not is_visible_in_tree():
+		timer.stop()
+		video_player.stop()
+	elif is_node_ready():
+		timer.start()

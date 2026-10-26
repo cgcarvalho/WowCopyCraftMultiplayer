@@ -1,9 +1,9 @@
-extends Control
+extends CanvasLayer
+
+signal host_requested
+signal join_requested
 
 func _ready() -> void:
-	get_viewport().size_changed.connect(fit_panel)
-	$Panel.resized.connect(fit_panel)
-	call_deferred("fit_panel")
 	var menu_theme = Theme.new()
 	menu_theme.default_font_size = 16
 	var card = StyleBoxFlat.new()
@@ -41,8 +41,8 @@ func _ready() -> void:
 	menu_theme.set_stylebox("focus", "LineEdit", focused)
 	menu_theme.set_color("font_color", "Label", Color("e9edf5"))
 	menu_theme.set_color("font_color", "Button", Color("e9edf5"))
-	theme = menu_theme
-	var host: Button = $Panel/VBoxContainer/Host
+	$Screen.theme = menu_theme
+	var host: Button = %Host
 	var gold = StyleBoxFlat.new()
 	gold.bg_color = Color("d8b46e")
 	gold.set_corner_radius_all(8)
@@ -56,11 +56,15 @@ func _ready() -> void:
 	host.add_theme_color_override("font_pressed_color", Color("172033"))
 	host.add_theme_color_override("font_focus_color", Color("172033"))
 	host.add_theme_color_override("font_hover_pressed_color", Color("172033"))
+	host.pressed.connect(func(): host_requested.emit())
+	%Join.pressed.connect(func(): join_requested.emit())
 	%ServerAddress.text_submitted.connect(func(_value: String):
 		if not %Join.disabled:
-			get_parent().join_game())
+			join_requested.emit())
 	host.call_deferred("grab_focus")
 
-func fit_panel() -> void:
-	var viewport_size = get_viewport_rect().size
-	$Panel.position = (viewport_size - $Panel.size) / 2
+func _process(_delta: float) -> void:
+	# Empty connection feedback must not reserve a blank row in the menu.
+	var has_message = not %ConnectionStatus.text.is_empty()
+	if %ConnectionStatus.visible != has_message:
+		%ConnectionStatus.visible = has_message
