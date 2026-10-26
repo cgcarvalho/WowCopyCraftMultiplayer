@@ -21,11 +21,15 @@ func run() -> void:
 	encounter.set_physics_process(false)
 	boss.set_physics_process(false)
 	check(encounter.status == "waiting", "Encounter waits for a player")
-	check(boss.charCurrentLife == 300, "Jefferson starts with 300 HP")
+	check(boss.charCurrentLife == Jefferson.MAX_HEALTH, "Jefferson starts with configured HP")
 	check(MultiplayerManager.get_character(-1) == boss, "Enemy ID resolves independently of peer IDs")
 	main.request_player("res://Scenes/Characters/Heroes/SirGura.tscn")
 	await get_tree().process_frame
 	var player: Character = MultiplayerManager.playerList[1]
+	player.charCurrentLife = 100
+	player.charBaseDamage = 5
+	for scene in [Corruption.filePath, GreaterHeal.filePath, HolyShield.filePath, RainOfFire.filePath]:
+		player.skillList.append(load(scene).instantiate())
 	player.set_physics_process(false)
 	player.charCritChance = 0
 	encounter._physics_process(0.1)
@@ -63,7 +67,9 @@ func run() -> void:
 	var handler = main.get_node("SkillHandler")
 	player.global_position = boss.global_position
 	handler.basic_attack(1, -1)
-	check(boss.charCurrentLife == 295, "Basic attack can damage boss using negative target ID")
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	check(boss.charCurrentLife == Jefferson.MAX_HEALTH - 5, "Basic attack can damage boss using negative target ID")
 	var mana = player.charCurrentMana
 	handler.loadSkillScene("res://Scenes/Skills/Greater Heal/Greater_heal.tscn", 1, -1)
 	check(player.charCurrentMana == mana, "Players cannot heal the hostile boss")

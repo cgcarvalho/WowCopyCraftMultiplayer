@@ -29,19 +29,15 @@ static func checkMove(state_machine : StateStrategy) -> void:
 		state_machine.set_state(Walk.new())
 		
 static func checkCast(state_machine : StateStrategy) -> void:
-	if (Input.is_action_pressed("skill_1") or 
-		Input.is_action_pressed("skill_2") or 
-		Input.is_action_pressed("skill_3") or  
-		Input.is_action_pressed("skill_4")):
-		
+	if state_machine.statePlayer.ability_animation_time > 0:
 		state_machine.set_state(Cast.new())
 
 static func checkAttack(state_machine : StateStrategy) -> void:
-	if Input.is_action_pressed("attack"):
+	if Input.is_action_pressed("attack") and state_machine.statePlayer.ability_animation_time <= 0:
 		state_machine.set_state(Attack.new())
 
 static func checkAnimationPlaying(state_machine : StateStrategy) -> void:
-	if not state_machine.animatedSprite.is_playing():
+	if state_machine.statePlayer.ability_animation_time <= 0:
 		state_machine.set_state(Idle.new())
 
 static func checkRange(state_machine : StateStrategy) -> void:

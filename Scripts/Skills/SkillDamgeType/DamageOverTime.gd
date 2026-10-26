@@ -8,7 +8,6 @@ var skillBaseDamage : int
 var skillDotSeconds : int
 var timer = 0.0
 var skillTimer = 0.0
-var lb : Label
 
 func cast(casterChar : Character, targerChar : Character) -> void:
 	casterCharacter = casterChar
@@ -17,25 +16,15 @@ func cast(casterChar : Character, targerChar : Character) -> void:
 
 	targetCharacter.debuffList.append(self)
 	
-	lb = Label.new()
-	var label_settings = LabelSettings.new()
-	label_settings.font_size = 60
-	lb.label_settings = label_settings
+	# Gameplay effects keep their world-space art; labels are rendered in screen space.
+	animatedSprite.modulate.a = 0.55
+	setSkillInicialPosition()
 
-	add_child(lb)
-	
 func setSkillInicialPosition() -> void:
 	global_position = targetCharacter.global_position
-	
-	if self is CurseOfDeath:
-		global_position.x += 10
-		#lb.global_position.x -= 60
-		global_position.y -= 210
-	elif self is Corruption:
-		global_position.x += 60
-		global_position.y -= 180
-		
-		
+	var index = targetCharacter.debuffList.find(self)
+	global_position.x += (index - (targetCharacter.debuffList.size() - 1) / 2.0) * 32
+	global_position.y += 12
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
@@ -44,10 +33,9 @@ func _physics_process(delta: float) -> void:
 	setSkillInicialPosition()
 	timer += delta
 	skillTimer += delta
-	lb.text = str("%2.2f" % skillTimer )
 
 	if timer >= 1.0 and skillTimer <= skillDotSeconds + 1:
-		targetCharacter.deal_damage(skillBaseDamage)
+		targetCharacter.deal_damage(skillBaseDamage, casterCharacter, true)
 		timer = 0.0 
 		onDamage.emit()
 	elif skillTimer >= skillDotSeconds:
@@ -57,3 +45,7 @@ func _physics_process(delta: float) -> void:
 func renewDot() -> void:
 	skillTimer = 0.0		
 
+
+func _exit_tree() -> void:
+	if is_instance_valid(targetCharacter):
+		targetCharacter.debuffList.erase(self)

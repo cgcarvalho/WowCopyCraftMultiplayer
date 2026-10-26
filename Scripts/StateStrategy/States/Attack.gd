@@ -1,21 +1,35 @@
 extends State
 class_name Attack
-	
-func enter() -> void:
-	state_machine.animatedSprite.animation_looped.connect(dealDamage)
-	
-	
-func physics_process(_delta: float) -> void:
-	StateHelper.canMove(_delta, state_machine, false)
-	StateHelper.checkCast(state_machine)
-	StateHelper.checkRange(state_machine)
 
-func dealDamage():
-	var player : Character = state_machine.statePlayer
-	var target : Character = state_machine.statePlayer.charCurrentTarget
-	if is_instance_valid(target) and target.charCurrentLife > 0:
+var elapsed = 0.0
+var released = false
+
+func enter() -> void:
+	state_machine.animatedSprite.play("auto_attack")
+	state_machine.animatedSprite.frame = 0
+
+func physics_process(delta: float) -> void:
+	var player = state_machine.statePlayer
+	var target = player.charCurrentTarget
+	if not is_instance_valid(target) or target.charCurrentLife <= 0 or target.charTeam == player.charTeam:
+		state_machine.set_state(Idle.new())
+		return
+	if player.global_position.distance_to(target.global_position) > player.charRange:
+		state_machine.set_state(Idle.new())
+		return
+	if Input.get_vector("move_left", "move_right", "move_up", "move_down").length() > 0:
+		state_machine.set_state(Walk.new())
+		return
+	if player.ability_animation_time > 0:
+		state_machine.set_state(Idle.new())
+		return
+	elapsed += delta
+	if not released and elapsed >= player.attack_interval * 0.35:
 		state_machine.mainScene.get_node("SkillHandler").basic_attack.rpc_id(1, int(player.name), int(target.name))
-		
+		released = true
+	if elapsed >= player.attack_interval:
+		elapsed = 0.0
+		released = false
+
 func exit() -> void:
 	state_machine.animatedSprite.stop()
-

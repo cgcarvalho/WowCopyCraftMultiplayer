@@ -21,6 +21,15 @@ MultiplayerManager="*res://Scripts/Multiplayer/MultiplayerManager.gd"
 DamageNumbers="*res://Scripts/Components/DamageNumbers.gd"
 Constants="*res://Scripts/Constants.gd"
 
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
 [input]
 
 move_left={
@@ -60,7 +69,7 @@ skill_3={
 }
 skill_4={
 "deadzone": 0.2,
-"events": []
+"events": [Object(InputEventKey,"physical_keycode":82)]
 }
 self_cast={
 "deadzone": 0.2,

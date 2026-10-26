@@ -9,8 +9,9 @@ const HERO_SCENES = [
 @onready var players: Node = %Players
 @onready var multiplayer_spawner: MultiplayerSpawner = %MultiplayerSpawner
 @onready var uiHanlder: UIHandler = UIHandler.new(self)
-@onready var status: Label = %ConnectionStatus
-@onready var server_address: LineEdit = %ServerAddress
+@onready var menu: CanvasLayer = $MultiplayerHUD
+@onready var status: Label = menu.get_node("%ConnectionStatus")
+@onready var server_address: LineEdit = menu.get_node("%ServerAddress")
 var used_slots: Dictionary[int, int] = {}
 
 func _exit_tree() -> void:
@@ -23,7 +24,8 @@ func _ready() -> void:
 	multiplayer.connection_failed.connect(on_connection_failed)
 	multiplayer.server_disconnected.connect(on_server_disconnected)
 	multiplayer_spawner.spawn_function = add_player
-	uiHanlder.changeScene(Constants.MAIN_SCREEN)
+	menu.host_requested.connect(become_host)
+	menu.join_requested.connect(join_game)
 
 func become_host() -> void:
 	var error = MultiplayerManager.become_host()
@@ -61,8 +63,9 @@ func on_server_disconnected() -> void:
 	get_tree().reload_current_scene()
 
 func set_connection_buttons(enabled: bool) -> void:
-	get_node("MultiplayerHUD/Panel/VBoxContainer/Host").disabled = not enabled
-	get_node("MultiplayerHUD/Panel/VBoxContainer/Join").disabled = not enabled
+	server_address.editable = enabled
+	menu.get_node("%Host").disabled = not enabled
+	menu.get_node("%Join").disabled = not enabled
 
 # Only MultiplayerSpawner calls this factory, including on late joining peers.
 func add_player(spawn_data: Dictionary) -> Node:

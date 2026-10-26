@@ -35,6 +35,10 @@ var charBaseDamage : int
 var charCritChance : float = Constants.DEFAULT_CRIT_CHANCE
 var charLifeStealPercent : float = Constants.DEFAULT_LIFE_STEAL
 var charRange : float
+var charClass = ""
+var attack_interval = 1.0
+var attack_style = "melee"
+var ability_animation_time = 0.0
 
 #Skills
 var skillList : Array[Skill] 
@@ -62,6 +66,15 @@ func _enter_tree() -> void:
 	add_child(sync)
 
 func _ready() -> void:
+	var sprite: AnimatedSprite2D = $AnimatedSprite2D
+	sprite.sprite_frames = sprite.sprite_frames.duplicate()
+	var frames = sprite.sprite_frames
+	if not frames.has_animation("auto_attack"):
+		copy_animation(frames, "cast", "auto_attack", true)
+	if not frames.has_animation("cast"):
+		copy_animation(frames, "auto_attack", "cast", false)
+	frames.set_animation_loop("auto_attack", true)
+	frames.set_animation_speed("auto_attack", frames.get_frame_count("auto_attack") / attack_interval)
 	var main = get_parent().get_parent()
 	state_machine = StateStrategy.new($AnimatedSprite2D, self, main)
 	ui_handler = UIHandler.new(main)
@@ -72,6 +85,7 @@ func _ready() -> void:
 
 	
 func _physics_process(delta: float) -> void:
+	ability_animation_time = maxf(0.0, ability_animation_time - delta)
 	if multiplayer.is_server():
 		if passiveSkill:
 			passiveSkill.physics_process(delta)
@@ -80,7 +94,10 @@ func _physics_process(delta: float) -> void:
 	if charCurrentLife <= 0:
 		die()
 		return
-	if not is_multiplayer_authority(): return
+	if not is_multiplayer_authority():
+		if not $AnimatedSprite2D.is_playing():
+			$AnimatedSprite2D.play()
+		return
 	
 	if state_machine:
 		state_machine._physics_process(delta)
@@ -88,6 +105,8 @@ func _physics_process(delta: float) -> void:
 	
 	if is_instance_valid(charCurrentTarget):
 		$AnimatedSprite2D.flip_h = global_position.x < charCurrentTarget.global_position.x
+	if ability_animation_time > 0:
+		$AnimatedSprite2D.play("cast")
 	
 	if charCurrentLife <= 0:
 		die()
@@ -109,7 +128,7 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		#		ui_handler.hideTargetHPBar()
 		#		localPlayer.charCurrentTarget = null
 
-func deal_damage(damage : int) -> void:
+func deal_damage(damage : int, _source: Character = null, periodic: bool = false) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0:
 		return
 	damage = apply_crit(damage)
@@ -117,7 +136,7 @@ func deal_damage(damage : int) -> void:
 	charShield -= absorbed
 	damage -= absorbed
 	charCurrentLife -= damage
-	DamageNumbers.display_number(damage, global_position, isCrit)
+	DamageNumbers.display_number.rpc(damage, global_position, isCrit, false, periodic)
 		
 	
 
@@ -125,7 +144,7 @@ func apply_heal(heal : int) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0:
 		return
 	charCurrentLife += heal
-	DamageNumbers.display_number(heal, global_position, isCrit, true)	
+	DamageNumbers.display_number.rpc(heal, global_position, isCrit, true)
 
 func apply_shield(shield : int) -> void:
 	if not multiplayer.is_server():
@@ -164,3 +183,16 @@ func _notification(what: int) -> void:
 			state_machine.free()
 		if is_instance_valid(ui_handler):
 			ui_handler.free()
+
+func copy_animation(frames: SpriteFrames, source: StringName, destination: StringName, looped: bool) -> void:
+	if not frames.has_animation(source):
+		source = &"idle"
+	frames.add_animation(destination)
+	frames.set_animation_loop(destination, looped)
+	frames.set_animation_speed(destination, frames.get_animation_speed(source))
+	for index in frames.get_frame_count(source):
+		frames.add_frame(destination, frames.get_frame_texture(source, index), frames.get_frame_duration(source, index))
+
+func play_ability(duration: float) -> void:
+	ability_animation_time = maxf(duration, 0.45)
+	$AnimatedSprite2D.play("cast")

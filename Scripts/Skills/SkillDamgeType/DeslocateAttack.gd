@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 		casterCharacter.global_position = casterCharacter.global_position.move_toward(targetCharacter.global_position, delta * deslocateSpeed)
 			
 	if casterCharacter.global_position.is_equal_approx(targetCharacter.global_position):
-		targetCharacter.deal_damage(skillBaseDamage)
+		targetCharacter.deal_damage(skillBaseDamage, casterCharacter)
 		queue_free()
 
 

@@ -20,7 +20,7 @@ func _physics_process(delta: float) -> void:
 func set_state(new_state: State) -> void:
 	if current_state:
 		current_state.exit()
-		current_state.queue_free()
+		current_state.call_deferred("free")
 	
 	if new_state:
 		current_state = new_state

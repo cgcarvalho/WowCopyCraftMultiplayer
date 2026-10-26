@@ -8,6 +8,7 @@ const coolDowntime = 2
 const manaCost = 5
 
 func _init() -> void:
+	description = "Maldição: 2 de dano/s por 10s. Combina com Corruption e Soul Reap."
 	skillScenePath = filePath
 	skillBaseDamage = damage
 	skillDotSeconds = dotSeconds

@@ -7,11 +7,12 @@ const iconFilePath : String = "res://Art/Skills/Shadowbolt Icon.png"
 
 const speed = 500
 const damage = 10
-const coolDowntime = 20
+const coolDowntime = 4
 const manaCost = 10
 const castTime = 1
 
 func _init() -> void:
+	description = "Projétil sombrio: 10 de dano, 1s de conjuração, recarga de 4s."
 	skillScenePath = filePath
 	projectileSpeed = speed
 	skillBaseDamage = damage
