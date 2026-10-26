@@ -8,6 +8,10 @@ var timer = 0.0
 var skillTimer = 0.0
 var playersInArea : Array[Character]
 
+# Players occupy layer 1; enemies occupy layer 2.
+func _ready() -> void:
+	collision_mask = 3
+
 func cast(casterChar : Character, targerChar : Character) -> void:
 	casterCharacter = casterChar
 	targetCharacter = targerChar
@@ -29,7 +33,8 @@ func _physics_process(delta: float) -> void:
 	
 	if timer >= 1.0 and skillTimer <= skillDuration + 1:
 		for player in playersInArea:
-			player.deal_damage(skillBaseDamage)
+			if is_instance_valid(player) and player.charTeam != casterCharacter.charTeam and player.charCurrentLife > 0:
+				player.deal_damage(skillBaseDamage)
 		timer = 0.0 
 	elif skillTimer >= skillDuration:
 		queue_free()

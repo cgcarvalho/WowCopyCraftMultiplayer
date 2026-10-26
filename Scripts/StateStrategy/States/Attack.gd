@@ -13,7 +13,7 @@ func physics_process(_delta: float) -> void:
 func dealDamage():
 	var player : Character = state_machine.statePlayer
 	var target : Character = state_machine.statePlayer.charCurrentTarget
-	if is_instance_valid(target):
+	if is_instance_valid(target) and target.charCurrentLife > 0:
 		state_machine.mainScene.get_node("SkillHandler").basic_attack.rpc_id(1, int(player.name), int(target.name))
 		
 func exit() -> void:

@@ -9,7 +9,7 @@ var isCrit : bool = false
 @export var speed = 5.0
 var portraitImagePath : String
 var scenePath : String
-var charTeam : Teams
+var charTeam : Teams = Teams.BLUE
 
 #region Character Properties
 #HP
@@ -77,6 +77,9 @@ func _physics_process(delta: float) -> void:
 			passiveSkill.physics_process(delta)
 		if charTotalMana > 0:
 			charCurrentMana += manaRegen * delta
+	if charCurrentLife <= 0:
+		die()
+		return
 	if not is_multiplayer_authority(): return
 	
 	if state_machine:
@@ -119,7 +122,7 @@ func deal_damage(damage : int) -> void:
 	
 
 func apply_heal(heal : int) -> void:
-	if not multiplayer.is_server():
+	if not multiplayer.is_server() or charCurrentLife <= 0:
 		return
 	charCurrentLife += heal
 	DamageNumbers.display_number(heal, global_position, isCrit, true)	
@@ -140,6 +143,10 @@ func apply_crit(damage : int) -> int:
 	return newDamage
 
 func die() -> void:
+	$AnimatedSprite2D.stop()
+	modulate = Color(0.5, 0.5, 0.5, 0.65)
+	if is_instance_valid(state_machine) and state_machine.current_state is Attack:
+		state_machine.set_state(Idle.new())
 	set_physics_process(false)
 	#visible = false
 

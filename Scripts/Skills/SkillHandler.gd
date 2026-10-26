@@ -13,13 +13,17 @@ func _ready() -> void:
 		attack_times.erase(id)
 		proc_ready.erase(id))
 
+func encounter_finished() -> bool:
+	var encounter = get_parent().get_node_or_null("BossEncounter")
+	return encounter != null and encounter.status in ["victory", "defeat"]
+
 func valid_sender(id: int) -> bool:
 	var sender = multiplayer.get_remote_sender_id()
 	return (sender == id) or (sender == 0 and id == multiplayer.get_unique_id())
 
 @rpc("any_peer", "call_local", "reliable")
 func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int) -> void:
-	if not multiplayer.is_server() or not valid_sender(idCasterChar):
+	if encounter_finished() or not multiplayer.is_server() or not valid_sender(idCasterChar):
 		return
 	var caster: Character = MultiplayerManager.playerList.get(idCasterChar)
 	if not is_instance_valid(caster) or caster.charCurrentLife <= 0 or casting.has(idCasterChar):
@@ -31,10 +35,15 @@ func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int) -> v
 			break
 	if template == null:
 		return
-	var target: Character = MultiplayerManager.playerList.get(idTargetChar)
+	var target: Character = MultiplayerManager.get_character(idTargetChar)
 	if template is AreaDamage and not is_instance_valid(target):
 		target = caster
 	if not is_instance_valid(target) or target.charCurrentLife <= 0:
+		return
+	var support = template is Heal or template is Shield or template is Buff
+	if support and target.charTeam != caster.charTeam:
+		return
+	if not support and not template is AreaDamage and target.charTeam == caster.charTeam:
 		return
 	var now = Time.get_ticks_msec()
 	var player_cooldowns: Dictionary = cooldowns.get(idCasterChar, {})
@@ -53,22 +62,33 @@ func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int) -> v
 		casting[idCasterChar] = true
 		await get_tree().create_timer(duration).timeout
 		casting.erase(idCasterChar)
-	if not is_instance_valid(caster) or not is_instance_valid(target):
+	if encounter_finished() or not is_instance_valid(caster) or not is_instance_valid(target):
 		return
 	if caster.charCurrentLife <= 0 or target.charCurrentLife <= 0:
 		return
 	if template is DamageOverTime:
 		for effect in target.debuffList:
 			if is_instance_valid(effect) and effect.get_script() == template.get_script() and effect.casterCharacter == caster:
-				effect.renewDot()
+				refresh_dot.rpc(filePath, idCasterChar, idTargetChar)
 				return
 	play_skill.rpc(template.skillScenePath, idCasterChar, int(target.name))
+
+@rpc("authority", "call_local", "reliable")
+func refresh_dot(path: String, caster_id: int, target_id: int) -> void:
+	var target = MultiplayerManager.get_character(target_id)
+	var caster = MultiplayerManager.playerList.get(caster_id)
+	if not is_instance_valid(target) or not is_instance_valid(caster):
+		return
+	for effect in target.debuffList:
+		if is_instance_valid(effect) and effect.skillScenePath == path and effect.casterCharacter == caster:
+			effect.renewDot()
+			return
 
 # Only the server broadcasts effects; clients animate, server mutates combat state.
 @rpc("authority", "call_local", "reliable")
 func play_skill(path: String, caster_id: int, target_id: int) -> void:
 	var caster: Character = MultiplayerManager.playerList.get(caster_id)
-	var target: Character = MultiplayerManager.playerList.get(target_id)
+	var target: Character = MultiplayerManager.get_character(target_id)
 	if not is_instance_valid(caster) or not is_instance_valid(target):
 		return
 	var skill: Skill = load(path).instantiate()
@@ -79,11 +99,13 @@ func play_skill(path: String, caster_id: int, target_id: int) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func basic_attack(caster_id: int, target_id: int) -> void:
-	if not multiplayer.is_server() or not valid_sender(caster_id):
+	if encounter_finished() or not multiplayer.is_server() or not valid_sender(caster_id):
 		return
 	var caster: Character = MultiplayerManager.playerList.get(caster_id)
-	var target: Character = MultiplayerManager.playerList.get(target_id)
+	var target: Character = MultiplayerManager.get_character(target_id)
 	if not is_instance_valid(caster) or not is_instance_valid(target):
+		return
+	if caster.charTeam == target.charTeam:
 		return
 	if caster.charCurrentLife <= 0 or target.charCurrentLife <= 0 or casting.has(caster_id):
 		return
