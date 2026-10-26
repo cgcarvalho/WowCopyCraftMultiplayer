@@ -14,8 +14,8 @@ A conexão usa ENet/UDP na porta **8080**, com até quatro jogadores incluindo
    o host. Para jogar em LAN, permita essa porta no firewall do host.
 
 Movimento: WASD. Alvo: clique esquerdo. Ataque básico: botão direito.
-Habilidades: teclas numéricas; Alt + tecla lança no próprio personagem.
-Habilidades de área sem alvo usam a posição do lançador.
+Habilidades: **1 / 2 / 3**; ultimate: **R ou 4**. Cura sem aliado selecionado usa o próprio personagem; Alt + cura força autocura.
+Arrow Rain sem alvo usa sua posição; Consecration sempre consagra o chão sob o paladino.
 
 ## Validação
 
@@ -130,3 +130,52 @@ Teste adicional de duração, agrupamento, renovação, remoção e feedback dos
 ```sh
 godot --headless --path . res://tests/dot_presentation.tscn
 ```
+
+
+## Classes e ultimates
+
+Cada classe tem três habilidades e uma ultimate. A seleção mostra classe,
+papel e repertório. Os valores são um primeiro ajuste de balanceamento para o protótipo.
+
+| Personagem | Classe | Habilidade 1 | Habilidade 2 | Habilidade 3 | Ultimate (R / 4) |
+| --- | --- | --- | --- | --- | --- |
+| Aurora | Warlock | Shadow Bolt (4s) | Corruption (2s) | Curse of Death (2s) | Soul Reap (60s): 45 + 12 por DoT próprio no alvo, em área |
+| Sir Gura | Warrior | Charge (10s): avanço e 16 de dano | Cleave (5s): 24 em área corpo a corpo | Second Wind (18s): cura 30 e proteção 15 | Bladestorm (60s): 12 de dano/s por 6s, acompanha o guerreiro |
+| Charger | Paladin | Holy Light (8s): cura 32, conjuração 1,2s | Judgement (6s): 24 de dano sagrado | Consecration (16s): 8s no chão, 7 de dano/s e 3 de cura/s | Divine Dawn (65s): cura 40, proteção 35 e 35 de dano aos inimigos próximos |
+| Lulu | Hunter | Aimed Shot (6s): 32 de dano, conjuração 1s | Poison Arrow (10s): 8 inicial + 4/s por 8s | Multi-Shot (9s): até 3 flechas de 18 | Arrow Rain (60s): área fixa, 12 de dano/s por 7s |
+
+Sir Gura tem 150 HP e autoataque corpo a corpo de 10 a cada 0,9s. Charger tem
+130 HP e golpe de 8 a cada 1,1s. Lulu tem 100 HP e flechas de 8 a cada 1,15s;
+o dano acontece na chegada da flecha. Aurora tem 100 HP e projéteis sombrios de
+6 a cada 1,3s. Todos têm 100 de mana e regeneram 3/s.
+
+Ataques e habilidades validam identidade, classe, equipe, alcance, vida, mana
+e cooldown no servidor. O cooldown visual começa após confirmação do servidor.
+As novas habilidades possuem ícones próprios, descrição de custo/recarga no tooltip
+e efeitos distintos. O veneno da Lulu aparece no mesmo HUD dos DoTs da Aurora;
+aplicações do mesmo arqueiro renovam o efeito. Áreas não causam dano aliado.
+
+### Animação do Jefferson
+
+`Art/Chars/Jefferson - The Wizard/JeffersonIdleAtlas.png` contém 36 quadros em grade
+6×6: a espera usa 12 fps (3s), e a apresentação em movimento usa a mesma sequência
+a 14 fps. A morte interrompe a animação. O atlas é incluído no repositório, sem
+necessidade de acessar o Ludo durante o jogo. O vídeo do Ludo veio com quadriculado
+embutido; a transparência foi reconstruída com a ferramenta de edição de imagens.
+Detalhes e fonte em `Art/Chars/Jefferson - The Wizard/ANIMATION.md`.
+
+### Testar as classes
+
+```sh
+godot --headless --path . res://tests/hero_classes.tscn
+# Rede: dois terminais, porta UDP 18082
+# Terminal 1:
+godot --headless --path . res://tests/class_network.tscn -- --server
+# Terminal 2, após CLASS_NETWORK_SERVER_READY:
+godot --headless --path . res://tests/class_network.tscn -- --client
+```
+
+A suíte offline cobre os quatro repertórios, cooldown de Shadow Bolt, ultimates,
+alcance, cura, áreas, autoataque por projétil, veneno e sua interface.
+A suíte ENet cobre magia de classe indevida, dano único do projétil/veneno,
+cura/escudo do paladino em aliado remoto e replicação dos indicadores de veneno.

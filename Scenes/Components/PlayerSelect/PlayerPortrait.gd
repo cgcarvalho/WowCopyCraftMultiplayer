@@ -10,7 +10,7 @@ var character : Character
 func _ready() -> void:
 	character._enter_tree()
 	
-	button.tooltip_text = character.charName
+	button.tooltip_text = character.charName + " · " + character.charClass
 	characterPicture.texture = load(character.portraitImagePath)
 
 func _on_button_pressed() -> void:

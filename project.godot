@@ -69,7 +69,7 @@ skill_3={
 }
 skill_4={
 "deadzone": 0.2,
-"events": []
+"events": [Object(InputEventKey,"physical_keycode":82)]
 }
 self_cast={
 "deadzone": 0.2,

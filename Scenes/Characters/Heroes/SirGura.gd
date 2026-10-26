@@ -1,4 +1,3 @@
-
 class_name SirGura
 extends Character
 
@@ -8,23 +7,23 @@ var scene_path = "res://Scenes/Characters/Heroes/SirGura.tscn"
 func _enter_tree() -> void:
 	super._enter_tree()
 	charName = "Sir Gura"
-	charTotalLife = 100
-	charCurrentLife = 100
-	portraitImagePath = image_path
+	charClass = "Warrior"
+	charTotalLife = 150
+	charCurrentLife = 150
 	charTotalMana = 100
 	charCurrentMana = 100
-	manaRegen = 2.0
+	manaRegen = 3.0
+	portraitImagePath = image_path
 	scenePath = scene_path
-	charBaseDamage = 5
-	charRange = Constants.DEFAULT_RANGE_MELEE
-
-	addSkillsChar()
-	
+	charBaseDamage = 10
+	charRange = 100
+	attack_interval = 0.9
+	attack_style = "melee"
+	if skillList.is_empty():
+		addSkillsChar()
 
 func addSkillsChar() -> void:
-	skillList.append(Charge.new())
-	skillList.append(Corruption.new())
-	skillList.append(GreaterHeal.new())
-	skillList.append(HolyShield.new())
-	skillList.append(RainOfFire.new())
-
+	skillList.append(HeroAbility.create("charge"))
+	skillList.append(HeroAbility.create("cleave"))
+	skillList.append(HeroAbility.create("second_wind"))
+	skillList.append(HeroAbility.create("bladestorm"))

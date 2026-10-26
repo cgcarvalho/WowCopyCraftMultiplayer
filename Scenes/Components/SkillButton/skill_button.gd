@@ -1,91 +1,90 @@
 extends TextureButton
 
 @onready var player_cast_bar: Control = $"../../../../PlayerCastBar"
-@onready var target_cast_bar: Control = $"../../../../TargetCastBar"
 @onready var progress_bar: TextureProgressBar = $TextureProgressBar
 @onready var timer: Timer = $Timer
 @onready var time: Label = $Time
 @onready var key: Label = $Key
-
-var skillCast : Skill
-var skillPlayer : Character
+var skillCast: Skill
+var skillPlayer: Character
 var skillHander
-var selfCast = false
-
+var pending = false
+var target_id = 0
 var changeKey = "":
 	set(value):
 		changeKey = value
 		key.text = value
-		
 		shortcut = Shortcut.new()
-		var input_key = InputEventKey.new()
-		input_key.keycode = value.unicode_at(0)
-		
-		var input_keyAuto = InputEventKey.new()
-		input_keyAuto.keycode = value.unicode_at(0)
-		input_keyAuto.alt_pressed = true
-		shortcut.events = [input_key, input_keyAuto]
+		var events: Array[InputEvent] = []
+		for code in ([KEY_R, KEY_4] if value == "R" else [value.unicode_at(0)]):
+			for alt in [false, true]:
+				var input_key = InputEventKey.new()
+				input_key.keycode = code
+				input_key.alt_pressed = alt
+				events.append(input_key)
+		shortcut.events = events
 
 func _ready() -> void:
 	skillHander = get_tree().current_scene.get_node("SkillHandler")
-	changeKey = "1"
-	progress_bar.max_value = timer.wait_time
+	skillHander.cast_confirmed.connect(on_cast_result)
 	set_process(false)
-	
-	
+
 func _process(_delta: float) -> void:
-	time.text = "%3.1f" % timer.time_left
+	if not is_instance_valid(skillCast) or not is_instance_valid(skillPlayer):
+		set_process(false)
+		return
+	time.text = "%d" % ceili(timer.time_left)
 	progress_bar.value = timer.time_left
-		
 	if skillCast.resetCoolDown:
 		skillCast.resetCoolDown = false
 		timer.stop()
 		_on_timer_timeout()
-		progress_bar.value = 0
-		
+
+func feedback(message: String) -> void:
+	var bar = get_parent().get_parent().get_parent()
+	bar.show_feedback(message)
 
 func _on_pressed() -> void:
-	selfCast = Input.is_key_pressed(KEY_ALT)
-
+	if pending or not timer.is_stopped():
+		return
 	if validateCast():
-		timer.start()
-		disabled = true
-		set_process(true)
-		castSkill()
-	
-	
-func _on_timer_timeout() -> void:
-	disabled = false
-	time.text = ""
-	set_process(false)
-
-func castSkill() -> void:
-	var path = skillCast.skillScenePath
-	var idPlayer = int(skillPlayer.name)
-	var idTarget = int(skillPlayer.charCurrentTarget.name) if is_instance_valid(skillPlayer.charCurrentTarget) else 0
-
-
-	if skillCast.skillCastTime > 0:
-		if not skillCast.resetCastTime:
-			skillHander.castBar(skillCast.skillName, skillCast.skillCastTime)
-
-		else:
-			skillCast.resetCastTime = false
-			
-			
-	if selfCast:
-		skillHander.loadSkillScene.rpc_id(1, path, idPlayer, idPlayer)
-	else:
-		skillHander.loadSkillScene.rpc_id(1, path, idPlayer, idTarget)
+		pending = true
+		skillHander.loadSkillScene.rpc_id(1, skillCast.skillScenePath, int(skillPlayer.name), target_id)
 
 func validateCast() -> bool:
 	if skillPlayer.charCurrentLife <= 0 or player_cast_bar.is_casting:
 		return false
-	if (skillCast is AreaDamage) or selfCast:
-		return skillPlayer.charCurrentMana >= skillCast.skillManaCost
-	
-	var idTarget = int(skillPlayer.charCurrentTarget.name) if is_instance_valid(skillPlayer.charCurrentTarget) else 0
-	
-	return idTarget != 0 and skillPlayer.charCurrentMana >= skillCast.skillManaCost
-	
+	if skillPlayer.charCurrentMana < skillCast.skillManaCost:
+		feedback("Mana insuficiente")
+		return false
+	var selected = skillPlayer.charCurrentTarget
+	if skillCast.targeting() == Skill.TargetMode.ALLY and (Input.is_key_pressed(KEY_ALT) or not is_instance_valid(selected) or selected.charTeam != skillPlayer.charTeam):
+		selected = skillPlayer
+	target_id = int(selected.name) if is_instance_valid(selected) else 0
+	var resolved = skillHander.selected_target(skillCast, skillPlayer, target_id)
+	if not skillHander.valid_target(skillCast, skillPlayer, resolved):
+		feedback("Selecione um inimigo vivo ao alcance" if skillCast.targeting() == Skill.TargetMode.ENEMY else "Alvo fora do alcance")
+		return false
+	return true
 
+func on_cast_result(caster_id: int, path: String, accepted: bool, duration: float, cooldown: float) -> void:
+	if not is_instance_valid(skillPlayer) or not is_instance_valid(skillCast):
+		return
+	if caster_id != int(skillPlayer.name) or path != skillCast.skillScenePath:
+		return
+	pending = false
+	if not accepted:
+		feedback("Habilidade indisponível")
+		return
+	progress_bar.max_value = cooldown
+	timer.start(maxf(0.01, cooldown))
+	disabled = true
+	set_process(true)
+	if duration > 0:
+		skillHander.castBar(skillCast.skillName, duration)
+
+func _on_timer_timeout() -> void:
+	disabled = false
+	time.text = ""
+	progress_bar.value = 0
+	set_process(false)

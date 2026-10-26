@@ -48,7 +48,7 @@ func run() -> void:
 		multiplayer.peer_disconnected.connect(on_disconnect)
 	else:
 		await multiplayer.connected_to_server
-		main.request_player.rpc_id(1, "res://Scenes/Characters/Heroes/SirGura.tscn")
+		main.request_player.rpc_id(1, "res://Scenes/Characters/Heroes/Aurora.tscn")
 		await get_tree().create_timer(2).timeout
 		client_id = multiplayer.get_unique_id()
 		if MultiplayerManager.playerList.size() != 2:
@@ -76,8 +76,11 @@ func run() -> void:
 		var handler = main.get_node("SkillHandler")
 		handler.basic_attack.rpc_id(1, 1, -1) # Spoofing the host must fail.
 		request_attack_check.rpc_id(1)
-	await get_tree().create_timer(20).timeout
-	fail("Network test timed out")
+	var watchdog = Timer.new()
+	watchdog.one_shot = true
+	add_child(watchdog)
+	watchdog.timeout.connect(func(): fail("Network test timed out"))
+	watchdog.start(20)
 
 @rpc("any_peer", "reliable")
 func request_attack_check() -> void:

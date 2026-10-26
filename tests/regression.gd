@@ -23,6 +23,10 @@ func run() -> void:
 	main.request_player("res://Scenes/Characters/Heroes/SirGura.tscn")
 	await get_tree().process_frame
 	var caster: Character = MultiplayerManager.playerList.get(1)
+	caster.charCurrentLife = 100
+	caster.charBaseDamage = 5
+	for scene in [Corruption.filePath, GreaterHeal.filePath, HolyShield.filePath, RainOfFire.filePath]:
+		caster.skillList.append(load(scene).instantiate())
 	check(is_instance_valid(caster), "Host spawned through MultiplayerSpawner")
 	if not is_instance_valid(caster):
 		get_tree().quit(1)
@@ -45,6 +49,7 @@ func run() -> void:
 	check(caster.charCurrentMana == mana, "Reject missing target")
 	var enemy: Character = MultiplayerManager.enemies.get(-1)
 	check(is_instance_valid(enemy), "Boss registered as combat target")
+	caster.global_position = enemy.global_position + Vector2(100, 0)
 	var dot_path = "res://Scenes/Skills/Corruption/Corruption.tscn"
 	handler.loadSkillScene(dot_path, 1, -1)
 	check(enemy.debuffList.size() == 1, "First DoT applied")

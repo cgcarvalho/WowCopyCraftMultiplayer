@@ -9,6 +9,7 @@ const coolDowntime = 2
 const manaCost = 5
 
 func _init() -> void:
+	description = "Aplica 2 de dano/s por 10s. Reaplicar renova o efeito."
 	skillScenePath = filePath
 	skillBaseDamage = damage
 	skillDotSeconds = dotSeconds

@@ -20,6 +20,7 @@ var previous_positions: Dictionary = {}
 var player_velocities: Dictionary = {}
 var presentation_position = Vector2.ZERO
 var visual_ready = false
+var animation_scale = 1.0
 
 func _enter_tree() -> void:
 	super._enter_tree()
@@ -34,7 +35,8 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	ui_handler = UIHandler.new(get_parent().get_parent())
 	MultiplayerManager.enemies[BOSS_ID] = self
-	$AnimatedSprite2D.play("walk")
+	configure_animation()
+	$AnimatedSprite2D.play("idle")
 	var config = SceneReplicationConfig.new()
 	for property in ["position", "facing_left", "velocity"]:
 		var path = NodePath(".:" + property)
@@ -63,7 +65,11 @@ func _process(delta: float) -> void:
 	$AnimatedSprite2D.position = presentation_position - global_position + Vector2(0, bob)
 	$AnimatedSprite2D.flip_h = facing_left
 	var pulse = 1.0 + (sin(Time.get_ticks_msec() * 0.008) * 0.025 if get_parent().danger_visible else 0.0)
-	$AnimatedSprite2D.scale = Vector2.ONE * 0.30 * pulse
+	$AnimatedSprite2D.scale = Vector2.ONE * animation_scale * pulse
+	if not dead:
+		$AnimatedSprite2D.play("walk" if velocity.length() > 10 else "idle")
+	else:
+		$AnimatedSprite2D.stop()
 	queue_redraw()
 
 func _draw() -> void:
@@ -222,3 +228,21 @@ func _physics_process(delta: float) -> void:
 func die() -> void:
 	velocity = Vector2.ZERO
 	$AnimatedSprite2D.stop()
+
+func configure_animation() -> void:
+	var atlas = preload("res://Art/Chars/Jefferson - The Wizard/JeffersonIdleAtlas.png")
+	var cell = Vector2(atlas.get_size()) / 6.0
+	var frames = SpriteFrames.new()
+	frames.remove_animation("default")
+	for animation_name in ["idle", "walk"]:
+		frames.add_animation(animation_name)
+		frames.set_animation_speed(animation_name, 12.0 if animation_name == "idle" else 14.0)
+		frames.set_animation_loop(animation_name, true)
+		for index in 36:
+			var texture = AtlasTexture.new()
+			texture.atlas = atlas
+			texture.region = Rect2(Vector2(index % 6, index / 6) * cell, cell)
+			frames.add_frame(animation_name, texture)
+	$AnimatedSprite2D.sprite_frames = frames
+	animation_scale = 420.0 / cell.y
+	$AnimatedSprite2D.scale = Vector2.ONE * animation_scale

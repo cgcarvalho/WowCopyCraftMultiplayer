@@ -48,7 +48,7 @@ func label(text: String, size: int, color: Color = Color.WHITE) -> Label:
 func groups_for(character: Character) -> Array:
 	var groups: Dictionary = {}
 	for effect in character.debuffList:
-		if not is_instance_valid(effect) or effect.is_queued_for_deletion() or not effect is DamageOverTime:
+		if not is_instance_valid(effect) or effect.is_queued_for_deletion() or not (effect is DamageOverTime or (effect is HeroAbility and effect.ability_id == "poison_arrow")):
 			continue
 		var remaining = maxf(0, effect.skillDotSeconds - effect.skillTimer)
 		if remaining <= 0:
