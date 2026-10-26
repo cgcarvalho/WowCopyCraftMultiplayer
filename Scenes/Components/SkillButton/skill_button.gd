@@ -78,7 +78,8 @@ func on_cast_result(caster_id: int, path: String, accepted: bool, duration: floa
 		return
 	progress_bar.max_value = cooldown
 	timer.start(maxf(0.01, cooldown))
-	disabled = true
+	# Keep hover/tooltips active; _on_pressed rejects requests while the timer runs.
+	disabled = false
 	set_process(true)
 	if duration > 0:
 		skillHander.castBar(skillCast.skillName, duration)
@@ -88,3 +89,47 @@ func _on_timer_timeout() -> void:
 	time.text = ""
 	progress_bar.value = 0
 	set_process(false)
+
+func tooltip_label(text: String, size: int, color: Color) -> Label:
+	var label = Label.new()
+	label.text = text
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", color)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = 280
+	return label
+
+func _make_custom_tooltip(_for_text: String) -> Object:
+	if not is_instance_valid(skillCast):
+		return null
+	var panel = PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color("16130f")
+	style.border_color = Color("b68a45")
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
+	style.shadow_color = Color(0, 0, 0, 0.5)
+	style.shadow_size = 6
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		style.set_content_margin(side, 14)
+	panel.add_theme_stylebox_override("panel", style)
+	var column = VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 8)
+	panel.add_child(column)
+	var gold = Color("f1cf84")
+	var pale = Color("e6dfd2")
+	column.add_child(tooltip_label(skillCast.skillName, 20, gold))
+	column.add_child(tooltip_label(("ULTIMATE · " if skillCast.is_ultimate else "") + "Tecla " + ("R ou 4" if skillCast.is_ultimate else changeKey), 13, gold))
+	column.add_child(tooltip_label(skillCast.description, 15, pale))
+	var separator = HSeparator.new()
+	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(separator)
+	column.add_child(tooltip_label("Mana: %d     Recarga: %.1f s" % [skillCast.skillManaCost, skillCast.skillCoolDownTime], 14, Color("9dc8f0")))
+	column.add_child(tooltip_label("Conjuração: " + skillCast.cast_description(), 14, pale))
+	if skillCast.targeting() != Skill.TargetMode.SELF:
+		column.add_child(tooltip_label("Alcance: %d" % int(skillCast.cast_range), 14, pale))
+	column.add_child(tooltip_label("Alvo: " + skillCast.target_description(), 13, Color("bcb29f")))
+	return panel

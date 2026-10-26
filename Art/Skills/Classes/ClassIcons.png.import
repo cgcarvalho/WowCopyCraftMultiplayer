@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bi0y2l4cf6p2e"
-path="res://.godot/imported/holy_light.svg-2a079df45e140a847389798e2c057b43.ctex"
+uid="uid://c7fd7nrcvxgij"
+path="res://.godot/imported/ClassIcons.png-561af05d34f97bdb98cd1302a6867f53.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Art/Skills/Classes/holy_light.svg"
-dest_files=["res://.godot/imported/holy_light.svg-2a079df45e140a847389798e2c057b43.ctex"]
+source_file="res://Art/Skills/Classes/ClassIcons.png"
+dest_files=["res://.godot/imported/ClassIcons.png-561af05d34f97bdb98cd1302a6867f53.ctex"]
 
 [params]
 
@@ -32,6 +32,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

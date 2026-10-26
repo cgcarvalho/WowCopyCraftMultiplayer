@@ -42,3 +42,21 @@ func cast(_casterChar : Character, _targetChar : Character) -> void:
 	
 func setSkillInicialPosition() -> void:
 	pass
+
+func target_description() -> String:
+	match targeting():
+		TargetMode.ALLY:
+			return "Aliado ou você · Alt: autocura"
+		TargetMode.SELF:
+			return "Você / área ao seu redor"
+		TargetMode.GROUND:
+			return "Chão sob o alvo; sem alvo, sua posição"
+	return "Inimigo"
+
+func cast_description() -> String:
+	return "Instantânea" if skillCastTime <= 0 else "%.1f s" % skillCastTime
+
+func tooltip_summary(hotkey: String) -> String:
+	var heading = skillName + (" · ULTIMATE" if is_ultimate else "")
+	var reach = "Você" if targeting() == TargetMode.SELF else "%d" % int(cast_range)
+	return "%s [%s]\n%s\n\nMana: %d · Recarga: %.1f s\nConjuração: %s · Alcance: %s\nAlvo: %s" % [heading, hotkey, description, skillManaCost, skillCoolDownTime, cast_description(), reach, target_description()]

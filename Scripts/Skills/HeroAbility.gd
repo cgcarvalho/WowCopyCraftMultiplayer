@@ -40,7 +40,14 @@ func configure(id: String) -> void:
 	skillManaCost = data.mana
 	skillCastTime = data.cast
 	skillScenePath = "res://Scenes/Skills/Classes/" + id + ".tscn"
-	iconFilePath = "res://Art/Skills/Classes/" + id + ".svg"
+	iconFilePath = "res://Art/Skills/Classes/" + id + ".tres"
+	var original_icons = {
+		"charge": "res://Art/Skills/Charge Icon.png",
+		"holy_light": "res://Art/Skills/Heal icon.png",
+		"consecration": "res://Art/Skills/Consecration Icon.png"
+	}
+	if original_icons.has(id):
+		iconFilePath = original_icons[id]
 	description = data.description
 	cast_range = data.range
 	target_mode = TargetMode[data.mode]

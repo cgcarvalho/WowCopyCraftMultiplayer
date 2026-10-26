@@ -179,3 +179,10 @@ A suíte offline cobre os quatro repertórios, cooldown de Shadow Bolt, ultimate
 alcance, cura, áreas, autoataque por projétil, veneno e sua interface.
 A suíte ENet cobre magia de classe indevida, dano único do projétil/veneno,
 cura/escudo do paladino em aliado remoto e replicação dos indicadores de veneno.
+
+
+### Ícones e tooltips das habilidades
+
+Os ícones das classes seguem o estilo ilustrado dos originais, com moldura dourada e fundo de fantasia. Charge, Holy Light e Consecration reutilizam os PNGs originais. Os novos ícones vêm do atlas `Art/Skills/Classes/ClassIcons.png`, por recursos AtlasTexture.
+
+Passar o mouse sobre uma habilidade mostra efeito, tecla, custo de mana, recarga, tempo de conjuração, alcance e alvo. O tooltip permanece disponível durante o cooldown; o timer continua bloqueando novos lançamentos. Os rótulos das habilidades na seleção também exibem os detalhes ao passar o mouse.

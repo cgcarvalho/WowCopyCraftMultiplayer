@@ -19,7 +19,7 @@ func createButtons() -> void:
 		$PanelContainer/HBoxContainer.add_child(button)
 		button.texture_normal = load(skill.iconFilePath)
 		button.changeKey = "R" if skill.is_ultimate else str(hotkey)
-		button.tooltip_text = "%s%s\n%s\nMana: %d · Recarga: %.1fs · Cast: %.1fs" % [skill.skillName, " · ULTIMATE (R / 4)" if skill.is_ultimate else "", skill.description, skill.skillManaCost, skill.skillCoolDownTime, skill.skillCastTime]
+		button.tooltip_text = skill.tooltip_summary("R / 4" if skill.is_ultimate else str(hotkey))
 		hotkey += 1
 	if message == null:
 		message = Label.new()

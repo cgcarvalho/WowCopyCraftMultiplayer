@@ -72,7 +72,7 @@ func _ready() -> void:
 		for index in character.skillList.size():
 			var skill = character.skillList[index]
 			var label = text_label(("R · " if skill.is_ultimate else str(index + 1) + " · ") + skill.skillName, 14, Color("d3b0ff") if skill.is_ultimate else Color.WHITE)
-			label.tooltip_text = skill.description
+			label.tooltip_text = skill.tooltip_summary("R / 4" if skill.is_ultimate else str(index + 1))
 			column.add_child(label)
 		var button = Button.new()
 		button.text = "Jogar com " + character.charName
