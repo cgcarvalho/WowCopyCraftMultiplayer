@@ -109,7 +109,7 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		#		ui_handler.hideTargetHPBar()
 		#		localPlayer.charCurrentTarget = null
 
-func deal_damage(damage : int, _source: Character = null) -> void:
+func deal_damage(damage : int, _source: Character = null, periodic: bool = false) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0:
 		return
 	damage = apply_crit(damage)
@@ -117,7 +117,7 @@ func deal_damage(damage : int, _source: Character = null) -> void:
 	charShield -= absorbed
 	damage -= absorbed
 	charCurrentLife -= damage
-	DamageNumbers.display_number(damage, global_position, isCrit)
+	DamageNumbers.display_number.rpc(damage, global_position, isCrit, false, periodic)
 		
 	
 
@@ -125,7 +125,7 @@ func apply_heal(heal : int) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0:
 		return
 	charCurrentLife += heal
-	DamageNumbers.display_number(heal, global_position, isCrit, true)	
+	DamageNumbers.display_number.rpc(heal, global_position, isCrit, true)
 
 func apply_shield(shield : int) -> void:
 	if not multiplayer.is_server():

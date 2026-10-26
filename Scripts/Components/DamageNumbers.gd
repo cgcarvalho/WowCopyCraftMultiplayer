@@ -1,62 +1,40 @@
 extends Node
 
-const font_size : int = 18
-const crit_font_size : int = 36
-const outline_size : int = 1
-const color_damage : String = "#FFF"
-const color_critical : String =  "#B22"
-const color_heal : String =  "#64F25A"
-const color_fail : String = "#FFF8"
-const outline_color : String = "#000"
+var sequence = 0
+var displayed_events = 0
+var displayed_dot_events = 0
 
-
-func display_number(value : int, position : Vector2, is_critical : bool = false, is_heal : bool = false) -> void:
-	position.y -= 150
-	create_number(value, position, is_critical, is_heal)
-
-func create_number(value : int, position : Vector2, is_critical : bool, is_heal : bool) -> void:
+# Only the server may broadcast combat text. Peers see the same tick feedback.
+@rpc("authority", "call_local", "reliable")
+func display_number(value: int, position: Vector2, is_critical: bool = false, is_heal: bool = false, periodic: bool = false) -> void:
+	displayed_events += 1
+	if periodic:
+		displayed_dot_events += 1
 	var number = Label.new()
-	number.global_position = position
-	number.text = str(value)
-	number.z_index = Constants.DAMAGE_NUMBERS_Z_INDEX
-	number.label_settings = LabelSettings.new()
-	
-	var color = color_heal if is_heal else color_damage 
-	if is_critical:
-		color = color_critical
-	if value == 0: 
-		color = color_fail
-		
-	number.label_settings.font_color = color
-	number.label_settings.font_size = crit_font_size if is_critical else font_size
-	number.label_settings.outline_color = outline_color
-	number.label_settings.outline_size = outline_size
-	
-	call_deferred("add_child", number)
-	
-	
-	await number.resized
-	number.pivot_offset = Vector2(number.size / 2)
-	animate_number(number)
-
-func animate_number(number : Label) -> void:
-	var tween = get_tree().create_tween()
+	number.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	number.text = ("+" if is_heal else "−") + str(value)
+	if value == 0:
+		number.text = "Absorvido"
+	var settings = LabelSettings.new()
+	settings.font_size = 32 if is_critical else 23
+	settings.outline_size = 4
+	settings.outline_color = Color("0b0b16")
+	settings.shadow_color = Color(0, 0, 0, 0.8)
+	settings.shadow_size = 3
+	settings.shadow_offset = Vector2(1, 2)
+	settings.font_color = Color("dfb2ff") if periodic else Color("fff4df")
+	if is_heal:
+		settings.font_color = Color("79f1b0")
+	elif is_critical:
+		settings.font_color = Color("ffb572")
+	number.label_settings = settings
+	number.z_index = 30
+	add_child(number)
+	var lane = sequence % 3 - 1
+	sequence += 1
+	number.global_position = position + Vector2(lane * 30 - 12, -125 - abs(lane) * 12)
+	var tween = number.create_tween()
 	tween.set_parallel(true)
-	
-	tween.tween_property(
-		number, "position:y", number.position.y - 24, 0.25
-	).set_ease(Tween.EASE_OUT)
-	
-	tween.tween_property(
-		number, "position:y", number.position.y, 0.5
-	).set_ease(Tween.EASE_IN).set_delay(0.25)
-	
-	tween.tween_property(
-		number, "scale", Vector2.ZERO, 0.25
-	).set_ease(Tween.EASE_IN).set_delay(0.5)
-	
-	await tween.finished
-	number.queue_free()
-	
-	
-	
+	tween.tween_property(number, "position:y", number.position.y - 46, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(number, "modulate:a", 0.0, 0.45).set_delay(0.45)
+	tween.finished.connect(number.queue_free)

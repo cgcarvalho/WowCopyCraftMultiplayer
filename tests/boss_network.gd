@@ -117,6 +117,10 @@ func _process(_delta: float) -> void:
 			fail("Victory state is inconsistent")
 			return
 		print("PASS: client receives victory, death and telegraph cancellation")
+		if DamageNumbers.displayed_dot_events < 1:
+			fail("Client did not receive periodic damage combat text")
+			return
+		print("PASS: client sees server-authorized DoT damage numbers")
 		confirm_victory.rpc_id(1)
 
 @rpc("any_peer", "reliable")

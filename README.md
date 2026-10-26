@@ -104,3 +104,26 @@ O teste cobre entrada tardia, vida/posição, fase, tipo de magia, mira travada,
 projéteis ativos, direção/movimento do boss, remetente adulterado, habilidade do
 cliente, vitória e desconexão. O teste de táticas cobre aceleração, distância,
 ameaça, árvores, limites, colisão dos orbes, esquiva da lança, escape, escudo e fase.
+
+## Menu e leitura dos efeitos
+
+O menu inicial usa um painel central e fundo com proporção preservada. É possível
+usar Tab para navegar e Enter no endereço para entrar na partida. O projeto usa
+uma referência de 1152 × 648 com ajuste de canvas para outras proporções de janela.
+
+DoTs usam ícones acima do personagem e uma lista detalhada no alvo selecionado.
+Os números mostram **tempo restante**, com destaque nos últimos 3 segundos.
+Aplicações iguais são agrupadas com indicação de quantidade; a duração exibida
+é a maior restante entre elas. A barra acompanha a expiração e os indicadores
+somem ao remover o último efeito. Os sprites no mundo têm menor opacidade para
+preservar a leitura do personagem e dos avisos de magia.
+
+Os números de dano mantêm o tamanho durante a animação, têm contorno escuro e
+separam impactos próximos. Dano periódico usa roxo; cura usa verde. Esses eventos
+visuais são enviados pelo servidor também aos clientes multiplayer.
+
+Teste adicional de duração, agrupamento, renovação, remoção e feedback dos DoTs:
+
+```sh
+godot --headless --path . res://tests/dot_presentation.tscn
+```

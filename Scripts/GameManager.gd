@@ -61,6 +61,7 @@ func on_server_disconnected() -> void:
 	get_tree().reload_current_scene()
 
 func set_connection_buttons(enabled: bool) -> void:
+	server_address.editable = enabled
 	get_node("MultiplayerHUD/Panel/VBoxContainer/Host").disabled = not enabled
 	get_node("MultiplayerHUD/Panel/VBoxContainer/Join").disabled = not enabled
 
