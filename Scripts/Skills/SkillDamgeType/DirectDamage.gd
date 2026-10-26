@@ -56,5 +56,5 @@ func _physics_process(delta: float) -> void:
 			
 	if global_position.is_equal_approx(targetCharacter.global_position):
 		queue_free()
-		targetCharacter.deal_damage(skillBaseDamage)
+		targetCharacter.deal_damage(skillBaseDamage, casterCharacter)
 

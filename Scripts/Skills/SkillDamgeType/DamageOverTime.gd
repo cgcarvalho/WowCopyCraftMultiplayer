@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 	lb.text = str("%2.2f" % skillTimer )
 
 	if timer >= 1.0 and skillTimer <= skillDotSeconds + 1:
-		targetCharacter.deal_damage(skillBaseDamage)
+		targetCharacter.deal_damage(skillBaseDamage, casterCharacter)
 		timer = 0.0 
 		onDamage.emit()
 	elif skillTimer >= skillDotSeconds:

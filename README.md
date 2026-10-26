@@ -38,34 +38,59 @@ mana, cooldown e tempo de conjuração, e replica os atributos de combate.
 O movimento continua sob autoridade do cliente; não há proteção completa
 contra adulteração de posição. Respawn e reinício de encontro ainda não estão implementados.
 
-## Primeiro boss: Jefferson Wizard
+## Jefferson, o Arcanista
 
-Ao selecionar o primeiro personagem, o encontro começa automaticamente.
-Jefferson tem **300 HP**, escolhe o jogador vivo mais próximo, persegue e causa
-**8 de dano corpo a corpo**, com intervalo de **1,6 segundo** entre ataques.
+O encontro começa quando o primeiro jogador seleciona um personagem. Jefferson
+agora tem **480 HP** e uma presença visual maior, com flutuação, sombra e
+interpolação visual da movimentação.
 
-A cada **6 segundos** (após uma abertura de 3 segundos), ele marca um círculo
-na posição de um jogador. O círculo fica **fixo** por **2 segundos**; saia dele
-antes da detonação para evitar **25 de dano**. O boss para de andar durante o aviso.
-O dano considera a posição do personagem, não a extensão da imagem.
+O servidor escolhe alvos combinando proximidade e ameaça causada por dano.
+Uma pequena janela de compromisso com o alvo evita trocas constantes. Jefferson
+acelera e desacelera, recua de jogadores próximos, circula na distância de
+conjuração, contorna as duas árvores do mapa e evita áreas ofensivas dos jogadores.
+O movimento fica limitado à arena. O desenho das árvores é específico deste mapa;
+outros mapas precisarão fornecer seus próprios obstáculos.
 
-Clique no boss para selecioná-lo. Habilidades de dano e ataques básicos podem
-atingi-lo; cura e escudo são para aliados. Áreas dos jogadores não atingem aliados.
-A barra superior mostra a vida do boss e o tempo restante do aviso.
+### Magias
 
-A luta termina com **vitória** ao zerar a vida do boss ou **derrota** quando não
-há jogadores vivos. Avisos e habilidades pendentes são cancelados. Para outra
-tentativa, reinicie a sessão. Ainda não há fases, loot, aggro por ameaça ou respawn.
-O servidor controla a IA, as posições dos avisos e os danos; clientes recebem o
-estado do encontro, inclusive ao entrar com a luta em andamento.
+| Magia | Aviso | Efeito |
+| --- | --- | --- |
+| Ruptura Sombria | Círculo fixo por 2 s | 25 de dano em raio de 115; prioriza grupos próximos. |
+| Orbes do Vazio | Direções em leque por 1 s | Três projéteis esquiváveis, 12 de dano cada; cinco na fase 2. |
+| Lança Arcana | Faixa azul por 1,6 s | 22 de dano na linha; a mira não acompanha o jogador após o aviso. |
+| Passo Astral | Portais de origem e destino por 1,1 s | Reposicionamento para longe de jogadores próximos, sem dano. |
+| Égide Rúnica | Runas por 1,3 s | Escudo de 50, usado uma vez na transição de fase. |
 
-### Testes do boss
+A primeira fase tem 6 s de recuperação entre conjurações, além de seus avisos.
+Abaixo ou exatamente em **50% da vida**, a fase 2 acelera o movimento, reduz a
+recuperação para 4,2 s e amplia a salva de orbes. Há cooldowns individuais para
+evitar repetir a mesma magia e impedir teleporte contínuo. O ataque corpo a corpo
+continua causando 8 de dano com intervalo de 1,6 s.
+
+O círculo, a linha e a direção dos tiros são definidos antes do impacto. A previsão
+usada nos orbes é limitada a 90 unidades e fica travada no começo do aviso.
+O dano considera o ponto central do personagem, não toda a extensão da imagem.
+Projéteis usam teste de segmento entre frames para não atravessar alvos quando
+um frame demora mais. O servidor controla todo o dano; clientes animam os sprites.
+
+Clique no boss para selecioná-lo. Cura e escudo são para aliados; habilidades de
+dano e ataques básicos podem atingi-lo. Áreas dos jogadores não causam dano aliado.
+A luta termina com vitória ao zerar a vida do boss ou derrota quando não há
+jogadores vivos. O encerramento cancela avisos, tiros e habilidades pendentes.
+Para outra tentativa, reinicie a sessão. Ainda não há loot ou respawn.
+
+Os efeitos usam um atlas original animado em `Art/Skills/Jefferson/SpellAtlas.png`.
+Os estados da magia, mira, fase, efeitos de impacto e tiros ativos são replicados,
+inclusive para quem entra no meio da luta. Clientes não escolhem magias nem dano.
+
+### Testes
 
 ```sh
 godot --headless --path . res://tests/boss_fight.tscn
+godot --headless --path . res://tests/jefferson_tactics.tscn
 ```
 
-Para testar replicação real, execute em dois terminais (porta UDP 18081):
+Para testar replicação ENet, execute em dois terminais (porta UDP 18081):
 
 ```sh
 # Terminal 1
@@ -74,7 +99,8 @@ godot --headless --path . res://tests/boss_network.tscn -- --server
 godot --headless --path . res://tests/boss_network.tscn -- --client
 ```
 
-Os processos encerram automaticamente. Os logs devem mostrar
-`NETWORK_CLIENT_PASS` e `NETWORK_SERVER_PASS`. Este teste cobre entrada tardia,
-vida/posição/aviso do boss, ataque com identidade adulterada, habilidade do cliente,
-vitória e desconexão.
+Os processos devem exibir `NETWORK_CLIENT_PASS` e `NETWORK_SERVER_PASS`.
+O teste cobre entrada tardia, vida/posição, fase, tipo de magia, mira travada,
+projéteis ativos, direção/movimento do boss, remetente adulterado, habilidade do
+cliente, vitória e desconexão. O teste de táticas cobre aceleração, distância,
+ameaça, árvores, limites, colisão dos orbes, esquiva da lança, escape, escudo e fase.

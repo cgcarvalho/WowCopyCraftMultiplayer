@@ -37,6 +37,13 @@ func run() -> void:
 		encounter.danger_position = Vector2(500, 300)
 		encounter.danger_visible = true
 		encounter.danger_remaining = 2
+		encounter.spell_kind = "lance"
+		encounter.phase = 2
+		encounter.danger_origin = Vector2(700, 250)
+		encounter.danger_direction = Vector2.LEFT
+		encounter.boss.facing_left = true
+		encounter.boss.velocity = Vector2(18, 9)
+		encounter.projectiles = [{"id": 50, "position": Vector2(950, 100), "velocity": Vector2(-100, 0), "life": 3.0}]
 		print("NETWORK_SERVER_READY")
 		multiplayer.peer_disconnected.connect(on_disconnect)
 	else:
@@ -54,6 +61,18 @@ func run() -> void:
 			fail("Late join did not receive the active telegraph")
 			return
 		print("PASS: late join receives boss state and telegraph")
+		if encounter.spell_kind != "lance" or encounter.phase != 2 or encounter.danger_direction != Vector2.LEFT:
+			fail("Late join did not receive spell selection, phase and locked aim")
+			return
+		print("PASS: late join receives spell, phase and locked aim")
+		if encounter.projectiles.size() != 1 or encounter.projectiles[0]["position"] != Vector2(950, 100):
+			fail("Late join did not receive active projectiles")
+			return
+		print("PASS: late join receives active projectile sprites")
+		if not encounter.boss.facing_left or encounter.boss.velocity != Vector2(18, 9):
+			fail("Boss facing and motion state did not replicate")
+			return
+		print("PASS: facing and movement replicate without client override")
 		var handler = main.get_node("SkillHandler")
 		handler.basic_attack.rpc_id(1, 1, -1) # Spoofing the host must fail.
 		request_attack_check.rpc_id(1)
@@ -94,7 +113,7 @@ func verify_dot() -> void:
 func _process(_delta: float) -> void:
 	if not is_host and is_instance_valid(encounter) and encounter.status == "victory" and not observed_victory:
 		observed_victory = true
-		if encounter.danger_visible or encounter.boss.charCurrentLife != 0:
+		if encounter.danger_visible or not encounter.projectiles.is_empty() or encounter.boss.charCurrentLife != 0:
 			fail("Victory state is inconsistent")
 			return
 		print("PASS: client receives victory, death and telegraph cancellation")

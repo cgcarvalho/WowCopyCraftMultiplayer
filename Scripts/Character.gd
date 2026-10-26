@@ -109,7 +109,7 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		#		ui_handler.hideTargetHPBar()
 		#		localPlayer.charCurrentTarget = null
 
-func deal_damage(damage : int) -> void:
+func deal_damage(damage : int, _source: Character = null) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0:
 		return
 	damage = apply_crit(damage)

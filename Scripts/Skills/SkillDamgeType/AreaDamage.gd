@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 	if timer >= 1.0 and skillTimer <= skillDuration + 1:
 		for player in playersInArea:
 			if is_instance_valid(player) and player.charTeam != casterCharacter.charTeam and player.charCurrentLife > 0:
-				player.deal_damage(skillBaseDamage)
+				player.deal_damage(skillBaseDamage, casterCharacter)
 		timer = 0.0 
 	elif skillTimer >= skillDuration:
 		queue_free()

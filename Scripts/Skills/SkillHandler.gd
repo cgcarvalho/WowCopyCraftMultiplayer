@@ -115,7 +115,7 @@ func basic_attack(caster_id: int, target_id: int) -> void:
 	if now < attack_times.get(caster_id, 0):
 		return
 	attack_times[caster_id] = now + 1000
-	target.deal_damage(caster.charBaseDamage)
+	target.deal_damage(caster.charBaseDamage, caster)
 
 @rpc("authority", "call_remote", "reliable")
 func reset_skill(path: String, owner_id: int) -> void:
