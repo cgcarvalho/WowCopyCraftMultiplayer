@@ -81,7 +81,7 @@ func _ready() -> void:
 		button.custom_minimum_size.y = 42
 		button.pressed.connect(func(): playerSelected.emit(character))
 		column.add_child(button)
-	content.add_child(text_label("Passe o mouse nos ícones ou nomes das habilidades para ver os detalhes.\nWASD: mover · Clique esquerdo: selecionar · Botão direito: autoataque\n1 / 2 / 3: habilidades · R ou 4: ultimate · Alt + cura: autocura", 14, Color("bdc7dc")))
+	content.add_child(text_label("Passe o mouse nos ícones ou nomes das habilidades para ver os detalhes.\nWASD: mover · Clique / Tab: selecionar · Autoataque automático ao alcance\n1 / 2 / 3: habilidades · R ou 4: ultimate · Alt + cura: autocura", 14, Color("bdc7dc")))
 
 func _exit_tree() -> void:
 	for character in charList:

@@ -38,13 +38,18 @@ static func checkAttack(state_machine: StateStrategy) -> void:
 		if not Input.is_action_pressed("attack"):
 			preview.suppress_attack = false
 		return
-	if Input.is_action_pressed("attack") and state_machine.statePlayer.ability_animation_time <= 0 and not preview.aiming:
-		var player = state_machine.statePlayer
-		var target = player.charCurrentTarget
-		if is_instance_valid(target) and target.charCurrentLife > 0 and target.charTeam != player.charTeam and player.global_position.distance_to(target.global_position) <= player.charRange:
+	var player = state_machine.statePlayer
+	if player.charCurrentLife <= 0 or player.spectator or player.ability_animation_time > 0 or preview.aiming or not Input.get_vector("move_left", "move_right", "move_up", "move_down").is_zero_approx():
+		return
+	var target = player.charCurrentTarget
+	if is_instance_valid(target) and target.charCurrentLife > 0 and not target.spectator and target.charTeam != player.charTeam and player.global_position.distance_to(target.global_position) <= player.charRange:
+		var windup_msec = roundi(player.attack_interval * 0.35 * 1000)
+		if Time.get_ticks_msec() < state_machine.next_basic_attack_at_msec - windup_msec:
+			return
+		if not state_machine.current_state is Attack:
 			state_machine.set_state(Attack.new())
-		elif Input.is_action_just_pressed("attack"):
-			state_machine.mainScene.get_node("CombatHUD/SkillBar").show_feedback("Selecione um inimigo ao alcance")
+	elif Input.is_action_just_pressed("attack"):
+		state_machine.mainScene.get_node("CombatHUD/SkillBar").show_feedback("Selecione um inimigo ao alcance")
 
 static func checkAnimationPlaying(state_machine : StateStrategy) -> void:
 	if state_machine.statePlayer.ability_animation_time <= 0:

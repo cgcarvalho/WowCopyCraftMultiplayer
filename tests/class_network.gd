@@ -97,7 +97,12 @@ func verify_client_state() -> void:
 		return
 	if not check(main.get_node("DotStatusUI").groups_for(boss).size() == 1, "Client sees replicated poison status"):
 		return
-	handler.basic_attack.rpc_id(1, client_id, -1)
+	hunter.charCurrentTarget = boss
+	# This fixture pauses automatic physics; tick the character to expire cast art.
+	hunter._physics_process(1.0)
+	if not check(hunter.state_machine.current_state is Attack and not Input.is_action_pressed("attack"), "Remote Hunter starts autoattacking a selected enemy without holding right click"):
+		return
+	hunter.state_machine._physics_process(hunter.attack_interval * 0.36)
 	verify_arrow.rpc_id(1)
 
 @rpc("any_peer", "reliable")

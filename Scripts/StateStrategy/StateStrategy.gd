@@ -5,6 +5,7 @@ var current_state: State
 var animatedSprite : AnimatedSprite2D
 var statePlayer : Character
 var mainScene : Node
+var next_basic_attack_at_msec = 0
 
 
 func _init(sprite : AnimatedSprite2D, player : Character, main : Node) -> void:
