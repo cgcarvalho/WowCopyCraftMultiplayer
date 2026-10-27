@@ -269,7 +269,7 @@ Com Godot 4.4.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa oito suítes offline e quatro suítes ENet: três com dois processos
+O runner executa nove suítes offline e quatro suítes ENet: três com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
@@ -333,3 +333,36 @@ durante combate, tooltips modificados, atribuição de métricas e reset entre r
 `party_report_network` verifica um grupo completo com nomes UTF-8 longos e o envio
 confiável de resultados maiores que um pacote de sincronização padrão. O resumo
 é enviado uma vez por RPC confiável e também para quem entra após o encerramento.
+
+## Visão ampliada da arena
+
+`ArenaCamera` usa uma câmera fixa para todo o grupo, com zoom de **0,75**. Os
+personagens comuns aparecem 25% menores, e o enquadramento de referência passa a
+mostrar um cenário de **1536 × 864 unidades**. A área navegável aumenta de
+1050 × 370 para **1400 × 500**, aproximadamente 80% mais espaço de movimentação.
+
+`ForestArena.gd` estende o terreno com os tiles existentes, preservando as bordas
+da ilha e as duas árvores nas mesmas posições de colisão. A água continua além
+das bordas para preencher janelas com outras proporções. Os limites de movimento,
+as posições seguras do boss e a validação das áreas de magia usam a arena expandida.
+
+O sprite de Jefferson passa de 420 para **630 unidades** de altura do quadro
+(50% maior no mundo); depois do afastamento da câmera, ainda aparece maior do que
+na visão anterior. A área de seleção, a sombra, a aura de fase 2 e seus efeitos
+de proteção/teleporte acompanham o tamanho. O dano e as áreas ofensivas continuam
+usando as distâncias reais de combate.
+
+Vida, recursos, habilidades e conjurações ficam em `CombatHUD`, um CanvasLayer
+independente da câmera. A barra de combate acompanha o rodapé em janelas mais altas.
+Números de dano e indicadores de DoT são projetados do mundo
+para a tela, mantendo o tamanho de leitura. As instruções dos avisos de magia
+compensam o zoom e permanecem dentro da área visível. Seleção de alvos e mira no
+chão usam as coordenadas de mundo transformadas pela câmera.
+
+```sh
+godot --headless --path . res://tests/arena_view.tscn
+```
+
+A suíte cobre terreno real na área nova, navegação e limites, separação do HUD,
+projeção dos números e lançamento de magia no chão. O teste de boss em ENet
+verifica também a câmera e o tamanho do Jefferson no cliente remoto.

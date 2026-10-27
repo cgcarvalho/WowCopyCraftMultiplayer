@@ -8,8 +8,10 @@ const ACCELERATION = 360.0
 const MELEE_RANGE = 130.0
 const MELEE_DAMAGE = 8
 const MELEE_INTERVAL = 1.6
-const ARENA = Rect2(130, 125, 890, 400)
-const TREE_CENTERS = [Vector2(850, 185), Vector2(850, 475)]
+const VISUAL_HEIGHT = 630.0
+const VISUAL_SCALE = VISUAL_HEIGHT / 420.0
+const ARENA = ArenaNavigation.BOSS_BOUNDS
+const TREE_CENTERS = ArenaNavigation.TRUNKS
 var attack_cooldown = 0.0
 var velocity = Vector2.ZERO
 @export var facing_left = false
@@ -76,11 +78,11 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	draw_set_transform(Vector2(0, 90), 0, Vector2(1, 0.28))
+	draw_set_transform(Vector2(0, 90) * VISUAL_SCALE, 0, Vector2(1, 0.28) * VISUAL_SCALE)
 	draw_circle(Vector2.ZERO, 68, Color(0.05, 0.01, 0.1, 0.38))
 	draw_set_transform(Vector2.ZERO)
 	if get_parent().phase == 2 and charCurrentLife > 0:
-		draw_arc(Vector2(0, 90), 85, 0, TAU, 64, Color(0.8, 0.2, 1, 0.55), 3, true)
+		draw_arc(Vector2(0, 90) * VISUAL_SCALE, 85 * VISUAL_SCALE, 0, TAU, 64, Color(0.8, 0.2, 1, 0.55), 3, true)
 
 func choose_target() -> Character:
 	var best: Character
@@ -249,5 +251,5 @@ func configure_animation() -> void:
 			texture.region = Rect2(Vector2(index % 6, index / 6) * cell, cell)
 			frames.add_frame(animation_name, texture)
 	$AnimatedSprite2D.sprite_frames = frames
-	animation_scale = 420.0 / cell.y
+	animation_scale = VISUAL_HEIGHT / cell.y
 	$AnimatedSprite2D.scale = Vector2.ONE * animation_scale

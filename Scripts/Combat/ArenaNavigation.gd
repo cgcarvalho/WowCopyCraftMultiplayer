@@ -1,7 +1,9 @@
 class_name ArenaNavigation
 extends RefCounted
 
-const BOUNDS = Rect2(50, 145, 1050, 370)
+const WORLD_SIZE = Vector2(1536, 864)
+const BOUNDS = Rect2(50, 145, 1400, 500)
+const BOSS_BOUNDS = Rect2(130, 125, 1240, 540)
 const TRUNKS = [Vector2(850, 185), Vector2(850, 475)]
 const COLLISION_RADIUS = 76.0
 

@@ -32,7 +32,7 @@ func _draw() -> void:
 	if encounter.status != "active":
 		return
 	if encounter.boss.charShield > 0:
-		sprite(3, encounter.boss.global_position, Vector2(300, 300), animation_time * 0.4)
+		sprite(3, encounter.boss.global_position, Vector2(300, 300) * Jefferson.VISUAL_SCALE, animation_time * 0.4)
 	if encounter.danger_visible:
 		draw_warning()
 	if encounter.visual_remaining > 0:
@@ -44,12 +44,26 @@ func _draw() -> void:
 				var middle = encounter.visual_origin + encounter.visual_direction * encounter.LANCE_LENGTH / 2
 				sprite(1, middle, Vector2(encounter.LANCE_LENGTH, 125), encounter.visual_direction.angle(), tint)
 			"blink":
-				sprite(3, encounter.visual_origin, Vector2(220, 220), -animation_time, tint)
-				sprite(3, encounter.visual_position, Vector2(240, 240), animation_time, tint)
+				sprite(3, encounter.visual_origin, Vector2(220, 220) * Jefferson.VISUAL_SCALE, -animation_time, tint)
+				sprite(3, encounter.visual_position, Vector2(240, 240) * Jefferson.VISUAL_SCALE, animation_time, tint)
 	for projectile in encounter.projectiles:
 		var point: Vector2 = display_positions.get(projectile["id"], projectile["position"])
 		var direction: Vector2 = projectile["velocity"]
 		sprite(0, point, Vector2(108, 108), direction.angle())
+
+func warning_label(point: Vector2, text: String, size: int, color: Color) -> void:
+	var canvas_scale = maxf(0.25, absf(get_global_transform_with_canvas().get_scale().x))
+	var font_size = roundi(size / canvas_scale)
+	var outline = roundi(4 / canvas_scale)
+	var transform_to_screen = get_global_transform_with_canvas()
+	var screen_point = transform_to_screen * point
+	var viewport_size = get_viewport_rect().size
+	var width = ThemeDB.fallback_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x * canvas_scale
+	screen_point.x = clampf(screen_point.x, 8, maxf(8, viewport_size.x - width - 8))
+	screen_point.y = clampf(screen_point.y, 170, maxf(170, viewport_size.y - 145))
+	point = transform_to_screen.affine_inverse() * screen_point
+	draw_string_outline(ThemeDB.fallback_font, point, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, outline, Color.BLACK)
+	draw_string(ThemeDB.fallback_font, point, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
 func draw_warning() -> void:
 	var center = to_local(encounter.danger_position)
@@ -59,8 +73,7 @@ func draw_warning() -> void:
 		"bond":
 			draw_circle(center, 130, Color(1, 0.8, 0.2, 0.15))
 			draw_arc(center, 130, 0, TAU, 64, Color("ffe18e"), 4, true)
-			draw_string_outline(ThemeDB.fallback_font, center + Vector2(-80, -140), "JUNTEM-SE · DIVIDIR DANO", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 4, Color.BLACK)
-			draw_string(ThemeDB.fallback_font, center + Vector2(-80, -140), "JUNTEM-SE · DIVIDIR DANO", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ffe18e"))
+			warning_label(center + Vector2(-80, -140), "JUNTEM-SE · DIVIDIR DANO", 15, Color("ffe18e"))
 		"spread":
 			for id in encounter.mechanic_targets:
 				var hero = MultiplayerManager.get_character(int(id))
@@ -68,13 +81,11 @@ func draw_warning() -> void:
 					var point = to_local(hero.global_position)
 					draw_circle(point, 95, Color(0.9, 0.1, 0.3, 0.16))
 					draw_arc(point, 95, 0, TAU, 48, Color("ff6b7d"), 3, true)
-					draw_string_outline(ThemeDB.fallback_font, point + Vector2(-35, -105), "AFASTE-SE", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, 4, Color.BLACK)
-					draw_string(ThemeDB.fallback_font, point + Vector2(-35, -105), "AFASTE-SE", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("ff97a3"))
+					warning_label(point + Vector2(-35, -105), "AFASTE-SE", 14, Color("ff97a3"))
 		"channel":
-			draw_arc(origin, 140, 0, TAU * fraction, 64, Color("ffb8ff"), 6, true)
-			sprite(3, encounter.danger_origin, Vector2(340, 340), animation_time)
-			draw_string_outline(ThemeDB.fallback_font, origin + Vector2(-100, -190), "F · INTERROMPER CATACLISMO", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, 4, Color.BLACK)
-			draw_string(ThemeDB.fallback_font, origin + Vector2(-100, -190), "F · INTERROMPER CATACLISMO", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("ffe18e"))
+			draw_arc(origin, 140 * Jefferson.VISUAL_SCALE, 0, TAU * fraction, 64, Color("ffb8ff"), 6, true)
+			sprite(3, encounter.danger_origin, Vector2(340, 340) * Jefferson.VISUAL_SCALE, animation_time)
+			warning_label(origin + Vector2(-100, -Jefferson.VISUAL_HEIGHT / 2 - 10), "F · INTERROMPER CATACLISMO", 16, Color("ffe18e"))
 		"rupture":
 			draw_circle(center, encounter.AREA_RADIUS, Color(0.8, 0.08, 0.2, 0.25))
 			draw_arc(center, encounter.AREA_RADIUS, 0, TAU, 64, Color(1, 0.25, 0.1), 4, true)
@@ -93,8 +104,8 @@ func draw_warning() -> void:
 				draw_line(origin + direction * 80, origin + direction * 350, Color(0.8, 0.3, 1, 0.35), 3, true)
 			sprite(0, encounter.danger_origin, Vector2(100, 100) * (0.5 + fraction * 0.5))
 		"blink":
-			sprite(3, encounter.danger_origin, Vector2(190, 190), animation_time)
-			sprite(3, encounter.danger_position, Vector2(220, 220), -animation_time)
+			sprite(3, encounter.danger_origin, Vector2(190, 190) * Jefferson.VISUAL_SCALE, animation_time)
+			sprite(3, encounter.danger_position, Vector2(220, 220) * Jefferson.VISUAL_SCALE, -animation_time)
 			draw_arc(center, 85, 0, TAU, 64, Color(0.6, 0.3, 1, 0.7), 2, true)
 		"ward":
-			sprite(3, encounter.danger_origin, Vector2(300, 300) * (0.6 + fraction * 0.4), animation_time)
+			sprite(3, encounter.danger_origin, Vector2(300, 300) * Jefferson.VISUAL_SCALE * (0.6 + fraction * 0.4), animation_time)

@@ -44,7 +44,7 @@ static func checkAttack(state_machine: StateStrategy) -> void:
 		if is_instance_valid(target) and target.charCurrentLife > 0 and target.charTeam != player.charTeam and player.global_position.distance_to(target.global_position) <= player.charRange:
 			state_machine.set_state(Attack.new())
 		elif Input.is_action_just_pressed("attack"):
-			state_machine.mainScene.get_node("SkillBar").show_feedback("Selecione um inimigo ao alcance")
+			state_machine.mainScene.get_node("CombatHUD/SkillBar").show_feedback("Selecione um inimigo ao alcance")
 
 static func checkAnimationPlaying(state_machine : StateStrategy) -> void:
 	if state_machine.statePlayer.ability_animation_time <= 0:
