@@ -62,25 +62,26 @@ func _ready() -> void:
 		column.add_child(text_label(character.charClass, 17, Color("ffe299")))
 		var portrait = TextureRect.new()
 		portrait.texture = load(character.portraitImagePath)
-		portrait.custom_minimum_size = Vector2(188, 160)
+		portrait.custom_minimum_size = Vector2(188, 128)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		column.add_child(portrait)
 		var role = text_label(ROLES[character.charClass], 14, Color("bdc7dc"))
 		role.custom_minimum_size = Vector2(188, 42)
+		role.mouse_filter = Control.MOUSE_FILTER_STOP
 		role.tooltip_text = "Recurso: " + character.resource_name + "\n" + character.passive_text()
 		column.add_child(role)
 		for index in character.skillList.size():
 			var skill = character.skillList[index]
-			var label = text_label(("R · " if skill.is_ultimate else str(index + 1) + " · ") + skill.skillName, 14, Color("d3b0ff") if skill.is_ultimate else Color.WHITE)
-			label.tooltip_text = skill.tooltip_summary("R / 4" if skill.is_ultimate else str(index + 1))
-			column.add_child(label)
+			var preview = SelectionSkill.new()
+			preview.configure(skill, "R / 4" if skill.is_ultimate else str(index + 1))
+			column.add_child(preview)
 		var button = Button.new()
 		button.text = "Jogar com " + character.charName
 		button.custom_minimum_size.y = 42
 		button.pressed.connect(func(): playerSelected.emit(character))
 		column.add_child(button)
-	content.add_child(text_label("WASD: mover · Clique esquerdo: selecionar · Botão direito: autoataque\n1 / 2 / 3: habilidades · R ou 4: ultimate · Alt + cura: autocura", 14, Color("bdc7dc")))
+	content.add_child(text_label("Passe o mouse nos ícones ou nomes das habilidades para ver os detalhes.\nWASD: mover · Clique esquerdo: selecionar · Botão direito: autoataque\n1 / 2 / 3: habilidades · R ou 4: ultimate · Alt + cura: autocura", 14, Color("bdc7dc")))
 
 func _exit_tree() -> void:
 	for character in charList:

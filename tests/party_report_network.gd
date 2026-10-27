@@ -8,6 +8,7 @@ var main: Node
 var session: Node
 var acknowledgements: Dictionary = {}
 var active_peers: Dictionary = {}
+var shutdown_acks: Dictionary = {}
 
 func check(ok: bool, text: String) -> bool:
 	if ok:
@@ -123,11 +124,20 @@ func report_received() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func finish_test() -> void:
+	if host:
+		if not await until(func(): return shutdown_acks.size() == 3, "Clients did not acknowledge test shutdown"):
+			return
+	else:
+		shutdown_received.rpc_id(1)
+		# Flush the reliable acknowledgement before stopping automatic polling.
+		multiplayer.multiplayer_peer.get_host().flush()
+	get_tree().multiplayer_poll = false
 	print("PARTY_REPORT_SERVER_PASS" if host else "PARTY_REPORT_CLIENT_PASS")
-	await get_tree().create_timer(0.8 if host else 0.2).timeout
-	MultiplayerManager.reset_session()
-	get_tree().current_scene = self
-	if is_instance_valid(main):
-		main.queue_free()
-	await get_tree().process_frame
+	if not host:
+		await get_tree().create_timer(0.2).timeout
 	get_tree().quit()
+
+@rpc("any_peer", "reliable")
+func shutdown_received() -> void:
+	if host:
+		shutdown_acks[multiplayer.get_remote_sender_id()] = true

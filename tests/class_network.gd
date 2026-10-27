@@ -108,6 +108,38 @@ func verify_arrow() -> void:
 	await get_tree().create_timer(0.3).timeout
 	if not check(boss.charCurrentLife == before - 9, "Remote hunter arrow deals one server-authorized hit"):
 		return
+	var sprite = MultiplayerManager.playerList[1].get_node("AnimatedSprite2D")
+	sprite.flip_h = true
+	sprite.play("auto_attack")
+	verify_charger_animation.rpc_id(client_id)
+
+@rpc("authority", "reliable")
+func verify_charger_animation() -> void:
+	await get_tree().create_timer(0.25).timeout
+	var sprite = MultiplayerManager.playerList[1].get_node("AnimatedSprite2D")
+	if not check(sprite.animation == &"auto_attack" and sprite.sprite_frames.get_frame_count("auto_attack") == 8 and sprite.scale.is_equal_approx(Vector2(1.2, 1.2)) and sprite.flip_h, "Remote client sees Charger's dedicated hammer animation, calibrated size and facing"):
+		return
+	end_charger_animation.rpc_id(1)
+
+@rpc("any_peer", "reliable")
+func end_charger_animation() -> void:
+	if not host:
+		return
+	MultiplayerManager.playerList[1].get_node("AnimatedSprite2D").play("idle")
+	verify_charger_idle.rpc_id(client_id)
+
+@rpc("authority", "reliable")
+func verify_charger_idle() -> void:
+	await get_tree().create_timer(0.25).timeout
+	var sprite = MultiplayerManager.playerList[1].get_node("AnimatedSprite2D")
+	if not check(sprite.animation == &"idle" and sprite.scale == Vector2.ONE, "Remote Charger restores idle scale after the attack"):
+		return
+	complete_animation_test.rpc_id(1)
+
+@rpc("any_peer", "reliable")
+func complete_animation_test() -> void:
+	if not host:
+		return
 	finish_client.rpc_id(client_id)
 	await get_tree().create_timer(0.5).timeout
 	print("CLASS_NETWORK_SERVER_PASS")

@@ -10,6 +10,7 @@ var skillPlayer: Character
 var skillHander
 var pending = false
 var target_id = 0
+var combat_preview: Node
 var changeKey = "":
 	set(value):
 		changeKey = value
@@ -28,9 +29,18 @@ func _ready() -> void:
 	skillHander = get_tree().current_scene.get_node("SkillHandler")
 	skillHander.cast_confirmed.connect(on_cast_result)
 	skillHander.combat_reset.connect(_on_timer_timeout)
-	mouse_entered.connect(func(): get_tree().current_scene.get_node("CombatPreview").hover(skillCast))
-	mouse_exited.connect(func(): get_tree().current_scene.get_node("CombatPreview").clear_hover())
+	combat_preview = get_tree().current_scene.get_node("CombatPreview")
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 	set_process(false)
+
+func _on_mouse_entered() -> void:
+	if is_instance_valid(combat_preview) and is_instance_valid(skillCast):
+		combat_preview.hover(skillCast)
+
+func _on_mouse_exited() -> void:
+	if is_instance_valid(combat_preview):
+		combat_preview.clear_hover()
 
 func _process(_delta: float) -> void:
 	if not is_instance_valid(skillCast) or not is_instance_valid(skillPlayer):
@@ -100,51 +110,8 @@ func _on_timer_timeout() -> void:
 	progress_bar.value = 0
 	set_process(false)
 
-func tooltip_label(text: String, size: int, color: Color) -> Label:
-	var label = Label.new()
-	label.text = text
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.custom_minimum_size.x = 280
-	return label
-
 func _make_custom_tooltip(_for_text: String) -> Object:
-	if not is_instance_valid(skillCast):
-		return null
-	var panel = PanelContainer.new()
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color("16130f")
-	style.border_color = Color("b68a45")
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.shadow_color = Color(0, 0, 0, 0.5)
-	style.shadow_size = 6
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		style.set_content_margin(side, 14)
-	panel.add_theme_stylebox_override("panel", style)
-	var column = VBoxContainer.new()
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_theme_constant_override("separation", 8)
-	panel.add_child(column)
-	var gold = Color("f1cf84")
-	var pale = Color("e6dfd2")
-	column.add_child(tooltip_label(skillCast.skillName, 20, gold))
-	column.add_child(tooltip_label(("ULTIMATE · " if skillCast.is_ultimate else "") + "Tecla " + ("R ou 4" if skillCast.is_ultimate else changeKey), 13, gold))
-	column.add_child(tooltip_label(skillCast.description, 15, pale))
-	var separator = HSeparator.new()
-	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(separator)
-	column.add_child(tooltip_label("%s: %d     Recarga: %.1f s" % [skillCast.cost_label, skillCast.skillManaCost, skillCast.skillCoolDownTime * skillCast.cooldown_scale], 14, Color("9dc8f0")))
-	column.add_child(tooltip_label("Conjuração: " + skillCast.cast_description(), 14, pale))
-	if skillCast.skillCastTime > 0:
-		column.add_child(tooltip_label("Mover interrompe a conjuração.", 13, Color("bcb29f")))
-	if skillCast.targeting() != Skill.TargetMode.SELF:
-		column.add_child(tooltip_label("Alcance: %d" % int(skillCast.cast_range), 14, pale))
-	column.add_child(tooltip_label("Alvo: " + skillCast.target_description(), 13, Color("bcb29f")))
-	return panel
+	return SkillTooltip.create(skillCast, changeKey) if is_instance_valid(skillCast) else null
 
 func _exit_tree() -> void:
 	if is_instance_valid(skillHander):
