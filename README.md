@@ -154,6 +154,10 @@ Sir Gura tem 150 HP e autoataque corpo a corpo de 10 a cada 0,9s. Charger tem
 o dano acontece na chegada da flecha. Aurora tem 100 HP e projéteis sombrios de
 6 a cada 1,3s.
 
+O autoataque corpo a corpo de **Sir Gura e Charger** tem alcance de **160 unidades**,
+medido entre os centros dos personagens. A validação do servidor e o indicador
+visual de alvo usam esse mesmo alcance.
+
 | Classe | Recurso | Geração e custos |
 | --- | --- | --- |
 | Warlock | Mana (100) | Regenera 3/s; Shadow Bolt e maldições mantêm os custos anteriores. |
