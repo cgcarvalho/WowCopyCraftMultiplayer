@@ -275,6 +275,12 @@ func play_ability(duration: float) -> void:
 	ability_animation_time = maxf(duration, 0.45)
 	$AnimatedSprite2D.play("cast")
 
+func play_skill_animation(_skill: Skill) -> void:
+	pass
+
+func play_basic_attack_animation(_target: Character) -> void:
+	pass
+
 func configure_resource() -> void:
 	match charClass:
 		"Warrior":

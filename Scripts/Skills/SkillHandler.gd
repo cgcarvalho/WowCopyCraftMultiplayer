@@ -187,6 +187,7 @@ func play_skill(path: String, caster_id: int, target_id: int, ground: Vector2 = 
 	skill.aim_position = ground
 	get_parent().add_child(skill)
 	skill.cast(caster, target)
+	caster.play_skill_animation(skill)
 
 @rpc("any_peer", "call_local", "reliable")
 func basic_attack(caster_id: int, target_id: int) -> void:
@@ -217,6 +218,7 @@ func play_basic_attack(caster_id: int, target_id: int, amount: int, style: Strin
 	if is_instance_valid(caster.state_machine):
 		# Base restart timing on accepted attacks; the server still enforces cadence.
 		caster.state_machine.next_basic_attack_at_msec = Time.get_ticks_msec() + roundi(caster.attack_interval * 1000)
+	caster.play_basic_attack_animation(target)
 	var projectile = CombatProjectile.new()
 	get_parent().add_child(projectile)
 	projectile.basic = true
