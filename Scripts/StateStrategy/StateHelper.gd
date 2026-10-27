@@ -67,4 +67,3 @@ static func checkRange(state_machine : StateStrategy) -> void:
 			state_machine.set_state(Idle.new())
 	else:
 		state_machine.set_state(Idle.new())
-

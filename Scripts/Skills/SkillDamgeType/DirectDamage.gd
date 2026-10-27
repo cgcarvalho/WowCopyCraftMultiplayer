@@ -58,4 +58,3 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		var multiplier = TalentTree.skill_damage(casterCharacter.talents, self) if is_instance_valid(casterCharacter) else 1.0
 		targetCharacter.deal_damage(skillBaseDamage, casterCharacter, false, multiplier)
-
