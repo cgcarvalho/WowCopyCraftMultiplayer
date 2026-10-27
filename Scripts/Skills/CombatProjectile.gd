@@ -7,6 +7,7 @@ var damage = 0
 var style = "arrow"
 var elapsed = 0.0
 var landed = false
+var basic = false
 
 func launch(owner_character: Character, victim: Character, amount: int, attack_kind: String, origin: Vector2) -> void:
 	caster = owner_character
@@ -33,6 +34,8 @@ func _physics_process(delta: float) -> void:
 	if not landed and (style == "melee" or global_position.distance_to(target.global_position) < 4):
 		landed = true
 		target.deal_damage(damage, caster)
+		if basic:
+			caster.on_basic_hit()
 		if style != "melee":
 			queue_free()
 	if elapsed > (0.25 if style == "melee" else 2.0):

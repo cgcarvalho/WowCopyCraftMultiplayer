@@ -56,6 +56,25 @@ func draw_warning() -> void:
 	var origin = to_local(encounter.danger_origin)
 	var fraction = clampf(1.0 - encounter.danger_remaining / float(encounter.WARNINGS[encounter.spell_kind]), 0, 1)
 	match encounter.spell_kind:
+		"bond":
+			draw_circle(center, 130, Color(1, 0.8, 0.2, 0.15))
+			draw_arc(center, 130, 0, TAU, 64, Color("ffe18e"), 4, true)
+			draw_string_outline(ThemeDB.fallback_font, center + Vector2(-80, -140), "JUNTEM-SE · DIVIDIR DANO", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 4, Color.BLACK)
+			draw_string(ThemeDB.fallback_font, center + Vector2(-80, -140), "JUNTEM-SE · DIVIDIR DANO", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ffe18e"))
+		"spread":
+			for id in encounter.mechanic_targets:
+				var hero = MultiplayerManager.get_character(int(id))
+				if is_instance_valid(hero) and hero.charCurrentLife > 0:
+					var point = to_local(hero.global_position)
+					draw_circle(point, 95, Color(0.9, 0.1, 0.3, 0.16))
+					draw_arc(point, 95, 0, TAU, 48, Color("ff6b7d"), 3, true)
+					draw_string_outline(ThemeDB.fallback_font, point + Vector2(-35, -105), "AFASTE-SE", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, 4, Color.BLACK)
+					draw_string(ThemeDB.fallback_font, point + Vector2(-35, -105), "AFASTE-SE", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("ff97a3"))
+		"channel":
+			draw_arc(origin, 140, 0, TAU * fraction, 64, Color("ffb8ff"), 6, true)
+			sprite(3, encounter.danger_origin, Vector2(340, 340), animation_time)
+			draw_string_outline(ThemeDB.fallback_font, origin + Vector2(-100, -190), "F · INTERROMPER CATACLISMO", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, 4, Color.BLACK)
+			draw_string(ThemeDB.fallback_font, origin + Vector2(-100, -190), "F · INTERROMPER CATACLISMO", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("ffe18e"))
 		"rupture":
 			draw_circle(center, encounter.AREA_RADIUS, Color(0.8, 0.08, 0.2, 0.25))
 			draw_arc(center, encounter.AREA_RADIUS, 0, TAU, 64, Color(1, 0.25, 0.1), 4, true)

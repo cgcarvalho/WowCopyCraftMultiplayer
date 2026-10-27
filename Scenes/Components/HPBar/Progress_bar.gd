@@ -2,6 +2,7 @@ extends Node
 
 var targetPlayer : Character
 var targetSelf : bool
+var resource_fill: StyleBoxFlat
 
 func _process(_delta: float) -> void:
 	if is_instance_valid(targetPlayer):
@@ -11,6 +12,10 @@ func _process(_delta: float) -> void:
 			$ManaBar.visible = true
 			$ManaBar.max_value = targetPlayer.charTotalMana
 			$ManaBar.value = targetPlayer.charCurrentMana
+			if resource_fill == null:
+				resource_fill = StyleBoxFlat.new()
+				$ManaBar.add_theme_stylebox_override("fill", resource_fill)
+			resource_fill.bg_color = targetPlayer.resource_color
 		else:
 			$ManaBar.visible = false
 		

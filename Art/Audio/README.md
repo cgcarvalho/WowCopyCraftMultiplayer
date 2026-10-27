@@ -1,0 +1,1 @@
+Short original procedural combat cues generated from sine harmonics and seeded noise. No third-party recordings. Mono PCM, 22050 Hz, 16 bit. Sounds are mixed through CombatFeedback with an eight-voice pool and per-event rate limiting.

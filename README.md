@@ -6,16 +6,18 @@ Protótipo multiplayer em Godot 4.4 (GDScript / Forward Plus).
 
 1. Abra `project.godot` no Godot 4.4 e aguarde a importação dos recursos.
 2. Execute o projeto (F6 executa uma cena; use F5 para executar o projeto).
-3. Em uma instância, escolha **Host Game** e selecione o personagem.
+3. Em uma instância, escolha **Host Game**, selecione o personagem e marque **Estou pronto** no lobby.
 4. Na outra instância, informe o IP ou hostname do host e escolha **Join Game**.
-   Para testar na mesma máquina, use `127.0.0.1`.
+   Para testar na mesma máquina, use `127.0.0.1`. Selecione a classe e marque **Estou pronto**.
+5. O host escolhe **Iniciar encontro** quando todos estiverem prontos; a luta começa após uma contagem de 3 segundos. É possível jogar solo usando o mesmo fluxo.
 
 A conexão usa ENet/UDP na porta **8080**, com até quatro jogadores incluindo
    o host. Para jogar em LAN, permita essa porta no firewall do host.
 
 Movimento: WASD. Alvo: clique esquerdo. Ataque básico: botão direito.
 Habilidades: **1 / 2 / 3**; ultimate: **R ou 4**. Cura sem aliado selecionado usa o próprio personagem; Alt + cura força autocura.
-Arrow Rain sem alvo usa sua posição; Consecration sempre consagra o chão sob o paladino.
+**Arrow Rain:** pressione R/4 ou clique no ícone, mire com o mouse e confirme com clique esquerdo; Esc ou botão direito cancela sem gastar recurso. Consecration sempre consagra o chão sob o paladino.
+**Tab:** seleciona o inimigo mais próximo. **F:** interrompe Cataclismo Arcano (16s de recarga, alcance 200 para Warrior e 650 para as demais classes).
 
 ## Validação
 
@@ -34,13 +36,13 @@ entrada tardia de um terceiro jogador, desconexão e reutilização da vaga.
 Teste também um endereço indisponível e uma porta já ocupada.
 
 O servidor valida a identidade de quem lança, o conjunto de habilidades,
-mana, cooldown e tempo de conjuração, e replica os atributos de combate.
+recurso da classe, cooldown, alcance e tempo de conjuração, e replica os atributos de combate.
 O movimento continua sob autoridade do cliente; não há proteção completa
-contra adulteração de posição. Respawn e reinício de encontro ainda não estão implementados.
+contra adulteração de posição. Novas tentativas restauram os personagens sem encerrar a conexão; não há ressurreição individual durante uma luta.
 
 ## Jefferson, o Arcanista
 
-O encontro começa quando o primeiro jogador seleciona um personagem. Jefferson
+O encontro começa depois que todos confirmam a classe e o estado Pronto, e o host inicia. Jefferson
 agora tem **480 HP** e uma presença visual maior, com flutuação, sombra e
 interpolação visual da movimentação.
 
@@ -60,6 +62,9 @@ outros mapas precisarão fornecer seus próprios obstáculos.
 | Lança Arcana | Faixa azul por 1,6 s | 22 de dano na linha; a mira não acompanha o jogador após o aviso. |
 | Passo Astral | Portais de origem e destino por 1,1 s | Reposicionamento para longe de jogadores próximos, sem dano. |
 | Égide Rúnica | Runas por 1,3 s | Escudo de 50, usado uma vez na transição de fase. |
+| Vínculo Astral | Círculo dourado acompanha o marcado por 3 s | 48 de dano dividido entre jogadores dentro de raio 130. Agrupe-se. |
+| Marcas do Caos | Círculos vermelhos acompanham jogadores por 3 s | Cada marca causa 18 em raio 95; sobreposição multiplica os impactos. Afaste-se. |
+| Cataclismo Arcano | Canalização de 4 s na fase 2 | 42 em todo o grupo, evitado com interrupção F. |
 
 A primeira fase tem 6 s de recuperação entre conjurações, além de seus avisos.
 Abaixo ou exatamente em **50% da vida**, a fase 2 acelera o movimento, reduz a
@@ -77,7 +82,7 @@ Clique no boss para selecioná-lo. Cura e escudo são para aliados; habilidades 
 dano e ataques básicos podem atingi-lo. Áreas dos jogadores não causam dano aliado.
 A luta termina com vitória ao zerar a vida do boss ou derrota quando não há
 jogadores vivos. O encerramento cancela avisos, tiros e habilidades pendentes.
-Para outra tentativa, reinicie a sessão. Ainda não há loot ou respawn.
+Após derrota, **Tentar novamente** restaura o grupo, os recursos e os cooldowns. Após vitória, cada participante escolhe uma melhoria e o host pode continuar. **Voltar à seleção** reinicia a expedição sem reconectar. Não há equipamentos ou ressurreição individual durante o combate.
 
 Os efeitos usam um atlas original animado em `Art/Skills/Jefferson/SpellAtlas.png`.
 Os estados da magia, mira, fase, efeitos de impacto e tiros ativos são replicados,
@@ -147,9 +152,18 @@ papel e repertório. Os valores são um primeiro ajuste de balanceamento para o 
 Sir Gura tem 150 HP e autoataque corpo a corpo de 10 a cada 0,9s. Charger tem
 130 HP e golpe de 8 a cada 1,1s. Lulu tem 100 HP e flechas de 8 a cada 1,15s;
 o dano acontece na chegada da flecha. Aurora tem 100 HP e projéteis sombrios de
-6 a cada 1,3s. Todos têm 100 de mana e regeneram 3/s.
+6 a cada 1,3s.
 
-Ataques e habilidades validam identidade, classe, equipe, alcance, vida, mana
+| Classe | Recurso | Geração e custos |
+| --- | --- | --- |
+| Warlock | Mana (100) | Regenera 3/s; Shadow Bolt e maldições mantêm os custos anteriores. |
+| Warrior | Raiva (100), começa em 0 | +12 por autoataque acertado, +8 ao receber um golpe, +15 ao acertar Charge. Charge custa 0; Cleave 25, Second Wind 30, Bladestorm 80. |
+| Paladin | Poder sagrado (5), começa em 2 | Autoataque e Judgement geram 1. Judgement custa 0; Holy Light 1, Consecration 2, Divine Dawn 5. |
+| Hunter | Foco (100) | Regenera 8/s. Aimed Shot custa 25, Poison Arrow 20, Multi-Shot 30, Arrow Rain 60. |
+
+**Passivas:** Aurora mantém Dot Master. Sir Gura acumula Ímpeto: +3% de dano por acerto básico, até cinco acúmulos, que expiram após 4s sem acertos. Charger concede aura de raio 220: aliados recebem +15% de cura e -5% de dano. Lulu ganha +15% de dano após 1s sem se mover; mover remove o bônus. Os recursos, custos e estados das passivas aparecem no HUD e nos tooltips.
+
+Ataques e habilidades validam identidade, classe, equipe, alcance, vida, recurso da classe
 e cooldown no servidor. O cooldown visual começa após confirmação do servidor.
 As novas habilidades possuem ícones próprios, descrição de custo/recarga no tooltip
 e efeitos distintos. O veneno da Lulu aparece no mesmo HUD dos DoTs da Aurora;
@@ -185,4 +199,50 @@ cura/escudo do paladino em aliado remoto e replicação dos indicadores de venen
 
 Os ícones das classes seguem o estilo ilustrado dos originais, com moldura dourada e fundo de fantasia. Charge, Holy Light e Consecration reutilizam os PNGs originais. Os novos ícones vêm do atlas `Art/Skills/Classes/ClassIcons.png`, por recursos AtlasTexture.
 
-Passar o mouse sobre uma habilidade mostra efeito, tecla, custo de mana, recarga, tempo de conjuração, alcance e alvo. O tooltip permanece disponível durante o cooldown; o timer continua bloqueando novos lançamentos. Os rótulos das habilidades na seleção também exibem os detalhes ao passar o mouse.
+Passar o mouse sobre uma habilidade mostra efeito, tecla, custo no recurso da classe, recarga, tempo de conjuração, alcance e alvo. O tooltip permanece disponível durante o cooldown; o timer continua bloqueando novos lançamentos. Os rótulos das habilidades na seleção também exibem os detalhes ao passar o mouse.
+
+
+## Ciclo cooperativo e progressão da expedição
+
+O lobby mostra nomes, classes e estado Pronto de cada participante. O host inicia
+somente com o grupo completo pronto. Trocar de classe cancela o estado Pronto.
+Quem entra durante uma luta é espectador e participa depois de passar pelo lobby
+na próxima rodada. Uma saída durante a contagem regressiva exige nova confirmação.
+
+Vitória oferece **uma** melhoria por participante, validada pelo servidor:
+
+- **Poder crescente:** +12% de dano, acumulável.
+- **Vigor renovado:** +20% da vida base máxima por escolha.
+- **Maestria:** recarga multiplicada por 0,88 a cada escolha, até mínimo de 45% da
+  recarga base, e +15% de cura por escolha.
+
+O host espera as escolhas do grupo antes de continuar. Cada vitória aumenta a
+vida do próximo Jefferson em 15% da base de 480. Uma derrota preserva as melhorias
+e a rodada; não concede novas escolhas. Voltar à seleção inicia uma expedição nova.
+A progressão dura a sessão e não é salva em disco.
+
+O reset invalida conjurações pendentes, limpa efeitos, projéteis e cooldowns,
+restaura a vida e o recurso inicial de cada classe e reposiciona os jogadores.
+Movimento durante conjuração cancela o efeito; o custo e a recarga já iniciados
+são mantidos. A animação de morte e a coloração da fase 2 do boss são feitas na
+apresentação; os eventos de dano, crítico, cura e escudo têm efeitos e sons próprios.
+Os sons são originais, sintetizados em `Art/Audio`; testes headless não reproduzem áudio.
+
+WASD e Charge respeitam os limites da arena e os dois troncos definidos em
+`ArenaNavigation.gd`, com passos de colisão para evitar atravessar árvores.
+O indicador de alvo mostra se o autoataque alcança o inimigo. Hover nas habilidades
+exibe alcance e raio; a mira de Arrow Rain valida a posição no servidor antes de
+consumir recurso. Outros mapas precisarão fornecer seus próprios obstáculos.
+
+### Verificação completa
+
+Com Godot 4.4.1 disponível e os recursos importados:
+
+```sh
+python3 tests/run_checks.py --godot godot --network
+```
+
+O runner executa seis suítes offline e três suítes ENet com dois processos. A nova
+suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
+recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
+As portas locais usadas pelos testes são UDP 18081, 18082 e 18083.

@@ -25,6 +25,7 @@ func spawn(cls: String) -> Character:
 	hero.set_physics_process(false)
 	hero.position = Vector2(400, 300)
 	hero.charCritChance = 0
+	hero.charCurrentMana = hero.charTotalMana
 	return hero
 
 func cleanup(hero: Character) -> void:
@@ -105,6 +106,7 @@ func run() -> void:
 	cast(warrior, "cleave")
 	check(warrior.charCurrentMana == mana, "Melee skills reject distant enemies without mana cost")
 	boss.position = warrior.position + Vector2(80, 0)
+	warrior.charCurrentMana = 100
 	cast(warrior, "bladestorm", 0)
 	var storm = effect("bladestorm")
 	storm._physics_process(1.0)
@@ -124,7 +126,7 @@ func run() -> void:
 	paladin.charCurrentLife = 50
 	cast(paladin, "holy_light", 0)
 	await get_tree().create_timer(1.3).timeout
-	check(paladin.charCurrentLife == 82, "Holy Light defaults to self and heals after server cast time")
+	check(paladin.charCurrentLife == 87, "Holy Light defaults to self and heals after server cast time")
 	mana = paladin.charCurrentMana
 	handler.cooldowns.clear()
 	cast(paladin, "holy_light", -1)
@@ -133,11 +135,12 @@ func run() -> void:
 	var ground = effect("consecration")
 	var point = ground.global_position
 	ground._physics_process(1.0)
-	check(boss.charCurrentLife == 473 and paladin.charCurrentLife == 85, "Consecration damages enemy and heals ally")
+	check(boss.charCurrentLife == 473 and paladin.charCurrentLife == 90, "Consecration damages enemy and heals ally")
 	paladin.position += Vector2(300, 0)
 	ground._physics_process(1.0)
-	check(ground.global_position == point and paladin.charCurrentLife == 85, "Consecration remains on its original ground position")
+	check(ground.global_position == point and paladin.charCurrentLife == 90, "Consecration remains on its original ground position")
 	paladin.position = Vector2(400, 300)
+	paladin.charCurrentMana = 5
 	cast(paladin, "divine_dawn", 0)
 	await get_tree().create_timer(0.9).timeout
 	check(paladin.charCurrentLife >= 125 and paladin.charShield == 35, "Divine Dawn ultimate heals and shields allies")

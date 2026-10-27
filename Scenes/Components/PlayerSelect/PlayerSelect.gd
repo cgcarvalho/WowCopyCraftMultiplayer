@@ -68,6 +68,7 @@ func _ready() -> void:
 		column.add_child(portrait)
 		var role = text_label(ROLES[character.charClass], 14, Color("bdc7dc"))
 		role.custom_minimum_size = Vector2(188, 42)
+		role.tooltip_text = "Recurso: " + character.resource_name + "\n" + character.passive_text()
 		column.add_child(role)
 		for index in character.skillList.size():
 			var skill = character.skillList[index]

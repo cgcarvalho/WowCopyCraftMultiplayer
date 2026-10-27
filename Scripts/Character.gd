@@ -39,6 +39,21 @@ var charClass = ""
 var attack_interval = 1.0
 var attack_style = "melee"
 var ability_animation_time = 0.0
+var resource_name = "Mana"
+var resource_color = Color("6579f5")
+var spectator = false
+var interrupt_remaining = 0.0
+var momentum = 0
+var momentum_time = 0.0
+var steady_time = 0.0
+var previous_position = Vector2.ZERO
+var flash_time = 0.0
+var flash_color = Color.WHITE
+var death_progress = 0.0
+var base_life = 100
+var damage_bonus = 1.0
+var healing_bonus = 1.0
+var cooldown_multiplier = 1.0
 
 #Skills
 var skillList : Array[Skill] 
@@ -55,7 +70,7 @@ func _enter_tree() -> void:
 	if not is_inside_tree():
 		return
 	var config = SceneReplicationConfig.new()
-	for property in ["charCurrentLife", "charCurrentMana", "charShield"]:
+	for property in ["charCurrentLife", "charCurrentMana", "charShield", "charTotalLife", "momentum", "steady_time", "spectator", "damage_bonus", "healing_bonus", "cooldown_multiplier", "interrupt_remaining"]:
 		var path = NodePath(".:" + property)
 		config.add_property(path)
 		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -66,6 +81,7 @@ func _enter_tree() -> void:
 	add_child(sync)
 
 func _ready() -> void:
+	previous_position = global_position
 	var sprite: AnimatedSprite2D = $AnimatedSprite2D
 	sprite.sprite_frames = sprite.sprite_frames.duplicate()
 	var frames = sprite.sprite_frames
@@ -86,7 +102,17 @@ func _ready() -> void:
 	
 func _physics_process(delta: float) -> void:
 	ability_animation_time = maxf(0.0, ability_animation_time - delta)
+	var session = get_tree().current_scene.get_node_or_null("Session") if get_tree().current_scene != null else null
+	visible = not spectator and (session == null or not session.running or session.stage not in ["lobby", "menu"])
+	if spectator or (session != null and session.running and session.stage != "active"):
+		if charCurrentLife > 0:
+			$AnimatedSprite2D.play("idle")
+		return
+	if charCurrentLife <= 0:
+		die()
+		return
 	if multiplayer.is_server():
+		update_class_passive(delta)
 		if passiveSkill:
 			passiveSkill.physics_process(delta)
 		if charTotalMana > 0:
@@ -113,43 +139,53 @@ func _physics_process(delta: float) -> void:
 
 
 func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
-	if event is InputEventMouseButton:
-		var localPlayer : Character = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
-		
-		if not is_instance_valid(localPlayer):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		var local_player = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
+		if not is_instance_valid(local_player):
 			return
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				localPlayer.charCurrentTarget = self
-				ui_handler.showTargetHPBar(self, localPlayer == self)
-				
-		#if event.button_index == MOUSE_BUTTON_RIGHT:
-		#	if event.pressed:
-		#		ui_handler.hideTargetHPBar()
-		#		localPlayer.charCurrentTarget = null
+		var preview = get_tree().current_scene.get_node_or_null("CombatPreview")
+		if preview != null and preview.aiming:
+			return
+		local_player.charCurrentTarget = self
+		ui_handler.showTargetHPBar(self, local_player == self)
 
-func deal_damage(damage : int, _source: Character = null, periodic: bool = false) -> void:
-	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0:
+func deal_damage(damage: int, source: Character = null, periodic: bool = false) -> void:
+	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0 or spectator:
 		return
-	damage = apply_crit(damage)
+	var chance = source.charCritChance if is_instance_valid(source) else charCritChance
+	isCrit = randf() < chance
+	var multiplier = source.outgoing_damage_multiplier() if is_instance_valid(source) else 1.0
+	damage = maxi(1, roundi(damage * multiplier * (Constants.CRIT_MULTIPLIER if isCrit else 1.0)))
+	if has_paladin_aura():
+		damage = maxi(1, roundi(damage * 0.95))
 	var absorbed = mini(charShield, damage)
 	charShield -= absorbed
 	damage -= absorbed
 	charCurrentLife -= damage
-	DamageNumbers.display_number.rpc(damage, global_position, isCrit, false, periodic)
-		
-	
+	if charClass == "Warrior":
+		gain_resource(8)
+	if damage > 0:
+		DamageNumbers.display_number.rpc(damage, global_position, isCrit, false, periodic)
+	CombatFeedback.impact.rpc(int(name), global_position, "shield" if damage == 0 else ("crit" if isCrit else "hit"))
 
-func apply_heal(heal : int) -> void:
-	if not multiplayer.is_server() or charCurrentLife <= 0:
+func apply_heal(heal: int, source: Character = null) -> void:
+	if not multiplayer.is_server() or charCurrentLife <= 0 or heal <= 0 or spectator:
 		return
-	charCurrentLife += heal
-	DamageNumbers.display_number.rpc(heal, global_position, isCrit, true)
+	var multiplier = source.healing_bonus if is_instance_valid(source) else 1.0
+	if has_paladin_aura():
+		multiplier *= 1.15
+	var before = charCurrentLife
+	charCurrentLife += roundi(heal * multiplier)
+	if charCurrentLife > before:
+		DamageNumbers.display_number.rpc(charCurrentLife - before, global_position, false, true)
+		CombatFeedback.impact.rpc(int(name), global_position, "heal")
 
-func apply_shield(shield : int) -> void:
-	if not multiplayer.is_server():
+func apply_shield(shield: int) -> void:
+	if not multiplayer.is_server() or charCurrentLife <= 0 or spectator:
 		return
 	charShield = shield
+	if shield > 0:
+		CombatFeedback.impact.rpc(int(name), global_position, "shield")
 
 func apply_crit(damage : int) -> int:
 	var random_value = randf()
@@ -166,8 +202,7 @@ func die() -> void:
 	modulate = Color(0.5, 0.5, 0.5, 0.65)
 	if is_instance_valid(state_machine) and state_machine.current_state is Attack:
 		state_machine.set_state(Idle.new())
-	set_physics_process(false)
-	#visible = false
+	# Keep the node alive for presentation and in-place round resets.
 
 
 func _notification(what: int) -> void:
@@ -196,3 +231,128 @@ func copy_animation(frames: SpriteFrames, source: StringName, destination: Strin
 func play_ability(duration: float) -> void:
 	ability_animation_time = maxf(duration, 0.45)
 	$AnimatedSprite2D.play("cast")
+
+func configure_resource() -> void:
+	match charClass:
+		"Warrior":
+			resource_name = "Raiva"
+			resource_color = Color("e68249")
+			charTotalMana = 100
+			charCurrentMana = 0
+			manaRegen = 0
+		"Paladin":
+			resource_name = "Poder sagrado"
+			resource_color = Color("e9c762")
+			charTotalMana = 5
+			charCurrentMana = 2
+			manaRegen = 0
+		"Hunter":
+			resource_name = "Foco"
+			resource_color = Color("74c988")
+			charTotalMana = 100
+			charCurrentMana = 100
+			manaRegen = 8
+
+	for skill in skillList:
+		skill.cost_label = resource_name
+
+func gain_resource(amount: float) -> void:
+	if multiplayer.is_server() and charCurrentLife > 0:
+		charCurrentMana += amount
+
+func on_basic_hit() -> void:
+	if not multiplayer.is_server():
+		return
+	if charClass == "Warrior":
+		gain_resource(12)
+		momentum = mini(5, momentum + 1)
+		momentum_time = 4.0
+	elif charClass == "Paladin":
+		gain_resource(1)
+
+func update_class_passive(delta: float) -> void:
+	interrupt_remaining = maxf(0, interrupt_remaining - delta)
+	var moved = global_position.distance_to(previous_position) > 0.5
+	steady_time = 0 if moved else minf(2.0, steady_time + delta)
+	previous_position = global_position
+	momentum_time = maxf(0, momentum_time - delta)
+	if momentum_time <= 0:
+		momentum = 0
+
+func outgoing_damage_multiplier() -> float:
+	var result = damage_bonus
+	if charClass == "Warrior":
+		result *= 1.0 + momentum * 0.03
+	elif charClass == "Hunter" and steady_time >= 1.0:
+		result *= 1.15
+	return result
+
+func has_paladin_aura() -> bool:
+	if charTeam != Teams.BLUE:
+		return false
+	for hero in MultiplayerManager.playerList.values():
+		if is_instance_valid(hero) and hero.charClass == "Paladin" and hero.charCurrentLife > 0 and not hero.spectator and hero.global_position.distance_to(global_position) <= 220:
+			return true
+	return false
+
+func passive_text() -> String:
+	match charClass:
+		"Warrior": return "Ímpeto: %d/5 · +3%% dano por acerto básico (4s)" % momentum
+		"Paladin": return "Aura (220): +15% cura recebida e -5% dano nos aliados"
+		"Hunter": return "Mira firme: +15% dano" if steady_time >= 1 else "Fique parado por 1s para ativar Mira firme"
+	return "Dot Master: seus DoTs podem acelerar Shadow Bolt"
+
+func _process(delta: float) -> void:
+	update_presentation(delta)
+
+func update_presentation(delta: float) -> void:
+	flash_time = maxf(0, flash_time - delta)
+	var sprite: AnimatedSprite2D = $AnimatedSprite2D
+	sprite.modulate = flash_color if flash_time > 0 else Color.WHITE
+	if charCurrentLife <= 0:
+		sprite.stop()
+		death_progress = minf(1, death_progress + delta * 1.5)
+		sprite.rotation = -0.8 * death_progress
+		modulate = Color(0.7, 0.7, 0.7, 1 - death_progress * 0.75)
+
+func reset_for_round(point: Vector2, choices: Dictionary) -> void:
+	charTotalLife = roundi(base_life * (1 + 0.2 * int(choices.get("endurance", 0))))
+	charCurrentLife = charTotalLife
+	charShield = 0
+	damage_bonus = 1 + 0.12 * int(choices.get("offense", 0))
+	healing_bonus = 1 + 0.15 * int(choices.get("mastery", 0))
+	cooldown_multiplier = maxf(0.45, pow(0.88, int(choices.get("mastery", 0))))
+	charCurrentMana = charTotalMana
+	configure_resource()
+	for skill in skillList:
+		skill.cooldown_scale = cooldown_multiplier
+	interrupt_remaining = 0
+	charCurrentTarget = null
+	ability_animation_time = 0
+	momentum = 0
+	momentum_time = 0
+	steady_time = 0
+	flash_time = 0
+	death_progress = 0
+	spectator = false
+	debuffList.clear()
+	buffList.clear()
+	global_position = point
+	previous_position = point
+	modulate = Color.WHITE
+	$AnimatedSprite2D.rotation = 0
+	$AnimatedSprite2D.modulate = Color.WHITE
+	$AnimatedSprite2D.speed_scale = 1
+	$AnimatedSprite2D.play("idle")
+	if is_instance_valid(state_machine):
+		state_machine.set_state(Idle.new())
+	var movement_sync = get_node_or_null("MultiplayerSynchronizer")
+	if movement_sync != null:
+		movement_sync.replication_interval = 0
+		movement_sync.delta_interval = 0
+	set_physics_process(true)
+
+func _exit_tree() -> void:
+	var id = int(name)
+	if MultiplayerManager.playerList.get(id) == self:
+		MultiplayerManager.playerList.erase(id)

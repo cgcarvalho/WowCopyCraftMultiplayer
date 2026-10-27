@@ -7,6 +7,7 @@ var skillBaseHeal : int
 func cast(casterChar : Character, targerChar : Character) -> void:
 	global_position = casterChar.global_position
 	targetCharacter = targerChar
+	casterCharacter = casterChar
 	
 	animatedSprite.play()
 	setSkillInicialPosition()
@@ -23,5 +24,5 @@ func _physics_process(_delta: float) -> void:
 		return
 	if not animatedSprite.is_playing():
 		queue_free()
-		targetCharacter.apply_heal(skillBaseHeal)
+		targetCharacter.apply_heal(skillBaseHeal, casterCharacter)
 

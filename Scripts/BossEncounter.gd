@@ -10,9 +10,9 @@ const LANCE_DAMAGE = 22
 const ORB_SPEED = 260.0
 const ORB_DAMAGE = 12
 const ORB_RADIUS = 22.0
-const SPELL_NAMES = {"rupture": "Ruptura Sombria", "volley": "Orbes do Vazio", "lance": "Lança Arcana", "blink": "Passo Astral", "ward": "Égide Rúnica"}
-const SPELL_TIPS = {"rupture": "Saia do círculo", "volley": "Desvie dos orbes", "lance": "Saia da faixa azul", "blink": "Reposicionamento astral", "ward": "Jefferson está criando um escudo"}
-const WARNINGS = {"rupture": 2.0, "volley": 1.0, "lance": 1.6, "blink": 1.1, "ward": 1.3}
+const SPELL_NAMES = {"rupture": "Ruptura Sombria", "volley": "Orbes do Vazio", "lance": "Lança Arcana", "blink": "Passo Astral", "ward": "Égide Rúnica", "bond": "Vínculo Astral", "spread": "Marcas do Caos", "channel": "Cataclismo Arcano"}
+const SPELL_TIPS = {"rupture": "Saia do círculo", "volley": "Desvie dos orbes", "lance": "Saia da faixa azul", "blink": "Reposicionamento astral", "ward": "Jefferson está criando um escudo", "bond": "Juntem-se no círculo dourado para dividir o dano", "spread": "Afaste-se dos aliados: círculos vermelhos explodem", "channel": "Interrompa com F! Recarga da interrupção: 16s"}
+const WARNINGS = {"rupture": 2.0, "volley": 1.0, "lance": 1.6, "blink": 1.1, "ward": 1.3, "bond": 3.0, "spread": 3.0, "channel": 4.0}
 @export var status = "waiting"
 @export var danger_visible = false
 @export var danger_position = Vector2.ZERO
@@ -27,6 +27,17 @@ const WARNINGS = {"rupture": 2.0, "volley": 1.0, "lance": 1.6, "blink": 1.1, "wa
 @export var visual_direction = Vector2.RIGHT
 @export var visual_remaining = 0.0
 @export var projectiles: Array = []
+@export var mechanic_targets: Array = []
+@export var speech = ""
+@export var speech_remaining = 0.0
+var completed_spells = 0
+var last_phase = 1
+const QUOTES = {
+	"rupture": "O chão também me obedece!", "volley": "Dancem entre os orbes!",
+	"lance": "Uma linha... é tudo de que preciso.", "blink": "Perto demais!", "ward": "Minha vontade é inquebrável!",
+	"bond": "O peso da magia será dividido!", "spread": "Cada um carregará sua própria maldição!",
+	"channel": "Silenciem-me... se forem capazes!"
+}
 @onready var boss: Jefferson = $"-1"
 var area_cooldown = AREA_INTERVAL
 var opening_delay = 3.0
@@ -58,7 +69,7 @@ func _ready() -> void:
 func living_players() -> Array[Character]:
 	var result: Array[Character] = []
 	for player in MultiplayerManager.playerList.values():
-		if is_instance_valid(player) and player.charCurrentLife > 0:
+		if is_instance_valid(player) and player.charCurrentLife > 0 and not player.spectator:
 			result.append(player)
 	return result
 
@@ -72,6 +83,15 @@ func select_spell() -> String:
 		return ""
 	if phase == 2 and not ward_used:
 		return "ward"
+	var session = get_parent().get_node("Session")
+	if session.running:
+		if phase == 2 and completed_spells % 3 == 2 and ready_spell("channel"):
+			return "channel"
+		if players.size() > 1:
+			if completed_spells % 4 == 1 and ready_spell("bond"):
+				return "bond"
+			if completed_spells % 4 == 3 and ready_spell("spread"):
+				return "spread"
 	var close_players = 0
 	for player in players:
 		if player.global_position.distance_to(boss.global_position) < 170:
@@ -100,7 +120,7 @@ func _physics_process(delta: float) -> void:
 	if not multiplayer.is_server():
 		return
 	if status == "waiting":
-		if not living_players().is_empty():
+		if not living_players().is_empty() and not get_parent().get_node("Session").running:
 			status = "active"
 		return
 	if status != "active":
@@ -112,6 +132,13 @@ func _physics_process(delta: float) -> void:
 		finish("defeat")
 		return
 	phase = 2 if boss.charCurrentLife <= boss.charTotalLife / 2 else 1
+	if phase != last_phase:
+		last_phase = phase
+		announce.rpc("Chega de jogos. Conheçam meu verdadeiro poder!", "phase")
+	if danger_visible and spell_kind == "bond" and not mechanic_targets.is_empty():
+		var marked = MultiplayerManager.get_character(int(mechanic_targets[0]))
+		if is_instance_valid(marked) and marked.charCurrentLife > 0:
+			danger_position = marked.global_position
 	visual_remaining = maxf(0, visual_remaining - delta)
 	for kind in spell_cooldowns:
 		spell_cooldowns[kind] = maxf(0, float(spell_cooldowns[kind]) - delta)
@@ -140,6 +167,13 @@ func begin_spell(kind: String) -> void:
 	if not is_instance_valid(target):
 		return
 	spell_kind = kind
+	mechanic_targets = []
+	if kind == "bond":
+		mechanic_targets = [int(target.name)]
+	elif kind == "spread":
+		for player in living_players():
+			mechanic_targets.append(int(player.name))
+	announce.rpc(QUOTES.get(kind, ""), "cast")
 	danger_origin = boss.global_position
 	danger_position = target.global_position
 	if kind == "rupture":
@@ -170,6 +204,27 @@ func resolve_area() -> void:
 		return
 	if boss.charCurrentLife > 0:
 		match spell_kind:
+			"bond":
+				var grouped: Array[Character] = []
+				for player in living_players():
+					if player.global_position.distance_to(danger_position) <= 130:
+						grouped.append(player)
+				var shared = ceili((48.0 if living_players().size() > 1 else 20.0) / max(1, grouped.size()))
+				for player in grouped:
+					player.deal_damage(shared, boss)
+			"spread":
+				var centers: Array[Vector2] = []
+				for id in mechanic_targets:
+					var marked = MultiplayerManager.get_character(int(id))
+					if is_instance_valid(marked) and marked.charCurrentLife > 0:
+						centers.append(marked.global_position)
+				for center in centers:
+					for player in living_players():
+						if player.global_position.distance_to(center) <= 95:
+							player.deal_damage(18, boss)
+			"channel":
+				for player in living_players():
+					player.deal_damage(42, boss)
 			"rupture":
 				for player in living_players():
 					if player.global_position.distance_to(danger_position) <= AREA_RADIUS:
@@ -193,8 +248,9 @@ func resolve_area() -> void:
 	visual_position = danger_position
 	visual_direction = danger_direction
 	visual_remaining = 0.65
+	completed_spells += 1
 	last_spell = spell_kind
-	spell_cooldowns[spell_kind] = {"rupture": 8.0, "volley": 7.0, "lance": 10.0, "blink": 14.0, "ward": 9999.0}[spell_kind]
+	spell_cooldowns[spell_kind] = {"rupture": 8.0, "volley": 7.0, "lance": 10.0, "blink": 14.0, "ward": 9999.0, "bond": 14.0, "spread": 14.0, "channel": 18.0}[spell_kind]
 	danger_visible = false
 	danger_remaining = 0
 	area_cooldown = AREA_INTERVAL if phase == 1 else AREA_INTERVAL * 0.7
@@ -232,6 +288,8 @@ func finish(result: String) -> void:
 	if not multiplayer.is_server() or status != "active":
 		return
 	status = result
+	get_parent().get_node("Session").finished(result)
+	announce.rpc("Minha magia... impossível!" if result == "victory" else "Voltem quando estiverem preparados!", "victory" if result == "victory" else "phase")
 	danger_visible = false
 	danger_remaining = 0
 	projectiles = []
@@ -242,13 +300,14 @@ func finish(result: String) -> void:
 
 func clear_effects() -> void:
 	for node in get_parent().get_children():
-		if node is Skill:
+		if node is Skill or node is CombatProjectile:
 			node.queue_free()
 	for player in MultiplayerManager.playerList.values():
 		if is_instance_valid(player):
 			player.charCurrentTarget = null
 
 func _process(_delta: float) -> void:
+	speech_remaining = maxf(0, speech_remaining - _delta)
 	if status != previous_status:
 		previous_status = status
 		if status in ["victory", "defeat"]:
@@ -264,3 +323,58 @@ func _process(_delta: float) -> void:
 		"victory": message.text = "Vitória! Jefferson foi derrotado."
 		"defeat": message.text = "Derrota! Todos os jogadores caíram."
 		_: message.text = "%s • %.1fs\n%s" % [SPELL_NAMES.get(spell_kind, ""), danger_remaining, SPELL_TIPS.get(spell_kind, "")] if danger_visible else caption
+
+@rpc("authority", "call_local", "reliable")
+func announce(text: String, cue: String = "cast") -> void:
+	speech = text
+	speech_remaining = 3.5
+	CombatFeedback.play_sound(cue)
+
+func interrupt_channel(caster: Character) -> bool:
+	if not multiplayer.is_server() or status != "active" or not danger_visible or spell_kind != "channel":
+		return false
+	danger_visible = false
+	danger_remaining = 0
+	area_cooldown = 3.0
+	spell_cooldowns["channel"] = 18.0
+	completed_spells += 1
+	last_spell = "channel"
+	announce.rpc("%s interrompeu o Cataclismo!" % caster.charName, "interrupt")
+	return true
+
+func reset_encounter(index: int = 1) -> void:
+	clear_effects()
+	status = "waiting"
+	previous_status = "waiting"
+	danger_visible = false
+	danger_remaining = 0
+	mechanic_targets = []
+	projectiles = []
+	visual_remaining = 0
+	phase = 1
+	last_phase = 1
+	last_spell = ""
+	completed_spells = 0
+	ward_used = false
+	spell_cooldowns.clear()
+	area_cooldown = AREA_INTERVAL
+	opening_delay = 3.0
+	speech = ""
+	speech_remaining = 0
+	boss.charTotalLife = roundi(Jefferson.MAX_HEALTH * (1 + 0.15 * (index - 1)))
+	boss.charCurrentLife = boss.charTotalLife
+	boss.charShield = 0
+	boss.position = Vector2(880, 300)
+	boss.velocity = Vector2.ZERO
+	boss.charCurrentTarget = null
+	boss.attack_cooldown = 0
+	boss.threat.clear()
+	boss.target_hold = 0
+	boss.player_velocities.clear()
+	boss.previous_positions.clear()
+	boss.visual_ready = false
+	boss.death_progress = 0
+	boss.flash_time = 0
+	boss.modulate = Color.WHITE
+	boss.get_node("AnimatedSprite2D").rotation = 0
+	boss.get_node("AnimatedSprite2D").play("idle")
