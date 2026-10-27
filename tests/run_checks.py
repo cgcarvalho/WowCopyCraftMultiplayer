@@ -18,6 +18,7 @@ OFFLINE = [
     ('hero_classes', 'Hero class failures: 0'),
     ('session_loop', 'Session loop failures: 0'),
     ('talents_report', 'Talents report failures: 0'),
+    ('skill_tooltips', 'Skill tooltip failures: 0'),
 ]
 NETWORK = [
     ('boss_network', 'NETWORK'),

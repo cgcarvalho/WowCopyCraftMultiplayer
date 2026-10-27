@@ -199,7 +199,30 @@ cura/escudo do paladino em aliado remoto e replicação dos indicadores de venen
 
 Os ícones das classes seguem o estilo ilustrado dos originais, com moldura dourada e fundo de fantasia. Charge, Holy Light e Consecration reutilizam os PNGs originais. Os novos ícones vêm do atlas `Art/Skills/Classes/ClassIcons.png`, por recursos AtlasTexture.
 
-Passar o mouse sobre uma habilidade mostra efeito, tecla, custo no recurso da classe, recarga, tempo de conjuração, alcance e alvo. O tooltip permanece disponível durante o cooldown; o timer continua bloqueando novos lançamentos. Os rótulos das habilidades na seleção também exibem os detalhes ao passar o mouse.
+Passar o mouse sobre uma habilidade mostra efeito, tecla, custo no recurso da classe, recarga, tempo de conjuração, alcance e alvo. O tooltip permanece disponível durante o cooldown; o timer continua bloqueando novos lançamentos. Os talentos ativos aparecem em verde no painel, com o tempo de conjuração modificado quando aplicável.
+
+A seleção de personagens mostra os ícones originais e os nomes das **16 habilidades**.
+Passar o mouse em qualquer parte de cada linha, incluindo ícone e nome, abre o mesmo
+painel ilustrado da barra de combate. O papel da classe também tem tooltip de recurso
+e passiva. A tela preserva a rolagem em janelas menores.
+
+### Autoataque do Charger
+
+Charger tem um atlas próprio de oito quadros de golpe de martelo, com preparação,
+impacto, recuperação e retorno à postura inicial. O ciclo dura 1,1s e o impacto do
+terceiro quadro coincide com a liberação do ataque a 35% do ciclo. O dano continua
+validado no servidor. A animação de conjuração permanece separada; margens do atlas
+alinham os pés e a escala é restaurada ao voltar para idle ou conjuração.
+O nome da animação e o espelhamento usam a sincronização existente nos clientes.
+Fonte e organização em `Art/Chars/Charger/ANIMATION.md`.
+
+```sh
+godot --headless --path . res://tests/skill_tooltips.tscn
+```
+
+A suíte verifica os tooltips das 16 habilidades no combate e na seleção, acesso
+durante cooldown, talentos, troca de cena e o impacto do autoataque de Charger.
+O teste ENet de classes verifica também animação, tamanho e espelhamento remotos.
 
 
 ## Ciclo cooperativo e progressão da expedição
@@ -242,7 +265,7 @@ Com Godot 4.4.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa sete suítes offline e quatro suítes ENet: três com dois processos
+O runner executa oito suítes offline e quatro suítes ENet: três com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.

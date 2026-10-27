@@ -1,9 +1,11 @@
-[gd_scene load_steps=116 format=3 uid="uid://dojkqnlokegje"]
+[gd_scene load_steps=125 format=3 uid="uid://dojkqnlokegje"]
 
 [ext_resource type="Script" uid="uid://dpvd86ij2esei" path="res://Scenes/Characters/Heroes/Charger.gd" id="1_501l5"]
 [ext_resource type="Texture2D" uid="uid://bu0rkfkqbm8vv" path="res://Art/Chars/Charger/Charger Cast.png" id="1_ugl8e"]
 [ext_resource type="Texture2D" uid="uid://doip5278n81id" path="res://Art/Chars/Charger/Charger Idle.png" id="2_501l5"]
 [ext_resource type="Texture2D" uid="uid://b6jh5w7gcnwjb" path="res://Art/Chars/Charger/Charger Walk.png" id="3_q0yfv"]
+
+[ext_resource type="Texture2D" path="res://Art/Chars/Charger/Charger Auto Attack.png" id="5_attack"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0o75w"]
 atlas = ExtResource("1_ugl8e")
@@ -437,8 +439,85 @@ region = Rect2(1744, 1970, 436, 394)
 atlas = ExtResource("3_q0yfv")
 region = Rect2(2180, 1970, 436, 394)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_0"]
+atlas = ExtResource("5_attack")
+region = Rect2(0, 0, 444, 444)
+margin = Rect2(85.83333, 49.66667, 196, 196)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_1"]
+atlas = ExtResource("5_attack")
+region = Rect2(444, 0, 443, 444)
+margin = Rect2(111.33333, 58.66667, 197, 196)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_2"]
+atlas = ExtResource("5_attack")
+region = Rect2(887, 0, 443, 444)
+margin = Rect2(165.83333, 59.66667, 197, 196)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_3"]
+atlas = ExtResource("5_attack")
+region = Rect2(1330, 0, 444, 444)
+margin = Rect2(191.83333, 51.66667, 196, 196)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_4"]
+atlas = ExtResource("5_attack")
+region = Rect2(0, 444, 444, 443)
+margin = Rect2(85.33333, 82.66667, 196, 197)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_5"]
+atlas = ExtResource("5_attack")
+region = Rect2(444, 444, 443, 443)
+margin = Rect2(108.83333, 75.66667, 197, 197)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_6"]
+atlas = ExtResource("5_attack")
+region = Rect2(887, 444, 443, 443)
+margin = Rect2(117.33333, 74.66667, 197, 197)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_7"]
+atlas = ExtResource("5_attack")
+region = Rect2(1330, 444, 444, 443)
+margin = Rect2(118.33333, 76.66667, 196, 197)
+filter_clip = true
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_0uygx"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_attack_7")
+}],
+"loop": true,
+"name": &"auto_attack",
+"speed": 7.272727
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_0o75w")
