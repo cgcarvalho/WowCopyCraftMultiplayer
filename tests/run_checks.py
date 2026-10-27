@@ -21,11 +21,13 @@ OFFLINE = [
     ('skill_tooltips', 'Skill tooltip failures: 0'),
     ('arena_view', 'Arena view failures: 0'),
     ('autoattack_resume', 'Autoattack resume failures: 0'),
+    ('warrior_animations', 'Warrior animation failures: 0'),
 ]
 NETWORK = [
     ('boss_network', 'NETWORK'),
     ('class_network', 'CLASS_NETWORK'),
     ('session_network', 'SESSION_NETWORK'),
+    ('warrior_animation_network', 'WARRIOR_ANIMATION'),
 ]
 
 

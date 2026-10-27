@@ -1,0 +1,23 @@
+[gd_resource type="SpriteFrames" load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://Art/Chars/Sir Gura Targao/Ludo Basic Slash.png" id="1"]
+[ext_resource type="Texture2D" path="res://Art/Chars/Sir Gura Targao/Ludo Cleave.png" id="2"]
+[ext_resource type="Texture2D" path="res://Art/Chars/Sir Gura Targao/Ludo Bladestorm.png" id="3"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}],
+"loop": false,
+"name": &"auto_attack",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2")}],
+"loop": false,
+"name": &"cleave",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("3")}],
+"loop": true,
+"name": &"bladestorm",
+"speed": 1.0
+}]

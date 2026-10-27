@@ -274,11 +274,11 @@ Com Godot 4.7.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa dez suítes offline e quatro suítes ENet: três com dois processos
+O runner executa onze suítes offline e cinco suítes ENet: quatro com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
-As portas locais usadas pelos testes são UDP 18081, 18082, 18083 e 18084.
+As portas locais usadas pelos testes são UDP 18081, 18082, 18083, 18084 e 18085.
 
 ## Talentos por personagem
 
@@ -383,3 +383,16 @@ novos disparos; aliados, espectadores e alvos mortos não ativam ataques.
 As quatro classes são verificadas em `tests/autoattack_resume.tscn`, incluindo
 retomada, movimento contínuo, conjuração, mira e limite de frequência. A suíte
 ENet de classes exercita a Hunter iniciando o ataque sem botão direito.
+
+## Animações dos ataques do Sir Gura
+
+O autoataque agora exibe antecipação, contato e recuperação dentro do ciclo de
+0,9s, com o contato alinhado ao golpe aceito pelo servidor. Cleave tem uma sequência
+própria; Bladestorm mantém o giro enquanto o personagem anda e termina com o efeito
+real. As poses usam o cavaleiro existente, com ajuste do apoio dos pés.
+
+Os novos rastros de espada e o anel de lâminas foram gerados no **Ludo.ai** e
+animados no Godot, com transparência, escala e desaparecimento. Fontes e prompts
+estão em `Art/Chars/Sir Gura Targao/ATTACKS.md`. Dano, custos e recargas foram
+preservados. A suíte `warrior_animations` cobre o ciclo visual e sua limpeza;
+`warrior_animation_network` verifica o Warrior remoto em dois processos ENet.
