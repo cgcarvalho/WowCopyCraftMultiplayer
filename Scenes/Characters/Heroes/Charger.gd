@@ -26,7 +26,7 @@ func _enter_tree() -> void:
 	portraitImagePath = image_path
 	scenePath = scene_path
 	charBaseDamage = 8
-	charRange = 105
+	charRange = 160
 	attack_interval = 1.1
 	attack_style = "melee"
 	if skillList.is_empty():

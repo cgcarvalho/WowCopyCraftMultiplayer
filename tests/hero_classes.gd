@@ -91,7 +91,7 @@ func run() -> void:
 	check(boss.charCurrentLife == 411, "Aurora ultimate scales with her two DoTs (45 + 24)")
 	cleanup(aurora)
 	var warrior = spawn("SirGura")
-	check(warrior.charTotalLife == 150 and warrior.charRange <= 110, "Warrior has melee range and increased health")
+	check(warrior.charTotalLife == 150 and warrior.charRange == 160, "Warrior has extended melee range and increased health")
 	warrior.charCurrentLife = 80
 	cast(warrior, "second_wind", 0)
 	check(warrior.charCurrentLife == 110 and warrior.charShield == 15, "Second Wind heals and protects without a target")
