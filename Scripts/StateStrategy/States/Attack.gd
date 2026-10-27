@@ -11,7 +11,7 @@ func enter() -> void:
 func physics_process(delta: float) -> void:
 	var player = state_machine.statePlayer
 	var target = player.charCurrentTarget
-	if not is_instance_valid(target) or target.charCurrentLife <= 0 or target.charTeam == player.charTeam:
+	if not is_instance_valid(target) or target.charCurrentLife <= 0 or target.spectator or target.charTeam == player.charTeam:
 		state_machine.set_state(Idle.new())
 		return
 	if player.global_position.distance_to(target.global_position) > player.charRange:
@@ -21,6 +21,10 @@ func physics_process(delta: float) -> void:
 		state_machine.set_state(Walk.new())
 		return
 	if player.ability_animation_time > 0:
+		state_machine.set_state(Idle.new())
+		return
+	var preview = state_machine.mainScene.get_node("CombatPreview")
+	if preview.aiming or preview.suppress_attack:
 		state_machine.set_state(Idle.new())
 		return
 	elapsed += delta

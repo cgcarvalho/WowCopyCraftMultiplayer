@@ -397,6 +397,7 @@ func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dict
 	$AnimatedSprite2D.speed_scale = 1
 	$AnimatedSprite2D.play("idle")
 	if is_instance_valid(state_machine):
+		state_machine.next_basic_attack_at_msec = 0
 		state_machine.set_state(Idle.new())
 	var movement_sync = get_node_or_null("MultiplayerSynchronizer")
 	if movement_sync != null:

@@ -214,6 +214,9 @@ func play_basic_attack(caster_id: int, target_id: int, amount: int, style: Strin
 	var target = MultiplayerManager.get_character(target_id)
 	if not is_instance_valid(caster) or not is_instance_valid(target):
 		return
+	if is_instance_valid(caster.state_machine):
+		# Base restart timing on accepted attacks; the server still enforces cadence.
+		caster.state_machine.next_basic_attack_at_msec = Time.get_ticks_msec() + roundi(caster.attack_interval * 1000)
 	var projectile = CombatProjectile.new()
 	get_parent().add_child(projectile)
 	projectile.basic = true

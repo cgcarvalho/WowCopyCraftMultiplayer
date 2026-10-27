@@ -1,10 +1,10 @@
 # World of Copycraft Multiplayer
 
-Protótipo multiplayer em Godot 4.4 (GDScript / Forward Plus).
+Protótipo multiplayer validado com Godot 4.7.1 (GDScript / Forward Plus).
 
 ## Executar
 
-1. Abra `project.godot` no Godot 4.4 e aguarde a importação dos recursos.
+1. Abra `project.godot` no Godot 4.7.1 e aguarde a importação dos recursos.
 2. Execute o projeto (F6 executa uma cena; use F5 para executar o projeto).
 3. Em uma instância, escolha **Host Game**, selecione o personagem e marque **Estou pronto** no lobby.
 4. Na outra instância, informe o IP ou hostname do host e escolha **Join Game**.
@@ -14,7 +14,12 @@ Protótipo multiplayer em Godot 4.4 (GDScript / Forward Plus).
 A conexão usa ENet/UDP na porta **8080**, com até quatro jogadores incluindo
    o host. Para jogar em LAN, permita essa porta no firewall do host.
 
-Movimento: WASD. Alvo: clique esquerdo. Ataque básico: botão direito.
+Movimento: WASD. Alvo: clique esquerdo ou Tab. O autoataque começa e retoma
+automaticamente contra um inimigo vivo selecionado, quando você está parado e
+no alcance. Movimento, conjuração e mira de áreas pausam o ataque; ao terminar,
+ele volta sem precisar pressionar o botão direito. Selecionar um aliado, perder o
+alvo ou ficar fora do alcance interrompe os ataques. O servidor mantém a validação
+de alcance e do intervalo entre golpes.
 Habilidades: **1 / 2 / 3**; ultimate: **R ou 4**. Cura sem aliado selecionado usa o próprio personagem; Alt + cura força autocura.
 **Arrow Rain:** pressione R/4 ou clique no ícone, mire com o mouse e confirme com clique esquerdo; Esc ou botão direito cancela sem gastar recurso. Consecration sempre consagra o chão sob o paladino.
 **Tab:** seleciona o inimigo mais próximo. **F:** interrompe Cataclismo Arcano (16s de recarga, alcance 200 para Warrior e 650 para as demais classes).
@@ -263,13 +268,13 @@ consumir recurso. Outros mapas precisarão fornecer seus próprios obstáculos.
 
 ### Verificação completa
 
-Com Godot 4.4.1 disponível e os recursos importados:
+Com Godot 4.7.1 disponível e os recursos importados:
 
 ```sh
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa nove suítes offline e quatro suítes ENet: três com dois processos
+O runner executa dez suítes offline e quatro suítes ENet: três com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
@@ -366,3 +371,15 @@ godot --headless --path . res://tests/arena_view.tscn
 A suíte cobre terreno real na área nova, navegação e limites, separação do HUD,
 projeção dos números e lançamento de magia no chão. O teste de boss em ENet
 verifica também a câmera e o tamanho do Jefferson no cliente remoto.
+
+## Retomada do autoataque
+
+O personagem volta a atacar o inimigo selecionado ao ficar parado no alcance,
+depois de movimento, conjuração ou saída temporária de alcance. A preparação do
+próximo golpe considera o último ataque aceito pelo servidor, evitando um ataque
+prematuro ao retomar. A mira de Arrow Rain e seu gesto de cancelamento pausam
+novos disparos; aliados, espectadores e alvos mortos não ativam ataques.
+
+As quatro classes são verificadas em `tests/autoattack_resume.tscn`, incluindo
+retomada, movimento contínuo, conjuração, mira e limite de frequência. A suíte
+ENet de classes exercita a Hunter iniciando o ataque sem botão direito.
