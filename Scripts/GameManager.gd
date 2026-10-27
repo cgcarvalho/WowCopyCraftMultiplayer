@@ -13,6 +13,9 @@ const HERO_SCENES = [
 @onready var status: Label = menu.get_node("%ConnectionStatus")
 @onready var server_address: LineEdit = menu.get_node("%ServerAddress")
 var used_slots: Dictionary[int, int] = {}
+var pending_spawns: Dictionary = {}
+var retiring: Dictionary = {}
+var retirement_serial = 0
 
 func _exit_tree() -> void:
 	if is_instance_valid(uiHanlder):
@@ -20,6 +23,7 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	multiplayer.peer_disconnected.connect(on_peer_disconnected)
+	multiplayer.peer_connected.connect(func(id): $Session.register_peer(id))
 	multiplayer.connected_to_server.connect(on_connected)
 	multiplayer.connection_failed.connect(on_connection_failed)
 	multiplayer.server_disconnected.connect(on_server_disconnected)
@@ -33,6 +37,7 @@ func become_host() -> void:
 		status.text = "Falha ao criar servidor: " + error_string(error)
 		return
 	%MultiplayerHUD.hide()
+	$Session.open_lobby()
 	loadCharSelectionScreen()
 
 func join_game() -> void:
@@ -46,6 +51,8 @@ func join_game() -> void:
 func on_connected() -> void:
 	set_connection_buttons(true)
 	%MultiplayerHUD.hide()
+	$Session.running = true
+	$Session.register.rpc_id(1)
 	loadCharSelectionScreen()
 
 func on_connection_failed() -> void:
@@ -78,7 +85,7 @@ func add_player(spawn_data: Dictionary) -> Node:
 	player.name = str(id)
 	player.set_multiplayer_authority(id)
 	player.z_index = Constants.PLAYER_Z_INDEX
-	player.position = players.get_node("SpawnPoint" + str(slot)).position
+	player.position = $Session.SPAWNS[slot] if $Session.running else players.get_node("SpawnPoint" + str(slot)).position
 	MultiplayerManager.playerList[id] = player
 	return player
 
@@ -88,15 +95,43 @@ func request_player(path: String) -> void:
 		return
 	var sender = multiplayer.get_remote_sender_id()
 	var id = sender if sender != 0 else multiplayer.get_unique_id()
-	if MultiplayerManager.playerList.has(id):
+	if not $Session.can_select(id) or pending_spawns.has(id) or retiring.has(id):
 		return
-	for slot in MultiplayerManager.MAX_PLAYERS:
-		if slot not in used_slots.values():
-			used_slots[id] = slot
-			multiplayer_spawner.spawn({"id": id, "path": path, "slot": slot})
+	pending_spawns[id] = true
+	if $Session.running and $Session.roster.has(id):
+		$Session.roster[id].ready = false
+		$Session.revision += 1
+	if MultiplayerManager.playerList.has(id):
+		if not $Session.running:
+			pending_spawns.erase(id)
 			return
+		if not await retire_character(id):
+			pending_spawns.erase(id)
+			return
+	if id != 1 and id not in multiplayer.get_peers():
+		pending_spawns.erase(id)
+		return
+	var slot = used_slots.get(id, -1)
+	if slot == -1:
+		for index in MultiplayerManager.MAX_PLAYERS:
+			if index not in used_slots.values():
+				slot = index
+				break
+	if slot >= 0:
+		used_slots[id] = slot
+		multiplayer_spawner.spawn({"id": id, "path": path, "slot": slot})
+		$Session.selected(id, MultiplayerManager.playerList[id])
+	pending_spawns.erase(id)
+
+func remove_character(id: int) -> void:
+	var hero = MultiplayerManager.playerList.get(id)
+	MultiplayerManager.playerList.erase(id)
+	if is_instance_valid(hero):
+		hero.queue_free()
 
 func on_peer_disconnected(id: int) -> void:
+	$Session.remove_peer(id)
+	pending_spawns.erase(id)
 	var player: Character = MultiplayerManager.playerList.get(id)
 	MultiplayerManager.playerList.erase(id)
 	used_slots.erase(id)
@@ -108,9 +143,63 @@ func on_peer_disconnected(id: int) -> void:
 			player.queue_free()
 
 func loadCharSelectionScreen() -> void:
+	$SessionUI.selecting_class = true
 	var selection = uiHanlder.changeScene(Constants.PLAYER_SELECT_SCREEN)
 	selection.playerSelected.connect(characterSelect)
 
 func characterSelect(character: Character) -> void:
+	$SessionUI.selecting_class = false
 	request_player.rpc_id(1, character.scenePath)
 	uiHanlder.changeScene(Constants.MAP_FOREST)
+
+func leave_session() -> void:
+	MultiplayerManager.reset_session()
+	get_tree().reload_current_scene()
+
+func retire_character(id: int) -> bool:
+	if not multiplayer.is_server():
+		return false
+	if not MultiplayerManager.playerList.has(id):
+		return true
+	retirement_serial += 1
+	var serial = retirement_serial
+	retiring[id] = {"serial": serial, "paused": false}
+	if id == 1 or id in multiplayer.get_peers():
+		pause_character_sync.rpc_id(id, id, serial)
+		var deadline = Time.get_ticks_msec() + 2500
+		while retiring.has(id) and not retiring[id].paused:
+			if id != 1 and id not in multiplayer.get_peers():
+				break
+			if Time.get_ticks_msec() > deadline:
+				retiring.erase(id)
+				return false
+			await get_tree().process_frame
+	remove_character(id)
+	retiring.erase(id)
+	await get_tree().process_frame
+	return true
+
+@rpc("authority", "call_local", "reliable")
+func pause_character_sync(id: int, serial: int) -> void:
+	if multiplayer.get_unique_id() != id:
+		return
+	var hero = MultiplayerManager.playerList.get(id)
+	if is_instance_valid(hero):
+		var sync = hero.get_node_or_null("MultiplayerSynchronizer")
+		if sync != null:
+			# Stop the owning peer before despawn. A reliable acknowledgement on
+			# the same ENet channel forms a barrier after earlier movement packets.
+			sync.replication_interval = 3600
+			sync.delta_interval = 3600
+	await get_tree().physics_frame
+	character_sync_paused.rpc_id(1, id, serial)
+
+@rpc("any_peer", "call_local", "reliable")
+func character_sync_paused(id: int, serial: int) -> void:
+	if not multiplayer.is_server() or not retiring.has(id):
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if sender != id and not (sender == 0 and id == multiplayer.get_unique_id()):
+		return
+	if retiring[id].serial == serial:
+		retiring[id].paused = true

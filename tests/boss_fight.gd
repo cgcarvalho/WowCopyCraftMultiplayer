@@ -28,6 +28,7 @@ func run() -> void:
 	var player: Character = MultiplayerManager.playerList[1]
 	player.charCurrentLife = 100
 	player.charBaseDamage = 5
+	player.charCurrentMana = 100
 	for scene in [Corruption.filePath, GreaterHeal.filePath, HolyShield.filePath, RainOfFire.filePath]:
 		player.skillList.append(load(scene).instantiate())
 	player.set_physics_process(false)

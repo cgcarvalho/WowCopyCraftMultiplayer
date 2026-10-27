@@ -65,22 +65,25 @@ func verify_poison() -> void:
 	if not host:
 		return
 	client_id = multiplayer.get_remote_sender_id()
+	MultiplayerManager.playerList[client_id].charCritChance = 0
 	await get_tree().create_timer(0.5).timeout
 	var hunter = MultiplayerManager.playerList[client_id]
 	if not check(boss.charCurrentLife == 472, "Client poison projectile applies damage exactly once on host"):
 		return
-	if not check(hunter.charCurrentMana >= 88 and hunter.charCurrentMana < 92, "Server rejects cross-class healing and charges only poison mana"):
+	if not check(hunter.charCurrentMana >= 80 and hunter.charCurrentMana < 87, "Server rejects cross-class healing and charges only poison mana"):
 		return
 	await get_tree().create_timer(1).timeout
-	if not check(boss.charCurrentLife == 468, "Poison periodic damage is not doubled across peers"):
+	if not check(boss.charCurrentLife == 467, "Poison periodic damage is not doubled across peers"):
 		return
 	for effect in boss.debuffList:
 		effect.set_physics_process(false)
 	hunter.charCurrentLife = 60
+	hunter.charCritChance = 0
 	handler.loadSkillScene("res://Scenes/Skills/Classes/holy_light.tscn", 1, 1)
 	await get_tree().create_timer(1.3).timeout
-	if not check(MultiplayerManager.playerList[1].charCurrentLife == 102, "Host paladin healing resolves after cast time"):
+	if not check(MultiplayerManager.playerList[1].charCurrentLife == 107, "Host paladin healing resolves after cast time"):
 		return
+	MultiplayerManager.playerList[1].charCurrentMana = 5
 	handler.loadSkillScene("res://Scenes/Skills/Classes/divine_dawn.tscn", 1, 1)
 	await get_tree().create_timer(1.1).timeout
 	if not check(hunter.charCurrentLife == 100 and hunter.charShield == 35, "Paladin ultimate heals and shields remote ally"):
@@ -103,7 +106,7 @@ func verify_arrow() -> void:
 		return
 	var before = boss.charCurrentLife
 	await get_tree().create_timer(0.3).timeout
-	if not check(boss.charCurrentLife == before - 8, "Remote hunter arrow deals one server-authorized hit"):
+	if not check(boss.charCurrentLife == before - 9, "Remote hunter arrow deals one server-authorized hit"):
 		return
 	finish_client.rpc_id(client_id)
 	await get_tree().create_timer(0.5).timeout

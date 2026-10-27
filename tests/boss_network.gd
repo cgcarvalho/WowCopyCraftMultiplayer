@@ -102,6 +102,8 @@ func request_dot() -> void:
 func verify_dot() -> void:
 	if not multiplayer.is_server():
 		return
+	for hero in MultiplayerManager.playerList.values():
+		hero.charCritChance = 0
 	if encounter.boss.debuffList.size() != 1:
 		fail("Client skill could not target boss")
 		return

@@ -21,6 +21,8 @@ func _enter_tree() -> void:
 	attack_style = "shadow"
 	if skillList.is_empty():
 		addSkillsChar()
+	base_life = charTotalLife
+	configure_resource()
 
 func addSkillsChar() -> void:
 	skillList.append(ShadowBolt.new())

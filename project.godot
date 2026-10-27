@@ -21,6 +21,8 @@ MultiplayerManager="*res://Scripts/Multiplayer/MultiplayerManager.gd"
 DamageNumbers="*res://Scripts/Components/DamageNumbers.gd"
 Constants="*res://Scripts/Constants.gd"
 
+CombatFeedback="*res://Scripts/Combat/CombatFeedback.gd"
+
 [display]
 
 window/size/viewport_width=1152
@@ -87,3 +89,8 @@ attack={
 ]
 }
 
+
+interrupt={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":70)]
+}

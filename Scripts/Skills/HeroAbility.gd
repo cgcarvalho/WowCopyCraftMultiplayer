@@ -15,18 +15,18 @@ var skillDotSeconds = 0
 
 const DEFINITIONS = {
 	"soul_reap": {"name": "Soul Reap", "cd": 60, "mana": 35, "cast": 1.2, "mode": "ENEMY", "range": 700, "power": 45, "radius": 130, "duration": 0, "color": "b979ff", "description": "Explode sombras: 45 de dano + 12 por DoT seu no alvo. Atinge inimigos próximos."},
-	"charge": {"name": "Charge", "cd": 10, "mana": 12, "cast": 0, "mode": "ENEMY", "range": 500, "power": 16, "radius": 0, "duration": 0, "color": "ffad68", "description": "Avança até um inimigo e causa 16 de dano. Alcance: 500."},
-	"cleave": {"name": "Cleave", "cd": 5, "mana": 8, "cast": 0, "mode": "ENEMY", "range": 115, "power": 24, "radius": 120, "duration": 0, "color": "ffad68", "description": "Golpe amplo: 24 de dano em inimigos próximos do alvo. Requer alcance corpo a corpo."},
-	"second_wind": {"name": "Second Wind", "cd": 18, "mana": 12, "cast": 0, "mode": "SELF", "range": 0, "power": 30, "radius": 0, "duration": 0, "color": "fa9470", "description": "Recupera 30 de vida e recebe 15 de proteção."},
-	"bladestorm": {"name": "Bladestorm", "cd": 60, "mana": 30, "cast": 0, "mode": "SELF", "range": 0, "power": 12, "radius": 140, "duration": 6, "color": "ffad68", "description": "Por 6s, gira causando 12 de dano por segundo. A área acompanha você."},
-	"judgement": {"name": "Judgement", "cd": 6, "mana": 10, "cast": 0, "mode": "ENEMY", "range": 550, "power": 24, "radius": 0, "duration": 0, "color": "ffe299", "description": "Martelo sagrado: 24 de dano em um inimigo a até 550."},
-	"holy_light": {"name": "Holy Light", "cd": 8, "mana": 16, "cast": 1.2, "mode": "ALLY", "range": 650, "power": 32, "radius": 0, "duration": 0, "color": "ffe299", "description": "Cura um aliado em 32. Sem aliado selecionado, cura você. Alt: autocura."},
-	"consecration": {"name": "Consecration", "cd": 16, "mana": 18, "cast": 0, "mode": "SELF", "range": 0, "power": 7, "radius": 155, "duration": 8, "color": "ffe299", "description": "Consagra o chão por 8s: 7 de dano/s aos inimigos e 3 de cura/s aos aliados."},
-	"divine_dawn": {"name": "Divine Dawn", "cd": 65, "mana": 35, "cast": 0.8, "mode": "SELF", "range": 0, "power": 40, "radius": 240, "duration": 0, "color": "ffe299", "description": "Explosão sagrada: cura 40 e concede 35 de proteção aos aliados próximos; causa 35 aos inimigos."},
-	"aimed_shot": {"name": "Aimed Shot", "cd": 6, "mana": 12, "cast": 1.0, "mode": "ENEMY", "range": 750, "power": 32, "radius": 0, "duration": 0, "color": "92deae", "description": "Disparo preciso: 32 de dano. Preparação de 1s."},
-	"poison_arrow": {"name": "Poison Arrow", "cd": 10, "mana": 12, "cast": 0, "mode": "ENEMY", "range": 700, "power": 8, "radius": 0, "duration": 8, "color": "a7ef70", "description": "Flecha: 8 de dano inicial + 4/s por 8s. Reaplicar renova o veneno do mesmo arqueiro."},
-	"multishot": {"name": "Multi-Shot", "cd": 9, "mana": 16, "cast": 0, "mode": "ENEMY", "range": 700, "power": 18, "radius": 210, "duration": 0, "color": "92deae", "description": "Dispara em até 3 inimigos próximos do alvo; 18 de dano por flecha."},
-	"arrow_rain": {"name": "Arrow Rain", "cd": 60, "mana": 32, "cast": 0.6, "mode": "GROUND", "range": 700, "power": 12, "radius": 185, "duration": 7, "color": "92deae", "description": "Marca o chão por 7s, causando 12 de dano/s. Sem alvo, usa sua posição."},
+	"charge": {"name": "Charge", "cd": 10, "mana": 0, "cast": 0, "mode": "ENEMY", "range": 500, "power": 16, "radius": 0, "duration": 0, "color": "ffad68", "description": "Avança até um inimigo e causa 16 de dano. Alcance: 500."},
+	"cleave": {"name": "Cleave", "cd": 5, "mana": 25, "cast": 0, "mode": "ENEMY", "range": 115, "power": 24, "radius": 120, "duration": 0, "color": "ffad68", "description": "Golpe amplo: 24 de dano em inimigos próximos do alvo. Requer alcance corpo a corpo."},
+	"second_wind": {"name": "Second Wind", "cd": 18, "mana": 30, "cast": 0, "mode": "SELF", "range": 0, "power": 30, "radius": 0, "duration": 0, "color": "fa9470", "description": "Recupera 30 de vida e recebe 15 de proteção."},
+	"bladestorm": {"name": "Bladestorm", "cd": 60, "mana": 80, "cast": 0, "mode": "SELF", "range": 0, "power": 12, "radius": 140, "duration": 6, "color": "ffad68", "description": "Por 6s, gira causando 12 de dano por segundo. A área acompanha você."},
+	"judgement": {"name": "Judgement", "cd": 6, "mana": 0, "cast": 0, "mode": "ENEMY", "range": 550, "power": 24, "radius": 0, "duration": 0, "color": "ffe299", "description": "Martelo sagrado: 24 de dano em um inimigo a até 550."},
+	"holy_light": {"name": "Holy Light", "cd": 8, "mana": 1, "cast": 1.2, "mode": "ALLY", "range": 650, "power": 32, "radius": 0, "duration": 0, "color": "ffe299", "description": "Cura um aliado em 32. Sem aliado selecionado, cura você. Alt: autocura."},
+	"consecration": {"name": "Consecration", "cd": 16, "mana": 2, "cast": 0, "mode": "SELF", "range": 0, "power": 7, "radius": 155, "duration": 8, "color": "ffe299", "description": "Consagra o chão por 8s: 7 de dano/s aos inimigos e 3 de cura/s aos aliados."},
+	"divine_dawn": {"name": "Divine Dawn", "cd": 65, "mana": 5, "cast": 0.8, "mode": "SELF", "range": 0, "power": 40, "radius": 240, "duration": 0, "color": "ffe299", "description": "Explosão sagrada: cura 40 e concede 35 de proteção aos aliados próximos; causa 35 aos inimigos."},
+	"aimed_shot": {"name": "Aimed Shot", "cd": 6, "mana": 25, "cast": 1.0, "mode": "ENEMY", "range": 750, "power": 32, "radius": 0, "duration": 0, "color": "92deae", "description": "Disparo preciso: 32 de dano. Preparação de 1s."},
+	"poison_arrow": {"name": "Poison Arrow", "cd": 10, "mana": 20, "cast": 0, "mode": "ENEMY", "range": 700, "power": 8, "radius": 0, "duration": 8, "color": "a7ef70", "description": "Flecha: 8 de dano inicial + 4/s por 8s. Reaplicar renova o veneno do mesmo arqueiro."},
+	"multishot": {"name": "Multi-Shot", "cd": 9, "mana": 30, "cast": 0, "mode": "ENEMY", "range": 700, "power": 18, "radius": 210, "duration": 0, "color": "92deae", "description": "Dispara em até 3 inimigos próximos do alvo; 18 de dano por flecha."},
+	"arrow_rain": {"name": "Arrow Rain", "cd": 60, "mana": 60, "cast": 0.6, "mode": "GROUND", "range": 700, "power": 12, "radius": 185, "duration": 7, "color": "92deae", "description": "Escolha uma área no chão: 12 de dano/s por 7s. Clique confirma; Esc cancela."},
 }
 
 static func create(id: String) -> Skill:
@@ -34,7 +34,7 @@ static func create(id: String) -> Skill:
 
 func configure(id: String) -> void:
 	ability_id = id
-	data = DEFINITIONS[id]
+	data = DEFINITIONS[id].duplicate(true)
 	skillName = data.name
 	skillCoolDownTime = data.cd
 	skillManaCost = data.mana
@@ -59,7 +59,7 @@ func cast(caster: Character, target: Character) -> void:
 	casterCharacter = caster
 	targetCharacter = target
 	global_position = caster.global_position
-	destination = target.global_position
+	destination = aim_position if aim_position.is_finite() else target.global_position
 	if ability_id in ["consecration", "arrow_rain"]:
 		global_position = destination
 	if ability_id == "poison_arrow":
@@ -90,18 +90,22 @@ func impact() -> void:
 	if not multiplayer.is_server() or not living():
 		return
 	var power: int = data.power
+	if ability_id == "judgement":
+		casterCharacter.gain_resource(1)
+	elif ability_id == "charge":
+		casterCharacter.gain_resource(15)
 	match ability_id:
 		"holy_light":
-			targetCharacter.apply_heal(power)
+			targetCharacter.apply_heal(power, casterCharacter)
 		"second_wind":
-			casterCharacter.apply_heal(power)
+			casterCharacter.apply_heal(power, casterCharacter)
 			casterCharacter.apply_shield(maxi(casterCharacter.charShield, 15))
 		"divine_dawn":
 			for character in all_characters():
 				if not is_instance_valid(character) or character.global_position.distance_to(global_position) > float(data.radius):
 					continue
 				if character.charTeam == casterCharacter.charTeam:
-					character.apply_heal(power)
+					character.apply_heal(power, casterCharacter)
 					character.apply_shield(maxi(character.charShield, 35))
 				else:
 					character.deal_damage(35, casterCharacter)
@@ -131,7 +135,7 @@ func tick_effect() -> void:
 		if character.charTeam != casterCharacter.charTeam:
 			character.deal_damage(data.power, casterCharacter, true)
 		elif ability_id == "consecration":
-			character.apply_heal(3)
+			character.apply_heal(3, casterCharacter)
 
 func _physics_process(delta: float) -> void:
 	if not living():
@@ -148,7 +152,7 @@ func _physics_process(delta: float) -> void:
 		var offset = casterCharacter.global_position - targetCharacter.global_position
 		var stop = targetCharacter.global_position + offset.normalized() * 70
 		if casterCharacter.is_multiplayer_authority():
-			casterCharacter.global_position = casterCharacter.global_position.move_toward(stop, delta * 900)
+			casterCharacter.global_position = ArenaNavigation.move(casterCharacter.global_position, (stop - casterCharacter.global_position).limit_length(delta * 900))
 		global_position = casterCharacter.global_position
 		if offset.length() <= 100:
 			impact()

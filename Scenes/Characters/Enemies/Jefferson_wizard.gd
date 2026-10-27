@@ -53,9 +53,12 @@ func _exit_tree() -> void:
 		MultiplayerManager.enemies.erase(BOSS_ID)
 
 func _process(delta: float) -> void:
+	update_presentation(delta)
 	visible = get_parent().status != "waiting"
 	var dead = charCurrentLife <= 0
-	modulate = Color(0.45, 0.45, 0.45, 0.6) if dead else Color.WHITE
+	modulate = Color(0.7, 0.6, 0.8, 1 - death_progress * 0.85) if dead else Color.WHITE
+	if not dead and flash_time <= 0:
+		$AnimatedSprite2D.modulate = Color(1, 0.68, 0.92) if get_parent().phase == 2 else Color.WHITE
 	# Only the sprite interpolates. Gameplay and hit detection use server position.
 	if not visual_ready or presentation_position.distance_to(global_position) > 180:
 		presentation_position = global_position
@@ -65,7 +68,7 @@ func _process(delta: float) -> void:
 	$AnimatedSprite2D.position = presentation_position - global_position + Vector2(0, bob)
 	$AnimatedSprite2D.flip_h = facing_left
 	var pulse = 1.0 + (sin(Time.get_ticks_msec() * 0.008) * 0.025 if get_parent().danger_visible else 0.0)
-	$AnimatedSprite2D.scale = Vector2.ONE * animation_scale * pulse
+	$AnimatedSprite2D.scale = Vector2.ONE * animation_scale * pulse * (1 - death_progress * 0.35)
 	if not dead:
 		$AnimatedSprite2D.play("walk" if velocity.length() > 10 else "idle")
 	else:
@@ -76,13 +79,15 @@ func _draw() -> void:
 	draw_set_transform(Vector2(0, 90), 0, Vector2(1, 0.28))
 	draw_circle(Vector2.ZERO, 68, Color(0.05, 0.01, 0.1, 0.38))
 	draw_set_transform(Vector2.ZERO)
+	if get_parent().phase == 2 and charCurrentLife > 0:
+		draw_arc(Vector2(0, 90), 85, 0, TAU, 64, Color(0.8, 0.2, 1, 0.55), 3, true)
 
 func choose_target() -> Character:
 	var best: Character
 	var best_score = -INF
 	for id in MultiplayerManager.playerList:
 		var player: Character = MultiplayerManager.playerList[id]
-		if not is_instance_valid(player) or player.charCurrentLife <= 0:
+		if not is_instance_valid(player) or player.charCurrentLife <= 0 or player.spectator:
 			continue
 		var distance = global_position.distance_to(player.global_position)
 		var score = 600.0 / (distance + 100.0) + float(threat.get(id, 0)) * 0.06

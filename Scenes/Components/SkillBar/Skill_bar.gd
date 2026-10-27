@@ -10,6 +10,7 @@ func createButtons() -> void:
 		return
 	visible = true
 	for child in $PanelContainer/HBoxContainer.get_children():
+		$PanelContainer/HBoxContainer.remove_child(child)
 		child.queue_free()
 	var hotkey = 1
 	for skill in player.skillList:

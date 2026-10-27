@@ -27,6 +27,9 @@ var changeKey = "":
 func _ready() -> void:
 	skillHander = get_tree().current_scene.get_node("SkillHandler")
 	skillHander.cast_confirmed.connect(on_cast_result)
+	skillHander.combat_reset.connect(_on_timer_timeout)
+	mouse_entered.connect(func(): get_tree().current_scene.get_node("CombatPreview").hover(skillCast))
+	mouse_exited.connect(func(): get_tree().current_scene.get_node("CombatPreview").clear_hover())
 	set_process(false)
 
 func _process(_delta: float) -> void:
@@ -47,6 +50,13 @@ func feedback(message: String) -> void:
 func _on_pressed() -> void:
 	if pending or not timer.is_stopped():
 		return
+	if skillCast.targeting() == Skill.TargetMode.GROUND:
+		if skillPlayer.charCurrentMana < skillCast.skillManaCost:
+			feedback(skillPlayer.resource_name + " insuficiente")
+			return
+		if skillPlayer.charCurrentLife > 0 and not player_cast_bar.is_casting and skillPlayer.charCurrentMana >= skillCast.skillManaCost:
+			get_tree().current_scene.get_node("CombatPreview").begin(skillCast, self)
+		return
 	if validateCast():
 		pending = true
 		skillHander.loadSkillScene.rpc_id(1, skillCast.skillScenePath, int(skillPlayer.name), target_id)
@@ -55,7 +65,7 @@ func validateCast() -> bool:
 	if skillPlayer.charCurrentLife <= 0 or player_cast_bar.is_casting:
 		return false
 	if skillPlayer.charCurrentMana < skillCast.skillManaCost:
-		feedback("Mana insuficiente")
+		feedback(skillPlayer.resource_name + " insuficiente")
 		return false
 	var selected = skillPlayer.charCurrentTarget
 	if skillCast.targeting() == Skill.TargetMode.ALLY and (Input.is_key_pressed(KEY_ALT) or not is_instance_valid(selected) or selected.charTeam != skillPlayer.charTeam):
@@ -127,9 +137,18 @@ func _make_custom_tooltip(_for_text: String) -> Object:
 	var separator = HSeparator.new()
 	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(separator)
-	column.add_child(tooltip_label("Mana: %d     Recarga: %.1f s" % [skillCast.skillManaCost, skillCast.skillCoolDownTime], 14, Color("9dc8f0")))
+	column.add_child(tooltip_label("%s: %d     Recarga: %.1f s" % [skillCast.cost_label, skillCast.skillManaCost, skillCast.skillCoolDownTime * skillCast.cooldown_scale], 14, Color("9dc8f0")))
 	column.add_child(tooltip_label("Conjuração: " + skillCast.cast_description(), 14, pale))
+	if skillCast.skillCastTime > 0:
+		column.add_child(tooltip_label("Mover interrompe a conjuração.", 13, Color("bcb29f")))
 	if skillCast.targeting() != Skill.TargetMode.SELF:
 		column.add_child(tooltip_label("Alcance: %d" % int(skillCast.cast_range), 14, pale))
 	column.add_child(tooltip_label("Alvo: " + skillCast.target_description(), 13, Color("bcb29f")))
 	return panel
+
+func _exit_tree() -> void:
+	if is_instance_valid(skillHander):
+		if skillHander.cast_confirmed.is_connected(on_cast_result):
+			skillHander.cast_confirmed.disconnect(on_cast_result)
+		if skillHander.combat_reset.is_connected(_on_timer_timeout):
+			skillHander.combat_reset.disconnect(_on_timer_timeout)

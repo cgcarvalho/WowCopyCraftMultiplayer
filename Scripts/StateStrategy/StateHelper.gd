@@ -18,7 +18,7 @@ static func canMove(delta : float, state_machine : StateStrategy, checkIdle : bo
 	if velocity.length() > 0:
 		velocity = velocity.normalized() * speed
 	
-	state_machine.statePlayer.position += velocity * delta
+	state_machine.statePlayer.global_position = ArenaNavigation.move(state_machine.statePlayer.global_position, velocity * delta)
 	
 	if velocity.length() == 0 and checkIdle:
 		state_machine.set_state(Idle.new())
@@ -29,12 +29,22 @@ static func checkMove(state_machine : StateStrategy) -> void:
 		state_machine.set_state(Walk.new())
 		
 static func checkCast(state_machine : StateStrategy) -> void:
-	if state_machine.statePlayer.ability_animation_time > 0:
+	if state_machine.statePlayer.ability_animation_time > 0 and Input.get_vector("move_left", "move_right", "move_up", "move_down").is_zero_approx():
 		state_machine.set_state(Cast.new())
 
-static func checkAttack(state_machine : StateStrategy) -> void:
-	if Input.is_action_pressed("attack") and state_machine.statePlayer.ability_animation_time <= 0:
-		state_machine.set_state(Attack.new())
+static func checkAttack(state_machine: StateStrategy) -> void:
+	var preview = state_machine.mainScene.get_node("CombatPreview")
+	if preview.suppress_attack:
+		if not Input.is_action_pressed("attack"):
+			preview.suppress_attack = false
+		return
+	if Input.is_action_pressed("attack") and state_machine.statePlayer.ability_animation_time <= 0 and not preview.aiming:
+		var player = state_machine.statePlayer
+		var target = player.charCurrentTarget
+		if is_instance_valid(target) and target.charCurrentLife > 0 and target.charTeam != player.charTeam and player.global_position.distance_to(target.global_position) <= player.charRange:
+			state_machine.set_state(Attack.new())
+		elif Input.is_action_just_pressed("attack"):
+			state_machine.mainScene.get_node("SkillBar").show_feedback("Selecione um inimigo ao alcance")
 
 static func checkAnimationPlaying(state_machine : StateStrategy) -> void:
 	if state_machine.statePlayer.ability_animation_time <= 0:

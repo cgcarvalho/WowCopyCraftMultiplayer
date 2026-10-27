@@ -25,6 +25,7 @@ func run() -> void:
 	var caster: Character = MultiplayerManager.playerList.get(1)
 	caster.charCurrentLife = 100
 	caster.charBaseDamage = 5
+	caster.charCurrentMana = 100
 	for scene in [Corruption.filePath, GreaterHeal.filePath, HolyShield.filePath, RainOfFire.filePath]:
 		caster.skillList.append(load(scene).instantiate())
 	check(is_instance_valid(caster), "Host spawned through MultiplayerSpawner")
