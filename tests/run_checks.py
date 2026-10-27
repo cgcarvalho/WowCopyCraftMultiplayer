@@ -17,6 +17,7 @@ OFFLINE = [
     ('dot_presentation', 'DoT presentation failures: 0'),
     ('hero_classes', 'Hero class failures: 0'),
     ('session_loop', 'Session loop failures: 0'),
+    ('talents_report', 'Talents report failures: 0'),
 ]
 NETWORK = [
     ('boss_network', 'NETWORK'),
@@ -31,13 +32,14 @@ def validate(output, marker):
     return len(re.findall(r'^PASS:', output, re.M))
 
 
-def network(godot, scene, prefix):
+def network(godot, scene, prefix, clients=1):
     processes = []
     with tempfile.TemporaryDirectory(prefix='wowcopycraft-tests-') as directory:
-        logs = {side: Path(directory) / f'{side}.log' for side in ['server', 'client']}
+        sides = ['client'] if clients == 1 else [f'client{i}' for i in range(1, clients + 1)]
+        logs = {side: Path(directory) / f'{side}.log' for side in ['server', *sides]}
         base = [godot, '--headless', '--path', str(PROJECT), f'res://tests/{scene}.tscn', '--']
         try:
-            with logs['server'].open('w') as so, logs['client'].open('w') as co:
+            with logs['server'].open('w') as so:
                 server = subprocess.Popen(base + ['--server'], stdout=so, stderr=subprocess.STDOUT)
                 processes.append(server)
                 deadline = time.monotonic() + 15
@@ -45,13 +47,16 @@ def network(godot, scene, prefix):
                     if server.poll() is not None or time.monotonic() > deadline:
                         raise RuntimeError(logs['server'].read_text(errors='replace'))
                     time.sleep(.1)
-                client = subprocess.Popen(base + ['--client'], stdout=co, stderr=subprocess.STDOUT)
-                processes.append(client)
-                client_code = client.wait(timeout=55)
+                for index, side in enumerate(sides, 1):
+                    with logs[side].open('w') as co:
+                        extra = [f'--slot={index}'] if clients > 1 else []
+                        client = subprocess.Popen(base + ['--client', *extra], stdout=co, stderr=subprocess.STDOUT)
+                    processes.append(client)
+                client_codes = [client.wait(timeout=55) for client in processes[1:]]
                 server_code = server.wait(timeout=10)
-                if client_code or server_code:
+                if any(client_codes) or server_code:
                     raise RuntimeError('\n'.join(path.read_text(errors='replace') for path in logs.values()))
-            count = sum(validate(logs[side].read_text(errors='replace'), f'{prefix}_{side.upper()}_PASS') for side in logs)
+            count = sum(validate(path.read_text(errors='replace'), f'{prefix}_{"SERVER" if side == "server" else "CLIENT"}_PASS') for side, path in logs.items())
             print(f'{scene}: OK ({count} checks)')
             return count
         except (RuntimeError, subprocess.TimeoutExpired):
@@ -85,6 +90,7 @@ def main():
     if args.network:
         for scene, prefix in NETWORK:
             total += network(args.godot, scene, prefix)
+        total += network(args.godot, 'party_report_network', 'PARTY_REPORT', clients=3)
     print(f'Total: {total} checks passed')
 
 

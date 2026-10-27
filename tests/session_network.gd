@@ -60,15 +60,61 @@ func run() -> void:
 		if not await until(func(): return MultiplayerManager.playerList.has(client_id) and session.roster.has(client_id) and session.roster[client_id]["class"] == "Hunter", "Client class did not reach lobby"):
 			return
 		old_hunter = MultiplayerManager.playerList[client_id]
-		session.set_ready.rpc_id(1, true)
-		session.start_match.rpc_id(1) # The client must not start the group.
-		session.choose_upgrade.rpc_id(1, "offense") # No reward is available in lobby.
-		client_ready.rpc_id(1)
+		session.learn_talent.rpc_id(1, "guardian", 1)
+		session.learn_talent.rpc_id(1, "marksman", 3)
+		invalid_talents_sent.rpc_id(1)
 	var watchdog = Timer.new()
 	watchdog.one_shot = true
 	add_child(watchdog)
 	watchdog.timeout.connect(func(): check(false, "Session network test timed out"))
 	watchdog.start(40)
+
+@rpc("any_peer", "reliable")
+func invalid_talents_sent() -> void:
+	if not host:
+		return
+	client_id = multiplayer.get_remote_sender_id()
+	if not check(session.roster[client_id].talents.is_empty(), "Server rejects remote cross-class talents and skipped prerequisites"):
+		return
+	allocate_and_reset.rpc_id(client_id)
+
+@rpc("authority", "reliable")
+func allocate_and_reset() -> void:
+	for tier in range(1, 4):
+		session.learn_talent.rpc_id(1, "venom", tier)
+	session.learn_talent.rpc_id(1, "marksman", 1)
+	session.set_ready.rpc_id(1, true)
+	full_tree_sent.rpc_id(1)
+
+@rpc("any_peer", "reliable")
+func full_tree_sent() -> void:
+	if not host:
+		return
+	if not check(session.roster[client_id].talents == {"venom": 3} and session.roster[1].talents.is_empty(), "Remote talent allocation is limited to its owner and three points"):
+		return
+	redistribute.rpc_id(client_id)
+
+@rpc("authority", "reliable")
+func redistribute() -> void:
+	session.reset_talents.rpc_id(1)
+	reset_sent.rpc_id(1)
+
+@rpc("any_peer", "reliable")
+func reset_sent() -> void:
+	if not host:
+		return
+	if not check(session.roster[client_id].talents.is_empty() and not session.roster[client_id].ready, "Remote redistribution refunds points and cancels readiness"):
+		return
+	final_build.rpc_id(client_id)
+
+@rpc("authority", "reliable")
+func final_build() -> void:
+	for tier in range(1, 4):
+		session.learn_talent.rpc_id(1, "marksman", tier)
+	session.set_ready.rpc_id(1, true)
+	session.start_match.rpc_id(1)
+	session.choose_upgrade.rpc_id(1, "offense")
+	client_ready.rpc_id(1)
 
 @rpc("any_peer", "reliable")
 func client_ready() -> void:
@@ -92,9 +138,15 @@ func observe_countdown() -> void:
 		return
 	if not check(encounter.status == "waiting", "Client sees countdown before boss combat starts"):
 		return
+	if not await until(func(): return old_hunter.talents == {"marksman": 3}, "Client missed applied talent build"):
+		return
+	if not check(is_equal_approx(old_hunter.skillList[0].skillCastTime, 0.7) and old_hunter.skillList[0].tooltip_summary("1").contains("Talentos:"), "Client applies talent-modified cast times and tooltips before combat"):
+		return
 	if not await until(func(): return session.stage == "active", "Client missed combat start"):
 		return
 	MultiplayerManager.playerList[client_id].position = Vector2(520, 300)
+	session.reset_talents.rpc_id(1)
+	session.learn_talent.rpc_id(1, "venom", 1)
 	await get_tree().create_timer(0.25).timeout
 	active_received.rpc_id(1)
 
@@ -103,6 +155,8 @@ func active_received() -> void:
 	if not host:
 		return
 	var warrior = MultiplayerManager.playerList[1]
+	if not check(session.roster[client_id].talents == {"marksman": 3}, "Remote player cannot redistribute or add talents during combat"):
+		return
 	warrior.position = Vector2(500, 300)
 	warrior.charCritChance = 0
 	MultiplayerManager.playerList[client_id].charCritChance = 0
@@ -159,6 +213,12 @@ func second_interrupt_sent() -> void:
 	if not check(encounter.danger_visible, "Server rejects interrupt cooldown bypass"):
 		return
 	encounter.danger_visible = false
+	var hunter = MultiplayerManager.playerList[client_id]
+	hunter.steady_time = 0
+	encounter.boss.deal_damage(10, hunter)
+	hunter.apply_heal(20, hunter)
+	hunter.apply_shield(15, MultiplayerManager.playerList[1])
+	hunter.deal_damage(12, encounter.boss)
 	encounter.boss.charCurrentLife = 0
 	encounter._physics_process(0.1)
 	choose_reward.rpc_id(client_id)
@@ -167,10 +227,24 @@ func second_interrupt_sent() -> void:
 func choose_reward() -> void:
 	if not await until(func(): return session.stage == "victory", "Client missed victory"):
 		return
+	if not await until(func(): return not session.report.is_empty(), "Client missed battle report"):
+		return
+	var own: Dictionary = session.report.players[client_id]
+	if not check(own.damage == 10 and own.healing == 20 and own.interrupts == 1 and own.mechanics == 1 and session.report.players[1].absorbed == 12, "Client receives effective damage, healing, shield ownership, interrupts and mechanics from server report"):
+		return
+	# Local cosmetic counters cannot overwrite the host's exported report.
+	session.combat_report.active = true
+	session.combat_report.rows = {client_id: {"damage": 9999}}
+	report_verified.rpc_id(1)
 	session.choose_upgrade.rpc_id(1, "mastery")
 	session.choose_upgrade.rpc_id(1, "endurance") # Duplicate choice must not apply.
 	session.retry.rpc_id(1) # Only host may continue.
 	reward_sent.rpc_id(1)
+
+@rpc("any_peer", "reliable")
+func report_verified() -> void:
+	if host:
+		check(session.report.players[client_id].damage == 10, "Client-local statistics cannot alter the authoritative report")
 
 @rpc("any_peer", "reliable")
 func reward_sent() -> void:
@@ -192,6 +266,8 @@ func verify_next_round() -> void:
 	if not check(hunter == old_hunter and hunter.charCurrentLife == 100 and hunter.charCurrentMana == 100, "Retry preserves remote character and restores health/resource"):
 		return
 	if not check(is_equal_approx(hunter.cooldown_multiplier, 0.88) and is_equal_approx(MultiplayerManager.playerList[1].damage_bonus, 1.12) and encounter.boss.charCurrentLife == 552, "Both clients receive their own upgrades and stronger boss"):
+		return
+	if not check(hunter.talents == {"marksman": 3} and session.report.is_empty(), "Retry retains talents and resets the previous combat report"):
 		return
 	if not await until(func(): return session.stage == "active", "Second encounter did not start"):
 		return
@@ -233,6 +309,8 @@ func observe_new_lobby() -> void:
 	if not await until(func(): return session.stage == "lobby" and not session.transitioning and MultiplayerManager.playerList.is_empty(), "Client retained old characters after selection reset"):
 		return
 	if not check(session.upgrades.is_empty() and session.round_index == 1, "Selection reset reaches remote peer and clears expedition progression"):
+		return
+	if not check(session.roster[client_id].talents.is_empty() and session.report.is_empty(), "New expedition clears the old class talent build and report"):
 		return
 	main.request_player.rpc_id(1, "res://Scenes/Characters/Heroes/Charger.tscn")
 	if not await until(func(): return MultiplayerManager.playerList.has(client_id) and MultiplayerManager.playerList[client_id].charClass == "Paladin", "Remote class switch failed"):

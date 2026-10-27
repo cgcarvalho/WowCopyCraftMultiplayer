@@ -99,33 +99,36 @@ func impact() -> void:
 			targetCharacter.apply_heal(power, casterCharacter)
 		"second_wind":
 			casterCharacter.apply_heal(power, casterCharacter)
-			casterCharacter.apply_shield(maxi(casterCharacter.charShield, 15))
+			casterCharacter.apply_shield(30 if TalentTree.has(casterCharacter.talents, "guardian", 2) else 15, casterCharacter)
 		"divine_dawn":
 			for character in all_characters():
 				if not is_instance_valid(character) or character.global_position.distance_to(global_position) > float(data.radius):
 					continue
 				if character.charTeam == casterCharacter.charTeam:
-					character.apply_heal(power, casterCharacter)
-					character.apply_shield(maxi(character.charShield, 35))
+					character.apply_heal(60 if TalentTree.has(casterCharacter.talents, "light", 3) else power, casterCharacter)
+					character.apply_shield(50 if TalentTree.has(casterCharacter.talents, "bulwark", 3) else 35, casterCharacter)
 				else:
 					character.deal_damage(35, casterCharacter)
 		"cleave", "soul_reap":
 			if ability_id == "soul_reap":
 				for effect in targetCharacter.debuffList:
 					if is_instance_valid(effect) and effect.casterCharacter == casterCharacter:
-						power += 12
+						power += 18 if TalentTree.has(casterCharacter.talents, "affliction", 3) else 12
 			for character in all_characters():
 				if is_instance_valid(character) and character.charTeam != casterCharacter.charTeam and character.global_position.distance_to(global_position) <= float(data.radius):
-					character.deal_damage(power, casterCharacter)
+					hurt(character, power)
 		_:
 			if is_instance_valid(targetCharacter) and targetCharacter.charCurrentLife > 0:
-				targetCharacter.deal_damage(power, casterCharacter)
+				hurt(targetCharacter, power)
+
+func hurt(character: Character, power: int, periodic: bool = false) -> void:
+	character.deal_damage(power, casterCharacter, periodic, TalentTree.skill_damage(casterCharacter.talents, self))
 
 func tick_effect() -> void:
 	if not multiplayer.is_server() or not living():
 		return
 	if ability_id == "poison_arrow":
-		targetCharacter.deal_damage(4, casterCharacter, true)
+		hurt(targetCharacter, 6 if TalentTree.has(casterCharacter.talents, "venom", 1) else 4, true)
 		return
 	for character in all_characters():
 		if not is_instance_valid(character) or character.charCurrentLife <= 0:
@@ -133,7 +136,7 @@ func tick_effect() -> void:
 		if character.global_position.distance_to(global_position) > float(data.radius):
 			continue
 		if character.charTeam != casterCharacter.charTeam:
-			character.deal_damage(data.power, casterCharacter, true)
+			hurt(character, data.power, true)
 		elif ability_id == "consecration":
 			character.apply_heal(3, casterCharacter)
 

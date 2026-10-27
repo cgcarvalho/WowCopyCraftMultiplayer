@@ -54,6 +54,8 @@ var base_life = 100
 var damage_bonus = 1.0
 var healing_bonus = 1.0
 var cooldown_multiplier = 1.0
+var talents: Dictionary = {}
+var shield_sources: Array = []
 
 #Skills
 var skillList : Array[Skill] 
@@ -70,7 +72,7 @@ func _enter_tree() -> void:
 	if not is_inside_tree():
 		return
 	var config = SceneReplicationConfig.new()
-	for property in ["charCurrentLife", "charCurrentMana", "charShield", "charTotalLife", "momentum", "steady_time", "spectator", "damage_bonus", "healing_bonus", "cooldown_multiplier", "interrupt_remaining"]:
+	for property in ["charCurrentLife", "charCurrentMana", "charShield", "charTotalLife", "momentum", "steady_time", "spectator", "damage_bonus", "healing_bonus", "cooldown_multiplier", "interrupt_remaining", "talents"]:
 		var path = NodePath(".:" + property)
 		config.add_property(path)
 		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -149,19 +151,32 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		local_player.charCurrentTarget = self
 		ui_handler.showTargetHPBar(self, local_player == self)
 
-func deal_damage(damage: int, source: Character = null, periodic: bool = false) -> void:
+func battle_report() -> BattleReport:
+	var scene = get_tree().current_scene
+	var session = scene.get_node_or_null("Session") if scene != null else null
+	return session.combat_report if session != null and session.running and session.stage == "active" else null
+
+func deal_damage(damage: int, source: Character = null, periodic: bool = false, skill_multiplier: float = 1.0) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0 or spectator:
 		return
 	var chance = source.charCritChance if is_instance_valid(source) else charCritChance
 	isCrit = randf() < chance
-	var multiplier = source.outgoing_damage_multiplier() if is_instance_valid(source) else 1.0
+	var multiplier = source.outgoing_damage_multiplier(periodic) if is_instance_valid(source) else 1.0
+	multiplier *= skill_multiplier
 	damage = maxi(1, roundi(damage * multiplier * (Constants.CRIT_MULTIPLIER if isCrit else 1.0)))
+	if TalentTree.has(talents, "guardian", 1) or TalentTree.has(talents, "bulwark", 1):
+		damage = maxi(1, roundi(damage * 0.9))
 	if has_paladin_aura():
 		damage = maxi(1, roundi(damage * 0.95))
 	var absorbed = mini(charShield, damage)
+	consume_shield(absorbed)
 	charShield -= absorbed
 	damage -= absorbed
+	var before = charCurrentLife
 	charCurrentLife -= damage
+	var report = battle_report()
+	if report != null:
+		report.damage(self, source, before - charCurrentLife, charCurrentLife == 0)
 	if charClass == "Warrior":
 		gain_resource(8)
 	if damage > 0:
@@ -176,16 +191,44 @@ func apply_heal(heal: int, source: Character = null) -> void:
 		multiplier *= 1.15
 	var before = charCurrentLife
 	charCurrentLife += roundi(heal * multiplier)
+	var report = battle_report()
+	if report != null:
+		report.heal(source, charCurrentLife - before)
 	if charCurrentLife > before:
 		DamageNumbers.display_number.rpc(charCurrentLife - before, global_position, false, true)
 		CombatFeedback.impact.rpc(int(name), global_position, "heal")
 
-func apply_shield(shield: int) -> void:
+func apply_shield(shield: int, source: Character = null) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or spectator:
 		return
+	if shield <= charShield:
+		return
+	reconcile_shield_sources()
+	shield_sources.append({"id": int(source.name) if is_instance_valid(source) else 0, "amount": shield - charShield})
 	charShield = shield
 	if shield > 0:
 		CombatFeedback.impact.rpc(int(name), global_position, "shield")
+
+func reconcile_shield_sources() -> void:
+	var total = 0
+	for contribution in shield_sources:
+		total += int(contribution.amount)
+	if total != charShield:
+		# Legacy/debug direct assignments have no known provider.
+		shield_sources = [{"id": 0, "amount": charShield}] if charShield > 0 else []
+
+func consume_shield(amount: int) -> void:
+	reconcile_shield_sources()
+	var report = battle_report()
+	while amount > 0 and not shield_sources.is_empty():
+		var contribution: Dictionary = shield_sources[0]
+		var used = mini(amount, int(contribution.amount))
+		if report != null:
+			report.add(int(contribution.id), "absorbed", used)
+		contribution.amount -= used
+		amount -= used
+		if contribution.amount <= 0:
+			shield_sources.pop_front()
 
 func apply_crit(damage : int) -> int:
 	var random_value = randf()
@@ -264,7 +307,7 @@ func on_basic_hit() -> void:
 	if not multiplayer.is_server():
 		return
 	if charClass == "Warrior":
-		gain_resource(12)
+		gain_resource(16 if TalentTree.has(talents, "berserker", 2) else 12)
 		momentum = mini(5, momentum + 1)
 		momentum_time = 4.0
 	elif charClass == "Paladin":
@@ -279,12 +322,14 @@ func update_class_passive(delta: float) -> void:
 	if momentum_time <= 0:
 		momentum = 0
 
-func outgoing_damage_multiplier() -> float:
+func outgoing_damage_multiplier(periodic: bool = false) -> float:
 	var result = damage_bonus
+	if periodic and TalentTree.has(talents, "affliction", 1):
+		result *= 1.2
 	if charClass == "Warrior":
 		result *= 1.0 + momentum * 0.03
 	elif charClass == "Hunter" and steady_time >= 1.0:
-		result *= 1.15
+		result *= 1.25 if TalentTree.has(talents, "marksman", 3) else 1.15
 	return result
 
 func has_paladin_aura() -> bool:
@@ -299,7 +344,7 @@ func passive_text() -> String:
 	match charClass:
 		"Warrior": return "Ímpeto: %d/5 · +3%% dano por acerto básico (4s)" % momentum
 		"Paladin": return "Aura (220): +15% cura recebida e -5% dano nos aliados"
-		"Hunter": return "Mira firme: +15% dano" if steady_time >= 1 else "Fique parado por 1s para ativar Mira firme"
+		"Hunter": return ("Mira firme: +25% dano" if TalentTree.has(talents, "marksman", 3) else "Mira firme: +15% dano") if steady_time >= 1 else "Fique parado por 1s para ativar Mira firme"
 	return "Dot Master: seus DoTs podem acelerar Shadow Bolt"
 
 func _process(delta: float) -> void:
@@ -315,16 +360,23 @@ func update_presentation(delta: float) -> void:
 		sprite.rotation = -0.8 * death_progress
 		modulate = Color(0.7, 0.7, 0.7, 1 - death_progress * 0.75)
 
-func reset_for_round(point: Vector2, choices: Dictionary) -> void:
-	charTotalLife = roundi(base_life * (1 + 0.2 * int(choices.get("endurance", 0))))
+func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}) -> void:
+	talents = selected_talents.duplicate(true) if TalentTree.valid(charClass, selected_talents) else {}
+	charTotalLife = roundi(base_life * (1 + 0.2 * int(choices.get("endurance", 0)) + (0.2 if TalentTree.has(talents, "guardian", 3) else 0.0)))
 	charCurrentLife = charTotalLife
 	charShield = 0
+	shield_sources.clear()
 	damage_bonus = 1 + 0.12 * int(choices.get("offense", 0))
 	healing_bonus = 1 + 0.15 * int(choices.get("mastery", 0))
+	if TalentTree.has(talents, "light", 1):
+		healing_bonus *= 1.2
 	cooldown_multiplier = maxf(0.45, pow(0.88, int(choices.get("mastery", 0))))
 	charCurrentMana = charTotalMana
 	configure_resource()
+	if charClass == "Warlock":
+		manaRegen = 5.0 if TalentTree.has(talents, "affliction", 2) else 3.0
 	for skill in skillList:
+		TalentTree.configure_skill(skill, talents)
 		skill.cooldown_scale = cooldown_multiplier
 	interrupt_remaining = 0
 	charCurrentTarget = null

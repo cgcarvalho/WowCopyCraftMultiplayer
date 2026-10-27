@@ -7,9 +7,10 @@ var shieldTime : int
 @onready var timer: Timer = $Timer
 
 func cast(casterChar : Character, targerChar : Character) -> void:
+	casterCharacter = casterChar
 	global_position = casterChar.global_position
 	targetCharacter = targerChar
-	targetCharacter.apply_shield(skillBaseShield)
+	targetCharacter.apply_shield(skillBaseShield, casterChar)
 	
 	animatedSprite.play()
 	timer.start()

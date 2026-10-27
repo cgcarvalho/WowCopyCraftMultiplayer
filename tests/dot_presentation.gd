@@ -20,6 +20,7 @@ func run() -> void:
 	main.request_player("res://Scenes/Characters/Heroes/Aurora.tscn")
 	var player: Character = MultiplayerManager.playerList[1]
 	player.set_physics_process(false)
+	player.charCritChance = 0
 	var encounter = main.get_node("BossEncounter")
 	encounter.set_physics_process(false)
 	encounter.boss.set_physics_process(false)
