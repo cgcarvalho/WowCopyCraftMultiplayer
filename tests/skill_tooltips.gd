@@ -40,7 +40,7 @@ func run() -> void:
 	encounter.set_physics_process(false)
 	encounter.boss.set_physics_process(false)
 	encounter.status = "active"
-	var bar = main.get_node("SkillBar")
+	var bar = main.get_node("CombatHUD/SkillBar")
 	for hero_name in ["Aurora", "SirGura", "Charger", "Lulu"]:
 		main.request_player("res://Scenes/Characters/Heroes/" + hero_name + ".tscn")
 		var hero: Character = MultiplayerManager.playerList[1]

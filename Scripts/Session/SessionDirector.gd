@@ -217,8 +217,8 @@ func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents
 	report = {}
 	main.get_node("SkillHandler").reset_combat()
 	main.get_node("CombatPreview").cancel()
-	main.get_node("PlayerCastBar").cancel_cast()
-	main.get_node("TargetCastBar").cancel_cast()
+	main.get_node("CombatHUD/PlayerCastBar").cancel_cast()
+	main.get_node("CombatHUD/TargetCastBar").cancel_cast()
 	main.get_node("BossEncounter").reset_encounter(index)
 	for id in MultiplayerManager.playerList:
 		var hero = MultiplayerManager.playerList[id]
@@ -227,7 +227,7 @@ func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents
 	if is_instance_valid(local):
 		local.ui_handler.showPlayerHPBar(local, true)
 		local.ui_handler.createSkillBar()
-	main.get_node("TargetHP").hide()
+	main.get_node("CombatHUD/TargetHP").hide()
 
 @rpc("any_peer", "call_local", "reliable")
 func return_to_selection() -> void:
@@ -261,11 +261,11 @@ func selection_reset() -> void:
 	report = {}
 	main.get_node("SessionUI").selecting_class = false
 	main.get_node("CombatPreview").cancel()
-	main.get_node("PlayerCastBar").cancel_cast()
-	main.get_node("TargetCastBar").cancel_cast()
-	main.get_node("PlayerHP").hide()
-	main.get_node("TargetHP").hide()
-	main.get_node("SkillBar").hide()
+	main.get_node("CombatHUD/PlayerCastBar").cancel_cast()
+	main.get_node("CombatHUD/TargetCastBar").cancel_cast()
+	main.get_node("CombatHUD/PlayerHP").hide()
+	main.get_node("CombatHUD/TargetHP").hide()
+	main.get_node("CombatHUD/SkillBar").hide()
 
 func _physics_process(delta: float) -> void:
 	if multiplayer.is_server() and running and stage == "active":

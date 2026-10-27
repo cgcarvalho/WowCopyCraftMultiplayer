@@ -72,7 +72,7 @@ func _ready() -> void:
 	var hud_style = panel_style()
 	hud_style.bg_color = Color(0.07, 0.07, 0.09, 0.88)
 	hud_backplate.add_theme_stylebox_override("panel", hud_style)
-	main.add_child.call_deferred(hud_backplate)
+	main.get_node("CombatHUD").add_child.call_deferred(hud_backplate)
 	screen = Control.new()
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	screen.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -129,6 +129,21 @@ func _ready() -> void:
 	content.add_theme_constant_override("separation", 14)
 	panel.add_child(content)
 	overlay.hide()
+	get_viewport().size_changed.connect(layout_combat_hud)
+	layout_combat_hud()
+
+func layout_combat_hud() -> void:
+	var viewport_size = get_viewport().get_visible_rect().size
+	var horizontal = maxf(0, (viewport_size.x - 1152) / 2)
+	var bottom = maxf(0, viewport_size.y - 648)
+	hud_backplate.position = Vector2(90 + horizontal, 500 + bottom)
+	main.get_node("CombatHUD/SkillBar").position = Vector2(100 + horizontal, 550 + bottom)
+	resource_text.position = Vector2(100 + horizontal, 510 + bottom)
+	passive_text.position = Vector2(380 + horizontal, 549 + bottom)
+	aim_text.position = Vector2(380 + horizontal, 592 + bottom)
+	interrupt_button.position = Vector2(970 + horizontal, 555 + bottom)
+	speech.position.x = 365 + horizontal
+	countdown_text.position.x = 350 + horizontal
 
 func enter_selection() -> void:
 	selecting_class = true
@@ -321,9 +336,9 @@ func _process(delta: float) -> void:
 	for node in [resource_text, passive_text, aim_text, interrupt_button]:
 		node.visible = active
 	for path in ["PlayerHP", "SkillBar"]:
-		main.get_node(path).visible = active
+		main.get_node("CombatHUD/" + path).visible = active
 	if not active:
-		main.get_node("TargetHP").hide()
+		main.get_node("CombatHUD/TargetHP").hide()
 	countdown_text.visible = session.stage == "countdown"
 	countdown_text.text = "COMEÇA EM\n%d" % maxi(1, ceili(session.countdown))
 	if active:

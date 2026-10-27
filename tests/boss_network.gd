@@ -73,6 +73,12 @@ func run() -> void:
 			fail("Boss facing and motion state did not replicate")
 			return
 		print("PASS: facing and movement replicate without client override")
+		var camera: Camera2D = main.get_node("ArenaCamera")
+		var frame = encounter.boss.get_node("AnimatedSprite2D").sprite_frames.get_frame_texture("idle", 0)
+		if camera.zoom != Vector2(0.75, 0.75) or not is_equal_approx(frame.get_height() * encounter.boss.animation_scale, 630) or main.get_node("CombatHUD").layer != 1:
+			fail("Client does not use the expanded combat view and enlarged boss")
+			return
+		print("PASS: remote client uses the expanded camera, enlarged boss and fixed HUD")
 		var handler = main.get_node("SkillHandler")
 		handler.basic_attack.rpc_id(1, 1, -1) # Spoofing the host must fail.
 		request_attack_check.rpc_id(1)

@@ -1,8 +1,11 @@
-extends Node
+extends CanvasLayer
 
 var sequence = 0
 var displayed_events = 0
 var displayed_dot_events = 0
+
+func _ready() -> void:
+	layer = 3
 
 # Only the server may broadcast combat text. Peers see the same tick feedback.
 @rpc("authority", "call_local", "reliable")
@@ -32,7 +35,8 @@ func display_number(value: int, position: Vector2, is_critical: bool = false, is
 	add_child(number)
 	var lane = sequence % 3 - 1
 	sequence += 1
-	number.global_position = position + Vector2(lane * 30 - 12, -125 - abs(lane) * 12)
+	var projected = get_viewport().get_canvas_transform() * (position + Vector2(0, -125))
+	number.position = projected + Vector2(lane * 30 - 12, -abs(lane) * 12)
 	var tween = number.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(number, "position:y", number.position.y - 46, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)

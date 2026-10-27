@@ -1,6 +1,6 @@
 class_name SKillHandler extends Node
 
-@onready var player_cast_bar: Control = $"../PlayerCastBar"
+@onready var player_cast_bar: Control = $"../CombatHUD/PlayerCastBar"
 var cooldowns: Dictionary = {}
 var casting: Dictionary = {}
 var attack_times: Dictionary = {}
@@ -129,7 +129,7 @@ func cancel_cast(id: int) -> void:
 		caster.ability_animation_time = 0
 	if multiplayer.get_unique_id() == id:
 		player_cast_bar.cancel_cast()
-		get_parent().get_node("SkillBar").show_feedback("Conjuração interrompida")
+		get_parent().get_node("CombatHUD/SkillBar").show_feedback("Conjuração interrompida")
 
 func reset_combat() -> void:
 	round_token += 1
@@ -160,7 +160,7 @@ func request_interrupt() -> void:
 @rpc("authority", "call_local", "reliable")
 func interrupt_feedback(_id: int) -> void:
 	CombatFeedback.play_sound("interrupt")
-	get_parent().get_node("SkillBar").show_feedback("Cataclismo interrompido!")
+	get_parent().get_node("CombatHUD/SkillBar").show_feedback("Cataclismo interrompido!")
 
 @rpc("authority", "call_local", "reliable")
 func refresh_dot(path: String, caster_id: int, target_id: int) -> void:

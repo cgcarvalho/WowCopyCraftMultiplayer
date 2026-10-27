@@ -10,10 +10,10 @@ var buffList
 
 func _init(main : Node) -> void:
 	mainNode = main
-	playerHP = mainNode.get_node("PlayerHP")
-	targetHP = mainNode.get_node("TargetHP")
-	skillBar = mainNode.get_node("SkillBar")
-	buffList = mainNode.get_node("BuffList")
+	playerHP = mainNode.get_node("CombatHUD/PlayerHP")
+	targetHP = mainNode.get_node("CombatHUD/TargetHP")
+	skillBar = mainNode.get_node("CombatHUD/SkillBar")
+	buffList = mainNode.get_node("CombatHUD/BuffList")
 
 #region HP Bar
 func showPlayerHPBar(player : Character, targetSelf : bool) -> void:
