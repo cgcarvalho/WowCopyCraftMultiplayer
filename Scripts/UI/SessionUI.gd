@@ -15,6 +15,8 @@ var result_delay = 0.0
 var hud_backplate: Panel
 var last_stage = ""
 var name_draft = ""
+var talents_open = false
+var report_open = true
 @onready var main = get_parent()
 @onready var session = main.get_node("Session")
 
@@ -141,7 +143,82 @@ func add_party() -> void:
 		if session.stage == "victory":
 			state = "Melhoria escolhida" if member.reward != "" else "Escolhendo melhoria"
 		var text = "%s · %s · %s" % [member.name, member["class"] if member["class"] != "" else "Sem classe", state]
+		if member["class"] != "":
+			text += "\n" + TalentTree.summary(member["class"], member.get("talents", {}))
 		content.add_child(label(text, 16, Color("a5dbb4") if member.ready else Color("c9c4b8")))
+
+func show_talents(value: bool) -> void:
+	talents_open = value
+	rebuild()
+
+func add_talents(member: Dictionary) -> void:
+	var choices: Dictionary = member.get("talents", {})
+	var remaining = TalentTree.POINTS - TalentTree.spent(choices)
+	content.add_child(label("TALENTOS · %s" % member.get("class", ""), 26, Color("edcf8d")))
+	content.add_child(label("%d / %d pontos disponíveis · Cada talento exige o anterior do mesmo caminho.\nVocê pode combinar caminhos. Alterações cancelam seu Pronto." % [remaining, TalentTree.POINTS], 15))
+	var columns = HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 16)
+	content.add_child(columns)
+	var tree = TalentTree.branches(member.get("class", ""))
+	for branch in tree:
+		var column = VBoxContainer.new()
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		column.custom_minimum_size.x = 382
+		column.add_theme_constant_override("separation", 8)
+		columns.add_child(column)
+		column.add_child(label(tree[branch].name, 21, Color("edcf8d")))
+		for index in tree[branch].nodes.size():
+			var tier = index + 1
+			var rank = int(choices.get(branch, 0))
+			var node_data = tree[branch].nodes[index]
+			var state = "APRENDIDO" if rank >= tier else ("1 PONTO" if rank == tier - 1 and remaining > 0 else "BLOQUEADO")
+			var node = button("%d · %s · %s\n%s" % [tier, node_data[0], state, node_data[1]], func(): session.learn_talent.rpc_id(1, branch, tier))
+			node.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			node.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			node.add_theme_font_size_override("font_size", 14)
+			node.custom_minimum_size = Vector2(382, 92)
+			node.tooltip_text = str(node_data[1]) + ("\nExige o talento anterior deste caminho." if tier > 1 else "")
+			node.disabled = session.transitioning or remaining <= 0 or rank != tier - 1
+			if rank >= tier:
+				node.add_theme_color_override("font_disabled_color", Color("a5dbb4"))
+			column.add_child(node)
+	var reset = button("Redistribuir pontos · grátis", func(): session.reset_talents.rpc_id(1))
+	reset.disabled = session.transitioning or TalentTree.spent(choices) == 0
+	content.add_child(reset)
+	content.add_child(button("Voltar ao grupo", func(): show_talents(false)))
+
+func add_report() -> void:
+	var report: Dictionary = session.report
+	if report.is_empty():
+		content.add_child(label("Aguardando o resumo do host...", 16))
+		return
+	var seconds = float(report.duration)
+	content.add_child(label("Tempo de combate: %02d:%02d · Destaques por contribuição" % [int(seconds) / 60, int(seconds) % 60], 16, Color("edcf8d")))
+	var players: Dictionary = report.players
+	var ids = players.keys()
+	ids.sort()
+	for id in ids:
+		var row: Dictionary = players[id]
+		var card = PanelContainer.new()
+		card.add_theme_stylebox_override("panel", panel_style())
+		content.add_child(card)
+		var column = VBoxContainer.new()
+		column.add_theme_constant_override("separation", 6)
+		card.add_child(column)
+		var title = "%s · %s · %s" % [row.name, row["class"], row.talents]
+		if not session.roster.has(id):
+			title += " · Desconectado"
+		column.add_child(label(title, 17, Color("edcf8d")))
+		var rate = maxf(0.001, seconds)
+		column.add_child(label("Dano: %d (%.1f/s)     Cura: %d (%.1f/s)     Escudos absorvidos: %d" % [row.damage, row.damage / rate, row.healing, row.healing / rate, row.absorbed], 16))
+		var details = label("Dano recebido: %d     Interrupções: %d     Mecânicas: %d     Mortes: %d" % [row.damage_taken, row.interrupts, row.mechanics, row.deaths], 14, Color("c9c4b8"))
+		details.tooltip_text = "Mecânicas: Rupturas e Lanças evitadas, Marcas separadas e Vínculos divididos com pelo menos um aliado.\nEscudos contam somente o dano realmente absorvido, atribuído a quem concedeu a proteção."
+		details.mouse_filter = Control.MOUSE_FILTER_PASS
+		column.add_child(details)
+		var badges = BattleReport.highlights(players, id)
+		if badges != "":
+			column.add_child(label("Destaque · " + badges, 14, Color("a5dbb4")))
+	content.add_child(label("Dano e cura efetivos: excesso de dano e sobrecura não contam. A contagem reinicia a cada tentativa.", 13, Color("c9c4b8")))
 
 func rebuild() -> void:
 	for child in content.get_children():
@@ -151,6 +228,9 @@ func rebuild() -> void:
 	var member: Dictionary = session.roster.get(local_id, {})
 	var is_host = multiplayer.is_server()
 	if session.stage == "lobby":
+		if talents_open and member.get("class", "") != "":
+			add_talents(member)
+			return
 		content.add_child(label("GRUPO · JEFFERSON, O ARCANISTA", 26, Color("edcf8d")))
 		content.add_child(label("Escolha sua classe, marque Pronto e aguarde o host iniciar.", 16))
 		add_party()
@@ -171,6 +251,9 @@ func rebuild() -> void:
 		var ready = button("Cancelar pronto" if member.get("ready", false) else "Estou pronto", func(): session.set_ready.rpc_id(1, not member.get("ready", false)))
 		ready.disabled = session.transitioning or member.get("class", "") == ""
 		controls.add_child(ready)
+		var talents = button("Árvore de talentos · %d/%d pontos" % [TalentTree.spent(member.get("talents", {})), TalentTree.POINTS], func(): show_talents(true))
+		talents.disabled = session.transitioning or member.get("class", "") == ""
+		content.add_child(talents)
 		if is_host:
 			var start = button("Iniciar encontro", func(): session.start_match.rpc_id(1))
 			start.disabled = not session.can_start()
@@ -180,8 +263,18 @@ func rebuild() -> void:
 	elif session.stage in ["victory", "defeat"]:
 		var won = session.stage == "victory"
 		content.add_child(label(("VITÓRIA" if won else "DERROTA") + " · COMBATE %d" % session.round_index, 30, Color("edcf8d")))
-		content.add_child(label("Escolha uma melhoria. Ela vale para as próximas tentativas desta expedição." if won else "O grupo caiu. Você pode tentar novamente sem fechar o jogo.", 16))
-		if won and member.get("reward", "skip") == "":
+		var tabs = HBoxContainer.new()
+		tabs.add_theme_constant_override("separation", 12)
+		content.add_child(tabs)
+		tabs.add_child(button("Resumo do combate" + (" ✓" if report_open else ""), func(): report_open = true; rebuild()))
+		tabs.add_child(button(("Melhorias e grupo" if won else "Grupo") + (" ✓" if not report_open else ""), func(): report_open = false; rebuild()))
+		if report_open:
+			add_report()
+		var result_tip = "O grupo caiu. Você pode tentar novamente sem fechar o jogo."
+		if won:
+			result_tip = "Abra Melhorias e grupo para escolher sua melhoria e continuar." if report_open else "Escolha uma melhoria. Ela vale para as próximas tentativas desta expedição."
+		content.add_child(label(result_tip, 16))
+		if not report_open and won and member.get("reward", "skip") == "":
 			var cards = HBoxContainer.new()
 			cards.add_theme_constant_override("separation", 12)
 			content.add_child(cards)
@@ -198,9 +291,10 @@ func rebuild() -> void:
 				description.custom_minimum_size = Vector2(210, 72)
 				column.add_child(description)
 				column.add_child(button("Escolher", func(): session.choose_upgrade.rpc_id(1, choice)))
-		elif won:
+		elif not report_open and won:
 			content.add_child(label("Melhoria registrada. Aguardando os demais jogadores.", 16, Color("a5dbb4")))
-		add_party()
+		if not report_open:
+			add_party()
 		if is_host:
 			var retry = button("Próximo combate (+15% vida do boss)" if won else "Tentar novamente", func(): session.retry.rpc_id(1))
 			retry.disabled = won and not session.all_rewards_chosen()
@@ -243,11 +337,13 @@ func _process(delta: float) -> void:
 	speech.text = encounter.speech if encounter.speech_remaining > 0 and session.stage != "lobby" else ""
 	if session.stage != last_stage:
 		last_stage = session.stage
+		talents_open = false
+		report_open = true
 		result_delay = 0.85 if session.stage in ["victory", "defeat"] else 0
 	result_delay = maxf(0, result_delay - delta)
 	var member: Dictionary = session.roster.get(multiplayer.get_unique_id(), {})
 	overlay.visible = not selecting_class and result_delay <= 0 and (session.stage in ["lobby", "victory", "defeat"] or member.get("spectator", false))
-	var current = session.stage + ":" + str(session.revision) + ":" + str(session.roster)
+	var current = session.stage + ":" + str(session.revision) + ":" + str(session.roster) + ":" + str(session.report)
 	if current != signature:
 		signature = current
 		rebuild()

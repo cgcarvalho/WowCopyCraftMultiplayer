@@ -242,7 +242,67 @@ Com Godot 4.4.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa seis suítes offline e três suítes ENet com dois processos. A nova
+O runner executa sete suítes offline e quatro suítes ENet: três com dois processos
+e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
-As portas locais usadas pelos testes são UDP 18081, 18082 e 18083.
+As portas locais usadas pelos testes são UDP 18081, 18082, 18083 e 18084.
+
+## Talentos por personagem
+
+Depois de selecionar a classe no lobby, abra **Árvore de talentos**. Cada personagem
+dispõe de **três pontos** por expedição, sem precisar desbloquear níveis. Cada caminho
+tem três talentos em sequência; você pode investir os três no mesmo caminho ou
+combinar os primeiros níveis dos dois. Os pré-requisitos, a classe e o orçamento são
+validados pelo host. Alterar ou redistribuir pontos cancela seu estado Pronto.
+
+| Personagem | Caminho | Talento 1 → Talento 2 → Talento 3 |
+| --- | --- | --- |
+| Aurora | Aflição | +20% dano periódico → +2 mana/s → Soul Reap recebe +18 por DoT próprio, em vez de +12 |
+| Aurora | Destruição | +25% dano de Shadow Bolt → conjuração de 0,7s → +25% dano de Soul Reap |
+| Sir Gura | Berserker | +25% dano de Cleave → 16 raiva por ataque básico → +25% dano de Bladestorm |
+| Sir Gura | Guardião | -10% dano recebido → Second Wind concede 30 de escudo → +20% da vida base |
+| Charger | Luz | +20% cura realizada → Holy Light conjura em 0,8s → Divine Dawn cura 60 de base |
+| Charger | Bastião | -10% dano recebido → Consecration tem raio 185 → Divine Dawn concede 50 de escudo |
+| Lulu | Veneno | Poison Arrow causa 6/s → veneno dura 10s → +20% dano de Arrow Rain |
+| Lulu | Pontaria | +25% dano de Aimed Shot → preparação de 0,7s → Mira firme concede +25% dano |
+
+**Redistribuir pontos** é grátis no lobby. As escolhas ficam bloqueadas durante a
+contagem e o combate, persistem nas próximas tentativas e são limpas ao trocar de
+classe ou reiniciar a expedição pela seleção. Não são salvas em disco. É possível
+iniciar sem gastar todos os pontos. Os tooltips das habilidades indicam os talentos
+selecionados que afetam aquela habilidade; tempos e áreas usam os valores modificados.
+A recarga base de Shadow Bolt continua sendo 4s.
+
+## Resumo do combate
+
+Vitória e derrota abrem a aba **Resumo do combate**. Cada jogador tem dano efetivo
+e DPS, cura efetiva e HPS, proteção absorvida, dano recebido, interrupções, mecânicas
+e mortes. Destaques separados reconhecem dano, cura, proteção e utilidade; empates
+recebem o mesmo destaque. A aba **Melhorias e grupo** mantém as recompensas após a vitória.
+
+O host registra os eventos e publica uma fotografia do resultado para todos os peers.
+Clientes não enviam números de combate. O tempo exclui lobby e contagem regressiva;
+a próxima tentativa começa com contadores zerados. Os resultados mantêm os jogadores
+que desconectaram durante a luta e não incluem espectadores que chegaram depois.
+
+- Dano conta a vida removida, sem excesso ao matar nem dano absorvido por escudos.
+- Cura conta a vida realmente recuperada, sem sobrecura.
+- Proteção pertence a quem concedeu o escudo e só conta quando absorve dano.
+  Aumentos de um escudo mantêm a atribuição das parcelas anteriores.
+- Mecânicas contam Ruptura/Lança evitadas, Marcas sem sobreposição e Vínculo dividido
+  entre pelo menos dois jogadores. Cataclismo interrompido conta em Interrupções.
+  Orbes, ataques básicos e habilidades de reposicionamento não dão pontos de mecânica.
+- Mortes contam transições de vida positiva para zero causadas por dano do combate.
+
+Teste específico de talentos, pré-requisitos, dano real, cura, proteção e resultados:
+
+```sh
+godot --headless --path . res://tests/talents_report.tscn
+```
+
+O teste ENet de sessão também verifica escolhas remotas, redistribuição, bloqueio
+durante combate, tooltips modificados, atribuição de métricas e reset entre rodadas.
+`party_report_network` verifica um grupo completo com nomes UTF-8 longos e o envio
+confiável de resultados maiores que um pacote de sincronização padrão. O resumo
+é enviado uma vez por RPC confiável e também para quem entra após o encerramento.

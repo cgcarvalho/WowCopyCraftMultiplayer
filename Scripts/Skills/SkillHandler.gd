@@ -181,6 +181,7 @@ func play_skill(path: String, caster_id: int, target_id: int, ground: Vector2 = 
 	if not is_instance_valid(caster) or not is_instance_valid(target):
 		return
 	var skill: Skill = load(path).instantiate()
+	TalentTree.configure_skill(skill, caster.talents)
 	if multiplayer.is_server():
 		checkPassive(skill, caster)
 	skill.aim_position = ground

@@ -101,9 +101,9 @@ func choose_target() -> Character:
 			return charCurrentTarget
 	return best
 
-func deal_damage(damage: int, source: Character = null, periodic: bool = false) -> void:
+func deal_damage(damage: int, source: Character = null, periodic: bool = false, skill_multiplier: float = 1.0) -> void:
 	var before = charCurrentLife + charShield
-	super.deal_damage(damage, source, periodic)
+	super.deal_damage(damage, source, periodic, skill_multiplier)
 	if multiplayer.is_server() and is_instance_valid(source) and source.charTeam != charTeam:
 		var id = int(source.name)
 		if MultiplayerManager.playerList.get(id) == source:

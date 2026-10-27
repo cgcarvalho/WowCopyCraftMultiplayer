@@ -24,6 +24,7 @@ var description = ""
 var aim_position = Vector2.INF
 var cost_label = "Mana"
 var cooldown_scale = 1.0
+var talent_description = ""
 
 func targeting() -> TargetMode:
 	if target_mode != TargetMode.LEGACY:
@@ -62,4 +63,4 @@ func cast_description() -> String:
 func tooltip_summary(hotkey: String) -> String:
 	var heading = skillName + (" · ULTIMATE" if is_ultimate else "")
 	var reach = "Você" if targeting() == TargetMode.SELF else "%d" % int(cast_range)
-	return "%s [%s]\n%s\n\n%s: %d · Recarga: %.1f s\nConjuração: %s · Alcance: %s\nAlvo: %s" % [heading, hotkey, description, cost_label, skillManaCost, skillCoolDownTime * cooldown_scale, cast_description(), reach, target_description()]
+	return "%s [%s]\n%s%s\n\n%s: %d · Recarga: %.1f s\nConjuração: %s · Alcance: %s\nAlvo: %s" % [heading, hotkey, description, talent_description, cost_label, skillManaCost, skillCoolDownTime * cooldown_scale, cast_description(), reach, target_description()]

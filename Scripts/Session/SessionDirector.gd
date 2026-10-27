@@ -15,6 +15,8 @@ const UPGRADE_DESCRIPTIONS = {
 @export var countdown = 0.0
 @export var revision = 0
 @export var transitioning = false
+@export var report: Dictionary = {}
+var combat_report = BattleReport.new()
 @onready var main = get_parent()
 
 func _ready() -> void:
@@ -44,7 +46,9 @@ func open_lobby() -> void:
 func register_peer(id: int) -> void:
 	if not multiplayer.is_server() or not running or roster.has(id):
 		return
-	roster[id] = {"name": "Host" if id == 1 else "Jogador %d" % (roster.size() + 1), "class": "", "ready": false, "reward": "skip" if stage in ["victory", "defeat"] else "", "spectator": stage != "lobby"}
+	roster[id] = {"name": "Host" if id == 1 else "Jogador %d" % (roster.size() + 1), "class": "", "talents": {}, "ready": false, "reward": "skip" if stage in ["victory", "defeat"] else "", "spectator": stage != "lobby"}
+	if not report.is_empty() and id in multiplayer.get_peers():
+		publish_report.rpc_id(id, report)
 	revision += 1
 
 @rpc("any_peer", "call_local", "reliable")
@@ -72,9 +76,37 @@ func selected(id: int, hero: Character) -> void:
 	if not running:
 		return
 	register_peer(id)
+	if roster[id]["class"] != hero.charClass:
+		roster[id].talents = {}
 	roster[id]["class"] = hero.charClass
 	roster[id].ready = false
 	hero.spectator = roster[id].spectator
+	revision += 1
+
+@rpc("any_peer", "call_local", "reliable")
+func learn_talent(branch: String, tier: int) -> void:
+	var id = sender_id()
+	if not multiplayer.is_server() or not running or transitioning or stage != "lobby" or not roster.has(id):
+		return
+	var member: Dictionary = roster[id]
+	var tree = TalentTree.branches(member["class"])
+	var choices: Dictionary = member.get("talents", {}).duplicate(true)
+	if not tree.has(branch) or tier != int(choices.get(branch, 0)) + 1:
+		return
+	choices[branch] = tier
+	if not TalentTree.valid(member["class"], choices):
+		return
+	member.talents = choices
+	member.ready = false
+	revision += 1
+
+@rpc("any_peer", "call_local", "reliable")
+func reset_talents() -> void:
+	var id = sender_id()
+	if not multiplayer.is_server() or not running or transitioning or stage != "lobby" or not roster.has(id):
+		return
+	roster[id].talents = {}
+	roster[id].ready = false
 	revision += 1
 
 @rpc("any_peer", "call_local", "reliable")
@@ -118,12 +150,20 @@ func all_rewards_chosen() -> bool:
 	return true
 
 func finished(result: String) -> void:
-	if not multiplayer.is_server() or not running:
+	if not multiplayer.is_server() or not running or stage != "active" or result not in ["victory", "defeat"]:
 		return
+	report = combat_report.snapshot(result, round_index)
+	# Four detailed rows can exceed an unreliable synchronizer packet's MTU.
+	# Reliable RPCs allow ENet fragmentation and deliver a complete final snapshot.
+	publish_report.rpc(report)
 	stage = result
 	for id in roster:
 		roster[id].reward = "" if result == "victory" and not roster[id].spectator else "skip"
 	revision += 1
+
+@rpc("authority", "call_local", "reliable")
+func publish_report(snapshot: Dictionary) -> void:
+	report = snapshot.duplicate(true)
 
 @rpc("any_peer", "call_local", "reliable")
 func choose_upgrade(choice: String) -> void:
@@ -163,13 +203,18 @@ func prepare_round() -> void:
 		roster[id].spectator = false
 		roster[id].reward = ""
 	var positions: Dictionary = {}
+	var talents_by_peer: Dictionary = {}
 	for id in MultiplayerManager.playerList:
 		positions[id] = SPAWNS[main.used_slots.get(id, 0)]
-	reset_round.rpc(round_index, positions, upgrades)
+		talents_by_peer[id] = roster[id].get("talents", {})
+	report = {}
+	combat_report.begin(roster)
+	reset_round.rpc(round_index, positions, upgrades, talents_by_peer)
 	revision += 1
 
 @rpc("authority", "call_local", "reliable")
-func reset_round(index: int, positions: Dictionary, choices: Dictionary) -> void:
+func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents_by_peer: Dictionary = {}) -> void:
+	report = {}
 	main.get_node("SkillHandler").reset_combat()
 	main.get_node("CombatPreview").cancel()
 	main.get_node("PlayerCastBar").cancel_cast()
@@ -177,7 +222,7 @@ func reset_round(index: int, positions: Dictionary, choices: Dictionary) -> void
 	main.get_node("BossEncounter").reset_encounter(index)
 	for id in MultiplayerManager.playerList:
 		var hero = MultiplayerManager.playerList[id]
-		hero.reset_for_round(positions.get(id, SPAWNS[0]), choices.get(id, {}))
+		hero.reset_for_round(positions.get(id, SPAWNS[0]), choices.get(id, {}), talents_by_peer.get(id, {}))
 	var local = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
 	if is_instance_valid(local):
 		local.ui_handler.showPlayerHPBar(local, true)
@@ -192,8 +237,11 @@ func return_to_selection() -> void:
 	stage = "lobby"
 	round_index = 1
 	upgrades = {}
+	report = {}
+	combat_report.active = false
 	for member in roster.values():
 		member.ready = false
+		member.talents = {}
 		member.spectator = false
 		member.reward = ""
 	revision += 1
@@ -210,6 +258,7 @@ func return_to_selection() -> void:
 
 @rpc("authority", "call_local", "reliable")
 func selection_reset() -> void:
+	report = {}
 	main.get_node("SessionUI").selecting_class = false
 	main.get_node("CombatPreview").cancel()
 	main.get_node("PlayerCastBar").cancel_cast()
@@ -219,9 +268,12 @@ func selection_reset() -> void:
 	main.get_node("SkillBar").hide()
 
 func _physics_process(delta: float) -> void:
+	if multiplayer.is_server() and running and stage == "active":
+		combat_report.elapsed += delta
 	if multiplayer.is_server() and running and stage == "countdown":
 		countdown = maxf(0, countdown - delta)
 		if countdown <= 0:
 			stage = "active"
+			combat_report.active = true
 			main.get_node("BossEncounter").status = "active"
 			revision += 1

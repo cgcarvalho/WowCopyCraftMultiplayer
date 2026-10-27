@@ -48,6 +48,7 @@ var spell_cooldowns: Dictionary = {}
 var last_spell = ""
 var ward_used = false
 var projectile_id = 0
+var mechanic_candidates: Array[int] = []
 
 func _ready() -> void:
 	var layer = CanvasLayer.new()
@@ -168,6 +169,9 @@ func begin_spell(kind: String) -> void:
 		return
 	spell_kind = kind
 	mechanic_targets = []
+	mechanic_candidates.clear()
+	for player in living_players():
+		mechanic_candidates.append(int(player.name))
 	if kind == "bond":
 		mechanic_targets = [int(target.name)]
 	elif kind == "spread":
@@ -211,6 +215,8 @@ func resolve_area() -> void:
 						grouped.append(player)
 				var shared = ceili((48.0 if living_players().size() > 1 else 20.0) / max(1, grouped.size()))
 				for player in grouped:
+					if grouped.size() >= 2:
+						credit_mechanic(player)
 					player.deal_damage(shared, boss)
 			"spread":
 				var centers: Array[Vector2] = []
@@ -218,10 +224,15 @@ func resolve_area() -> void:
 					var marked = MultiplayerManager.get_character(int(id))
 					if is_instance_valid(marked) and marked.charCurrentLife > 0:
 						centers.append(marked.global_position)
-				for center in centers:
-					for player in living_players():
+				for player in living_players():
+					var overlaps = 0
+					for center in centers:
 						if player.global_position.distance_to(center) <= 95:
-							player.deal_damage(18, boss)
+							overlaps += 1
+					if overlaps == 1 and mechanic_targets.has(int(player.name)):
+						credit_mechanic(player)
+					for hit in overlaps:
+						player.deal_damage(18, boss)
 			"channel":
 				for player in living_players():
 					player.deal_damage(42, boss)
@@ -229,12 +240,16 @@ func resolve_area() -> void:
 				for player in living_players():
 					if player.global_position.distance_to(danger_position) <= AREA_RADIUS:
 						player.deal_damage(AREA_DAMAGE, boss)
+					else:
+						credit_mechanic(player)
 			"lance":
 				var end = danger_origin + danger_direction * LANCE_LENGTH
 				for player in living_players():
 					var nearest = Geometry2D.get_closest_point_to_segment(player.global_position, danger_origin, end)
 					if player.global_position.distance_to(nearest) <= LANCE_RADIUS:
 						player.deal_damage(LANCE_DAMAGE, boss)
+					else:
+						credit_mechanic(player)
 			"volley":
 				spawn_volley()
 			"blink":
@@ -339,8 +354,18 @@ func interrupt_channel(caster: Character) -> bool:
 	spell_cooldowns["channel"] = 18.0
 	completed_spells += 1
 	last_spell = "channel"
+	var report = caster.battle_report()
+	if report != null:
+		report.add(int(caster.name), "interrupts", 1)
 	announce.rpc("%s interrompeu o Cataclismo!" % caster.charName, "interrupt")
 	return true
+
+func credit_mechanic(player: Character) -> void:
+	if not mechanic_candidates.has(int(player.name)):
+		return
+	var report = player.battle_report()
+	if report != null:
+		report.add(int(player.name), "mechanics", 1)
 
 func reset_encounter(index: int = 1) -> void:
 	clear_effects()
@@ -349,6 +374,7 @@ func reset_encounter(index: int = 1) -> void:
 	danger_visible = false
 	danger_remaining = 0
 	mechanic_targets = []
+	mechanic_candidates.clear()
 	projectiles = []
 	visual_remaining = 0
 	phase = 1
