@@ -170,7 +170,23 @@ visual de alvo usam esse mesmo alcance.
 | Paladin | Poder sagrado (5), começa em 2 | Autoataque e Judgement geram 1. Judgement custa 0; Holy Light 1, Consecration 2, Divine Dawn 5. |
 | Hunter | Foco (100) | Regenera 8/s. Aimed Shot custa 25, Poison Arrow 20, Multi-Shot 30, Arrow Rain 60. |
 
-**Passivas:** Aurora mantém Dot Master. Sir Gura acumula Ímpeto: +3% de dano por acerto básico, até cinco acúmulos, que expiram após 4s sem acertos. Charger concede aura de raio 220: aliados recebem +15% de cura e -5% de dano. Lulu ganha +15% de dano após 1s sem se mover; mover remove o bônus. Os recursos, custos e estados das passivas aparecem no HUD e nos tooltips.
+**Passivas automáticas:** cada personagem tem um bloco próprio na seleção, com
+resumo visível e tooltip completo. No combate, o bloco **PASSIVA** mostra o estado
+real do bônus e sua preparação, acúmulos ou tempo restante.
+
+| Personagem | Passiva | Ativação e efeito |
+| --- | --- | --- |
+| Aurora | Dot Master | Cada tick de Corruption ou Curse of Death tem 5% de chance de liberar o próximo Shadow Bolt instantâneo, mesmo em recarga. Mantém o custo de mana e não acumula. |
+| Sir Gura | Ímpeto | Autoataques acertados dão +3% em todo o dano por acúmulo, até 5 (+15%). Cada acerto renova 4s; sem acertar, todos expiram. |
+| Charger | Aura Sagrada | Ele e aliados a até 220 recebem +15% de cura e sofrem 5% menos dano enquanto o paladino estiver vivo. Auras não acumulam. |
+| Lulu | Mira firme | Após 1s sem se mover, +15% em todo o dano; mover remove o bônus. Precisão absoluta eleva o bônus para +25%. |
+
+O estado **PRONTO** da Aurora identifica Shadow Bolt e sua tecla. Usar outra
+magia, escolher um alvo inválido ou ficar sem mana preserva o bônus; somente um
+Shadow Bolt aceito o consome. O tooltip da habilidade mostra a conjuração
+instantânea enquanto o bônus estiver disponível. Reset de combate limpa o estado
+e as flags de recarga. As descrições usam os mesmos valores de `ClassPassives`
+que o cálculo de combate; prontidão e duração de Ímpeto são replicadas pelo servidor.
 
 Ataques e habilidades validam identidade, classe, equipe, alcance, vida, recurso da classe
 e cooldown no servidor. O cooldown visual começa após confirmação do servidor.
@@ -274,11 +290,16 @@ Com Godot 4.7.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa onze suítes offline e cinco suítes ENet: quatro com dois processos
+O runner executa doze suítes offline e seis suítes ENet: cinco com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
-As portas locais usadas pelos testes são UDP 18081, 18082, 18083, 18084 e 18085.
+As portas locais usadas pelos testes são UDP 18081 a 18086.
+
+A suíte `passive_clarity` confere as quatro passivas, seus indicadores e tooltips,
+incluindo ativação por um tick real de DoT e consumo de Dot Master. A suíte
+`passive_network` verifica o bônus em uma Aurora remota, a nova recarga após seu
+consumo e os acúmulos e duração de Ímpeto recebidos por outro cliente.
 
 ## Talentos por personagem
 

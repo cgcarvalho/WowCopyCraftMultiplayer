@@ -6,7 +6,7 @@ var content: VBoxContainer
 var signature = ""
 var selecting_class = false
 var resource_text: Label
-var passive_text: Label
+var passive_text: PassivePanel
 var aim_text: Label
 var speech: Label
 var interrupt_button: Button
@@ -81,9 +81,9 @@ func _ready() -> void:
 	resource_text.position = Vector2(100, 510)
 	resource_text.size = Vector2(570, 26)
 	screen.add_child(resource_text)
-	passive_text = label("", 13, Color("e5ddce"))
-	passive_text.position = Vector2(380, 549)
-	passive_text.size = Vector2(580, 40)
+	passive_text = PassivePanel.new()
+	passive_text.position = Vector2(380, 542)
+	passive_text.size = Vector2(568, 49)
 	screen.add_child(passive_text)
 	aim_text = label("", 14, Color("ffe9ae"))
 	aim_text.position = Vector2(380, 592)
@@ -139,7 +139,7 @@ func layout_combat_hud() -> void:
 	hud_backplate.position = Vector2(90 + horizontal, 500 + bottom)
 	main.get_node("CombatHUD/SkillBar").position = Vector2(100 + horizontal, 550 + bottom)
 	resource_text.position = Vector2(100 + horizontal, 510 + bottom)
-	passive_text.position = Vector2(380 + horizontal, 549 + bottom)
+	passive_text.position = Vector2(380 + horizontal, 542 + bottom)
 	aim_text.position = Vector2(380 + horizontal, 592 + bottom)
 	interrupt_button.position = Vector2(970 + horizontal, 555 + bottom)
 	speech.position.x = 365 + horizontal
@@ -344,7 +344,9 @@ func _process(delta: float) -> void:
 	if active:
 		resource_text.text = "%s: %d / %d" % [hero.resource_name, int(hero.charCurrentMana), int(hero.charTotalMana)]
 		resource_text.add_theme_color_override("font_color", hero.resource_color)
-		passive_text.text = hero.passive_text()
+		if passive_text.hero != hero:
+			passive_text.configure(hero)
+		passive_text.refresh()
 		var preview = main.get_node("CombatPreview")
 		aim_text.text = preview.hint if preview.aiming else "Tab: selecionar · F: interromper · Áreas: clique para confirmar"
 		interrupt_button.text = "F · %ds" % ceili(hero.interrupt_remaining) if hero.interrupt_remaining > 0 else "F · Interromper"

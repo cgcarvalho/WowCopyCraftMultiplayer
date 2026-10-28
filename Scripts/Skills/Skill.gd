@@ -58,6 +58,8 @@ func target_description() -> String:
 	return "Inimigo"
 
 func cast_description() -> String:
+	if resetCastTime:
+		return "Instantânea · Dot Master"
 	return "Instantânea" if skillCastTime <= 0 else "%.1f s" % skillCastTime
 
 func tooltip_summary(hotkey: String) -> String:

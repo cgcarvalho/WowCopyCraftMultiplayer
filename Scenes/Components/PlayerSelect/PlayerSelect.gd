@@ -35,7 +35,7 @@ func _ready() -> void:
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(center)
 	var content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 18)
+	content.add_theme_constant_override("separation", 12)
 	center.add_child(content)
 	content.add_child(text_label("ESCOLHA SEU PERSONAGEM", 26, Color("ffe299")))
 	var cards = HBoxContainer.new()
@@ -45,7 +45,7 @@ func _ready() -> void:
 	for character in charList:
 		character._enter_tree()
 		var panel = PanelContainer.new()
-		panel.custom_minimum_size.x = 212
+		panel.custom_minimum_size.x = 236
 		var box = StyleBoxFlat.new()
 		box.bg_color = Color("1b2435")
 		box.set_corner_radius_all(12)
@@ -62,15 +62,18 @@ func _ready() -> void:
 		column.add_child(text_label(character.charClass, 17, Color("ffe299")))
 		var portrait = TextureRect.new()
 		portrait.texture = load(character.portraitImagePath)
-		portrait.custom_minimum_size = Vector2(188, 128)
+		portrait.custom_minimum_size = Vector2(212, 96)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		column.add_child(portrait)
 		var role = text_label(ROLES[character.charClass], 14, Color("bdc7dc"))
-		role.custom_minimum_size = Vector2(188, 42)
+		role.custom_minimum_size = Vector2(212, 36)
 		role.mouse_filter = Control.MOUSE_FILTER_STOP
-		role.tooltip_text = "Recurso: " + character.resource_name + "\n" + character.passive_text()
+		role.tooltip_text = "Recurso: " + character.resource_name
 		column.add_child(role)
+		var passive = PassivePanel.new()
+		passive.configure(character, true)
+		column.add_child(passive)
 		for index in character.skillList.size():
 			var skill = character.skillList[index]
 			var preview = SelectionSkill.new()
@@ -81,7 +84,7 @@ func _ready() -> void:
 		button.custom_minimum_size.y = 42
 		button.pressed.connect(func(): playerSelected.emit(character))
 		column.add_child(button)
-	content.add_child(text_label("Passe o mouse nos ícones ou nomes das habilidades para ver os detalhes.\nWASD: mover · Clique / Tab: selecionar · Autoataque automático ao alcance\n1 / 2 / 3: habilidades · R ou 4: ultimate · Alt + cura: autocura", 14, Color("bdc7dc")))
+	content.add_child(text_label("Passe o mouse nas passivas e habilidades para ver os detalhes.\nWASD: mover · Clique/Tab: alvo · Autoataque ao alcance · 1/2/3: habilidades · R/4: ultimate · Alt + cura: autocura", 14, Color("bdc7dc")))
 
 func _exit_tree() -> void:
 	for character in charList:
