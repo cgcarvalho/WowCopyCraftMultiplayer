@@ -33,6 +33,8 @@ static func create(skill: Skill, hotkey: String) -> PanelContainer:
 	column.add_child(text_line(skill.skillName, 20, gold))
 	column.add_child(text_line(("ULTIMATE · " if skill.is_ultimate else "") + "Tecla " + ("R ou 4" if skill.is_ultimate else hotkey), 13, gold))
 	column.add_child(text_line(skill.description, 15, pale))
+	if skill is ShadowBolt and skill.resetCastTime:
+		column.add_child(text_line("DOT MASTER PRONTO · Próximo lançamento instantâneo, mesmo em recarga. Mantém o custo de mana.", 14, Color("a5edbd")))
 	if not skill.talent_description.is_empty():
 		column.add_child(text_line(skill.talent_description.strip_edges(), 14, Color("a5dbb4")))
 	var separator = HSeparator.new()

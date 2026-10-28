@@ -46,6 +46,7 @@ var interrupt_remaining = 0.0
 var momentum = 0
 var momentum_time = 0.0
 var steady_time = 0.0
+var shadow_bolt_ready = false
 var previous_position = Vector2.ZERO
 var flash_time = 0.0
 var flash_color = Color.WHITE
@@ -72,7 +73,7 @@ func _enter_tree() -> void:
 	if not is_inside_tree():
 		return
 	var config = SceneReplicationConfig.new()
-	for property in ["charCurrentLife", "charCurrentMana", "charShield", "charTotalLife", "momentum", "steady_time", "spectator", "damage_bonus", "healing_bonus", "cooldown_multiplier", "interrupt_remaining", "talents"]:
+	for property in ["charCurrentLife", "charCurrentMana", "charShield", "charTotalLife", "momentum", "momentum_time", "steady_time", "shadow_bolt_ready", "spectator", "damage_bonus", "healing_bonus", "cooldown_multiplier", "interrupt_remaining", "talents"]:
 		var path = NodePath(".:" + property)
 		config.add_property(path)
 		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -167,7 +168,7 @@ func deal_damage(damage: int, source: Character = null, periodic: bool = false, 
 	if TalentTree.has(talents, "guardian", 1) or TalentTree.has(talents, "bulwark", 1):
 		damage = maxi(1, roundi(damage * 0.9))
 	if has_paladin_aura():
-		damage = maxi(1, roundi(damage * 0.95))
+		damage = maxi(1, roundi(damage * (1 - ClassPassives.AURA_REDUCTION)))
 	var absorbed = mini(charShield, damage)
 	consume_shield(absorbed)
 	charShield -= absorbed
@@ -188,7 +189,7 @@ func apply_heal(heal: int, source: Character = null) -> void:
 		return
 	var multiplier = source.healing_bonus if is_instance_valid(source) else 1.0
 	if has_paladin_aura():
-		multiplier *= 1.15
+		multiplier *= 1 + ClassPassives.AURA_HEAL
 	var before = charCurrentLife
 	charCurrentLife += roundi(heal * multiplier)
 	var report = battle_report()
@@ -314,8 +315,8 @@ func on_basic_hit() -> void:
 		return
 	if charClass == "Warrior":
 		gain_resource(16 if TalentTree.has(talents, "berserker", 2) else 12)
-		momentum = mini(5, momentum + 1)
-		momentum_time = 4.0
+		momentum = mini(ClassPassives.MOMENTUM_MAX, momentum + 1)
+		momentum_time = ClassPassives.MOMENTUM_SECONDS
 	elif charClass == "Paladin":
 		gain_resource(1)
 
@@ -333,25 +334,21 @@ func outgoing_damage_multiplier(periodic: bool = false) -> float:
 	if periodic and TalentTree.has(talents, "affliction", 1):
 		result *= 1.2
 	if charClass == "Warrior":
-		result *= 1.0 + momentum * 0.03
-	elif charClass == "Hunter" and steady_time >= 1.0:
-		result *= 1.25 if TalentTree.has(talents, "marksman", 3) else 1.15
+		result *= 1.0 + momentum * ClassPassives.MOMENTUM_DAMAGE
+	elif charClass == "Hunter" and steady_time >= ClassPassives.STEADY_SECONDS:
+		result *= 1 + (ClassPassives.STEADY_TALENT_DAMAGE if TalentTree.has(talents, "marksman", 3) else ClassPassives.STEADY_DAMAGE)
 	return result
 
 func has_paladin_aura() -> bool:
 	if charTeam != Teams.BLUE:
 		return false
 	for hero in MultiplayerManager.playerList.values():
-		if is_instance_valid(hero) and hero.charClass == "Paladin" and hero.charCurrentLife > 0 and not hero.spectator and hero.global_position.distance_to(global_position) <= 220:
+		if is_instance_valid(hero) and hero.charClass == "Paladin" and hero.charCurrentLife > 0 and not hero.spectator and hero.global_position.distance_to(global_position) <= ClassPassives.AURA_RADIUS:
 			return true
 	return false
 
 func passive_text() -> String:
-	match charClass:
-		"Warrior": return "Ímpeto: %d/5 · +3%% dano por acerto básico (4s)" % momentum
-		"Paladin": return "Aura (220): +15% cura recebida e -5% dano nos aliados"
-		"Hunter": return ("Mira firme: +25% dano" if TalentTree.has(talents, "marksman", 3) else "Mira firme: +15% dano") if steady_time >= 1 else "Fique parado por 1s para ativar Mira firme"
-	return "Dot Master: seus DoTs podem acelerar Shadow Bolt"
+	return ClassPassives.definition(charClass, talents).name + " · " + ClassPassives.state(self).text
 
 func _process(delta: float) -> void:
 	update_presentation(delta)
@@ -390,6 +387,10 @@ func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dict
 	momentum = 0
 	momentum_time = 0
 	steady_time = 0
+	shadow_bolt_ready = false
+	for skill in skillList:
+		skill.resetCoolDown = false
+		skill.resetCastTime = false
 	flash_time = 0
 	death_progress = 0
 	spectator = false

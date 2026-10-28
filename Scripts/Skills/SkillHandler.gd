@@ -47,8 +47,14 @@ func valid_target(template: Skill, caster: Character, target: Character) -> bool
 
 @rpc("authority", "call_local", "reliable")
 func cast_result(caster_id: int, path: String, accepted: bool, duration: float, cooldown: float) -> void:
-	cast_confirmed.emit(caster_id, path, accepted, duration, cooldown)
 	var caster = MultiplayerManager.playerList.get(caster_id)
+	if accepted and path == ShadowBolt.filePath and is_instance_valid(caster):
+		caster.shadow_bolt_ready = false
+		for skill in caster.skillList:
+			if skill.skillScenePath == path:
+				skill.resetCoolDown = false
+				skill.resetCastTime = false
+	cast_confirmed.emit(caster_id, path, accepted, duration, cooldown)
 	if accepted and is_instance_valid(caster):
 		caster.play_ability(duration)
 		CombatFeedback.play_sound("cast")
@@ -77,7 +83,7 @@ func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int, grou
 	var target = caster if explicit_ground else selected_target(template, caster, idTargetChar)
 	var now = Time.get_ticks_msec()
 	var player_cooldowns: Dictionary = cooldowns.get(idCasterChar, {})
-	var proc = proc_ready.get(idCasterChar, "") == filePath
+	var proc = caster.shadow_bolt_ready and proc_ready.get(idCasterChar, "") == filePath
 	if not valid_target(template, caster, target) or (not proc and now < player_cooldowns.get(filePath, 0)) or caster.charCurrentMana < template.skillManaCost:
 		cast_result.rpc(idCasterChar, filePath, false, 0.0, 0.0)
 		return
@@ -86,7 +92,8 @@ func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int, grou
 	cooldowns[idCasterChar] = player_cooldowns
 	caster.charCurrentMana -= template.skillManaCost
 	var duration = 0.0 if proc else template.skillCastTime
-	proc_ready.erase(idCasterChar)
+	if proc:
+		proc_ready.erase(idCasterChar)
 	template.resetCastTime = false
 	template.resetCoolDown = false
 	var token = round_token
@@ -137,6 +144,12 @@ func reset_combat() -> void:
 	casting.clear()
 	attack_times.clear()
 	proc_ready.clear()
+	for hero in MultiplayerManager.playerList.values():
+		if is_instance_valid(hero):
+			hero.shadow_bolt_ready = false
+			for skill in hero.skillList:
+				skill.resetCoolDown = false
+				skill.resetCastTime = false
 	combat_reset.emit()
 
 @rpc("any_peer", "call_local", "reliable")
@@ -232,6 +245,8 @@ func reset_skill(path: String, owner_id: int) -> void:
 			if skill.skillScenePath == path:
 				skill.resetCoolDown = true
 				skill.resetCastTime = true
+				if path == ShadowBolt.filePath:
+					player.shadow_bolt_ready = true
 
 func checkPassive(skill: Skill, caster: Character) -> void:
 	if skill is DamageOverTime and caster.passiveSkill is DotMaster:

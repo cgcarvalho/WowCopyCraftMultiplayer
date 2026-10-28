@@ -12,7 +12,7 @@ const manaCost = 10
 const castTime = 1
 
 func _init() -> void:
-	description = "Projétil sombrio: 10 de dano, 1s de conjuração, recarga de 4s."
+	description = "Projétil sombrio: 10 de dano. Dot Master pode liberar um lançamento instantâneo."
 	skillScenePath = filePath
 	projectileSpeed = speed
 	skillBaseDamage = damage
