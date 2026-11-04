@@ -36,7 +36,7 @@ func selected_target(template: Skill, caster: Character, target_id: int) -> Char
 	return target
 
 func valid_target(template: Skill, caster: Character, target: Character) -> bool:
-	if not is_instance_valid(target) or target.charCurrentLife <= 0:
+	if not is_instance_valid(target) or target.charCurrentLife <= 0 or target.spectator:
 		return false
 	var mode = template.targeting()
 	if mode == Skill.TargetMode.ENEMY and target.charTeam == caster.charTeam:
@@ -99,13 +99,15 @@ func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int, grou
 	var token = round_token
 	cast_serial += 1
 	var serial = cast_serial
+	var finish_at_msec = Time.get_ticks_msec() + roundi(duration * 1000)
 	if duration > 0:
-		casting[idCasterChar] = {"serial": serial, "origin": caster.global_position}
+		casting[idCasterChar] = {"serial": serial, "origin": caster.global_position, "finish_at": finish_at_msec}
 	cast_result.rpc(idCasterChar, filePath, true, duration, cooldown)
 	if duration > 0:
-		await get_tree().create_timer(duration).timeout
-		if token != round_token or not casting.has(idCasterChar) or casting[idCasterChar].serial != serial:
-			return
+		while Time.get_ticks_msec() < finish_at_msec:
+			await get_tree().process_frame
+			if token != round_token or not casting.has(idCasterChar) or casting[idCasterChar].serial != serial:
+				return
 		casting.erase(idCasterChar)
 	if token != round_token or encounter_finished() or not is_instance_valid(caster) or not is_instance_valid(target):
 		return
@@ -200,6 +202,7 @@ func play_skill(path: String, caster_id: int, target_id: int, ground: Vector2 = 
 	skill.aim_position = ground
 	get_parent().add_child(skill)
 	skill.cast(caster, target)
+	skill.modulate.a = CombatFeedback.effect_opacity(caster)
 	caster.play_skill_animation(skill)
 
 @rpc("any_peer", "call_local", "reliable")

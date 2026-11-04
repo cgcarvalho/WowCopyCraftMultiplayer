@@ -30,6 +30,7 @@ func update_body_anchor() -> void:
 	$AnimatedSprite2D.offset = Vector2(-7, -4) if $AnimatedSprite2D.animation == &"auto_attack" else Vector2.ZERO
 
 func play_basic_attack_animation(target: Character) -> void:
+	super.play_basic_attack_animation(target)
 	if is_instance_valid(attack_effect) and not attack_effect.is_queued_for_deletion():
 		return
 	var body: AnimatedSprite2D = $AnimatedSprite2D
@@ -104,6 +105,7 @@ func update_attack_presentation() -> void:
 			attack_sprite.scale *= lerpf(0.65, 1, sin(progress * PI))
 			attack_sprite.rotation = lerpf(-0.8, 0.45, progress) * (-1 if body.flip_h else 1)
 			attack_sprite.modulate.a = minf(1, basic_flash_remaining / 0.12)
+	attack_sprite.modulate.a *= CombatFeedback.effect_opacity(self)
 
 func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}) -> void:
 	super.reset_for_round(point, choices, selected_talents)

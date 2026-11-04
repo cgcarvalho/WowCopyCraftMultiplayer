@@ -39,6 +39,8 @@ var charClass = ""
 var attack_interval = 1.0
 var attack_style = "melee"
 var ability_animation_time = 0.0
+var basic_animation_remaining = 0.0
+var last_move_direction = Vector2.RIGHT
 var resource_name = "Mana"
 var resource_color = Color("6579f5")
 var spectator = false
@@ -105,6 +107,7 @@ func _ready() -> void:
 	
 func _physics_process(delta: float) -> void:
 	ability_animation_time = maxf(0.0, ability_animation_time - delta)
+	basic_animation_remaining = maxf(0, basic_animation_remaining - delta)
 	var session = get_tree().current_scene.get_node_or_null("Session") if get_tree().current_scene != null else null
 	visible = not spectator and (session == null or not session.running or session.stage not in ["lobby", "menu"])
 	if spectator or (session != null and session.running and session.stage != "active"):
@@ -149,6 +152,9 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		var preview = get_tree().current_scene.get_node_or_null("CombatPreview")
 		if preview != null and preview.aiming:
 			return
+		if preview != null:
+			preview.select_target(self)
+			return
 		local_player.charCurrentTarget = self
 		ui_handler.showTargetHPBar(self, local_player == self)
 
@@ -182,7 +188,7 @@ func deal_damage(damage: int, source: Character = null, periodic: bool = false, 
 		gain_resource(8)
 	if damage > 0:
 		DamageNumbers.display_number.rpc(damage, global_position, isCrit, false, periodic)
-	CombatFeedback.impact.rpc(int(name), global_position, "shield" if damage == 0 else ("crit" if isCrit else "hit"))
+	CombatFeedback.impact.rpc(int(name), global_position, "shield" if damage == 0 else ("crit" if isCrit else "hit"), int(source.name) if is_instance_valid(source) else 0, periodic)
 
 func apply_heal(heal: int, source: Character = null) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or heal <= 0 or spectator:
@@ -197,7 +203,7 @@ func apply_heal(heal: int, source: Character = null) -> void:
 		report.heal(source, charCurrentLife - before)
 	if charCurrentLife > before:
 		DamageNumbers.display_number.rpc(charCurrentLife - before, global_position, false, true)
-		CombatFeedback.impact.rpc(int(name), global_position, "heal")
+		CombatFeedback.impact.rpc(int(name), global_position, "heal", int(source.name) if is_instance_valid(source) else 0)
 
 func apply_shield(shield: int, source: Character = null) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or spectator:
@@ -208,7 +214,7 @@ func apply_shield(shield: int, source: Character = null) -> void:
 	shield_sources.append({"id": int(source.name) if is_instance_valid(source) else 0, "amount": shield - charShield})
 	charShield = shield
 	if shield > 0:
-		CombatFeedback.impact.rpc(int(name), global_position, "shield")
+		CombatFeedback.impact.rpc(int(name), global_position, "shield", int(source.name) if is_instance_valid(source) else 0)
 
 func reconcile_shield_sources() -> void:
 	var total = 0
@@ -279,8 +285,12 @@ func play_ability(duration: float) -> void:
 func play_skill_animation(_skill: Skill) -> void:
 	pass
 
-func play_basic_attack_animation(_target: Character) -> void:
-	pass
+func play_basic_attack_animation(target: Character) -> void:
+	basic_animation_remaining = 0.24
+	var sprite: AnimatedSprite2D = $AnimatedSprite2D
+	sprite.flip_h = global_position.x < target.global_position.x
+	sprite.play("auto_attack")
+	sprite.set_frame_and_progress(int(sprite.sprite_frames.get_frame_count("auto_attack") * 0.35), 0)
 
 func configure_resource() -> void:
 	match charClass:
@@ -384,6 +394,7 @@ func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dict
 	interrupt_remaining = 0
 	charCurrentTarget = null
 	ability_animation_time = 0
+	basic_animation_remaining = 0
 	momentum = 0
 	momentum_time = 0
 	steady_time = 0
