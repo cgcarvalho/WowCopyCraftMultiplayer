@@ -1,0 +1,321 @@
+[gd_resource type="SpriteFrames" load_steps=75 format=3]
+
+[ext_resource type="Texture2D" path="res://Art/Skills/Jefferson/Vortex.png" id="1"]
+
+[ext_resource type="Texture2D" path="res://Art/Skills/Jefferson/ArcaneLance.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="Vortex_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_1"]
+atlas = ExtResource("1")
+region = Rect2(256, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_2"]
+atlas = ExtResource("1")
+region = Rect2(512, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_3"]
+atlas = ExtResource("1")
+region = Rect2(768, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_4"]
+atlas = ExtResource("1")
+region = Rect2(1024, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_5"]
+atlas = ExtResource("1")
+region = Rect2(1280, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_6"]
+atlas = ExtResource("1")
+region = Rect2(0, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_7"]
+atlas = ExtResource("1")
+region = Rect2(256, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_8"]
+atlas = ExtResource("1")
+region = Rect2(512, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_9"]
+atlas = ExtResource("1")
+region = Rect2(768, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_10"]
+atlas = ExtResource("1")
+region = Rect2(1024, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_11"]
+atlas = ExtResource("1")
+region = Rect2(1280, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_12"]
+atlas = ExtResource("1")
+region = Rect2(0, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_13"]
+atlas = ExtResource("1")
+region = Rect2(256, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_14"]
+atlas = ExtResource("1")
+region = Rect2(512, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_15"]
+atlas = ExtResource("1")
+region = Rect2(768, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_16"]
+atlas = ExtResource("1")
+region = Rect2(1024, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_17"]
+atlas = ExtResource("1")
+region = Rect2(1280, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_18"]
+atlas = ExtResource("1")
+region = Rect2(0, 768, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_19"]
+atlas = ExtResource("1")
+region = Rect2(256, 768, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_20"]
+atlas = ExtResource("1")
+region = Rect2(512, 768, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_21"]
+atlas = ExtResource("1")
+region = Rect2(768, 768, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_22"]
+atlas = ExtResource("1")
+region = Rect2(1024, 768, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_23"]
+atlas = ExtResource("1")
+region = Rect2(1280, 768, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_24"]
+atlas = ExtResource("1")
+region = Rect2(0, 1024, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_25"]
+atlas = ExtResource("1")
+region = Rect2(256, 1024, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_26"]
+atlas = ExtResource("1")
+region = Rect2(512, 1024, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_27"]
+atlas = ExtResource("1")
+region = Rect2(768, 1024, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_28"]
+atlas = ExtResource("1")
+region = Rect2(1024, 1024, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_29"]
+atlas = ExtResource("1")
+region = Rect2(1280, 1024, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_30"]
+atlas = ExtResource("1")
+region = Rect2(0, 1280, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_31"]
+atlas = ExtResource("1")
+region = Rect2(256, 1280, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_32"]
+atlas = ExtResource("1")
+region = Rect2(512, 1280, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_33"]
+atlas = ExtResource("1")
+region = Rect2(768, 1280, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_34"]
+atlas = ExtResource("1")
+region = Rect2(1024, 1280, 256, 256)
+
+[sub_resource type="AtlasTexture" id="Vortex_35"]
+atlas = ExtResource("1")
+region = Rect2(1280, 1280, 256, 256)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_0"]
+atlas = ExtResource("2")
+region = Rect2(0, 0, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_1"]
+atlas = ExtResource("2")
+region = Rect2(512, 0, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_2"]
+atlas = ExtResource("2")
+region = Rect2(1024, 0, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_3"]
+atlas = ExtResource("2")
+region = Rect2(1536, 0, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_4"]
+atlas = ExtResource("2")
+region = Rect2(2048, 0, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_5"]
+atlas = ExtResource("2")
+region = Rect2(2560, 0, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_6"]
+atlas = ExtResource("2")
+region = Rect2(0, 96, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_7"]
+atlas = ExtResource("2")
+region = Rect2(512, 96, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_8"]
+atlas = ExtResource("2")
+region = Rect2(1024, 96, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_9"]
+atlas = ExtResource("2")
+region = Rect2(1536, 96, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_10"]
+atlas = ExtResource("2")
+region = Rect2(2048, 96, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_11"]
+atlas = ExtResource("2")
+region = Rect2(2560, 96, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_12"]
+atlas = ExtResource("2")
+region = Rect2(0, 192, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_13"]
+atlas = ExtResource("2")
+region = Rect2(512, 192, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_14"]
+atlas = ExtResource("2")
+region = Rect2(1024, 192, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_15"]
+atlas = ExtResource("2")
+region = Rect2(1536, 192, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_16"]
+atlas = ExtResource("2")
+region = Rect2(2048, 192, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_17"]
+atlas = ExtResource("2")
+region = Rect2(2560, 192, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_18"]
+atlas = ExtResource("2")
+region = Rect2(0, 288, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_19"]
+atlas = ExtResource("2")
+region = Rect2(512, 288, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_20"]
+atlas = ExtResource("2")
+region = Rect2(1024, 288, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_21"]
+atlas = ExtResource("2")
+region = Rect2(1536, 288, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_22"]
+atlas = ExtResource("2")
+region = Rect2(2048, 288, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_23"]
+atlas = ExtResource("2")
+region = Rect2(2560, 288, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_24"]
+atlas = ExtResource("2")
+region = Rect2(0, 384, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_25"]
+atlas = ExtResource("2")
+region = Rect2(512, 384, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_26"]
+atlas = ExtResource("2")
+region = Rect2(1024, 384, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_27"]
+atlas = ExtResource("2")
+region = Rect2(1536, 384, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_28"]
+atlas = ExtResource("2")
+region = Rect2(2048, 384, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_29"]
+atlas = ExtResource("2")
+region = Rect2(2560, 384, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_30"]
+atlas = ExtResource("2")
+region = Rect2(0, 480, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_31"]
+atlas = ExtResource("2")
+region = Rect2(512, 480, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_32"]
+atlas = ExtResource("2")
+region = Rect2(1024, 480, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_33"]
+atlas = ExtResource("2")
+region = Rect2(1536, 480, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_34"]
+atlas = ExtResource("2")
+region = Rect2(2048, 480, 512, 96)
+
+[sub_resource type="AtlasTexture" id="ArcaneLance_35"]
+atlas = ExtResource("2")
+region = Rect2(2560, 480, 512, 96)
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": SubResource("Vortex_0")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_7")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_0")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_7")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_0")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_7")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_0")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_7")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}],
+"loop": false,
+"name": &"charge",
+"speed": 14.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Vortex_0")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_7")}, {"duration": 1.0, "texture": SubResource("Vortex_8")}, {"duration": 1.0, "texture": SubResource("Vortex_9")}, {"duration": 1.0, "texture": SubResource("Vortex_10")}, {"duration": 1.0, "texture": SubResource("Vortex_11")}, {"duration": 1.0, "texture": SubResource("Vortex_12")}, {"duration": 1.0, "texture": SubResource("Vortex_13")}, {"duration": 1.0, "texture": SubResource("Vortex_14")}, {"duration": 1.0, "texture": SubResource("Vortex_15")}, {"duration": 1.0, "texture": SubResource("Vortex_16")}, {"duration": 1.0, "texture": SubResource("Vortex_17")}, {"duration": 1.0, "texture": SubResource("Vortex_18")}, {"duration": 1.0, "texture": SubResource("Vortex_19")}, {"duration": 1.0, "texture": SubResource("Vortex_20")}, {"duration": 1.0, "texture": SubResource("Vortex_21")}, {"duration": 1.0, "texture": SubResource("Vortex_22")}, {"duration": 1.0, "texture": SubResource("Vortex_23")}, {"duration": 1.0, "texture": SubResource("Vortex_24")}, {"duration": 1.0, "texture": SubResource("Vortex_25")}, {"duration": 1.0, "texture": SubResource("Vortex_26")}, {"duration": 1.0, "texture": SubResource("Vortex_27")}, {"duration": 1.0, "texture": SubResource("Vortex_28")}, {"duration": 1.0, "texture": SubResource("Vortex_29")}, {"duration": 1.0, "texture": SubResource("Vortex_30")}, {"duration": 1.0, "texture": SubResource("Vortex_31")}, {"duration": 1.0, "texture": SubResource("Vortex_32")}, {"duration": 1.0, "texture": SubResource("Vortex_33")}, {"duration": 1.0, "texture": SubResource("Vortex_34")}, {"duration": 1.0, "texture": SubResource("Vortex_35")}],
+"loop": false,
+"name": &"eruption",
+"speed": 14.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Vortex_0")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_7")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}],
+"loop": true,
+"name": &"orb",
+"speed": 14.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("ArcaneLance_0")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_1")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_2")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_3")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_4")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_5")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_6")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_7")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_8")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_9")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_10")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_11")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_12")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_13")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_14")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_15")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_16")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_17")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_18")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_19")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_20")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_21")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_22")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_23")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_24")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_25")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_26")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_27")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_28")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_29")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_30")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_31")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_32")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_33")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_34")}, {"duration": 1.0, "texture": SubResource("ArcaneLance_35")}],
+"loop": false,
+"name": &"lance",
+"speed": 14.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("Vortex_0")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_7")}, {"duration": 1.0, "texture": SubResource("Vortex_6")}, {"duration": 1.0, "texture": SubResource("Vortex_5")}, {"duration": 1.0, "texture": SubResource("Vortex_4")}, {"duration": 1.0, "texture": SubResource("Vortex_3")}, {"duration": 1.0, "texture": SubResource("Vortex_2")}, {"duration": 1.0, "texture": SubResource("Vortex_1")}],
+"loop": true,
+"name": &"sigil",
+"speed": 14.0
+}]

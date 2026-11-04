@@ -14,6 +14,7 @@ OFFLINE = [
     ('regression', 'Failures: 0'),
     ('boss_fight', 'Boss fight failures: 0'),
     ('jefferson_tactics', 'Jefferson tactics failures: 0'),
+    ('jefferson_animations', 'Jefferson animation failures: 0'),
     ('dot_presentation', 'DoT presentation failures: 0'),
     ('hero_classes', 'Hero class failures: 0'),
     ('session_loop', 'Session loop failures: 0'),

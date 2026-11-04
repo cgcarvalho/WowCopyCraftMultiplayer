@@ -10,6 +10,8 @@ const LANCE_DAMAGE = 22
 const ORB_SPEED = 260.0
 const ORB_DAMAGE = 12
 const ORB_RADIUS = 22.0
+const IMPACT_SECONDS = 0.65
+const INTERRUPT_SECONDS = 0.35
 const SPELL_NAMES = {"rupture": "Ruptura Sombria", "volley": "Orbes do Vazio", "lance": "Lança Arcana", "blink": "Passo Astral", "ward": "Égide Rúnica", "bond": "Vínculo Astral", "spread": "Marcas do Caos", "channel": "Cataclismo Arcano"}
 const SPELL_TIPS = {"rupture": "Saia do círculo", "volley": "Desvie dos orbes", "lance": "Saia da faixa azul", "blink": "Reposicionamento astral", "ward": "Jefferson está criando um escudo", "bond": "Juntem-se no círculo dourado para dividir o dano", "spread": "Afaste-se dos aliados: círculos vermelhos explodem", "channel": "Interrompa com F! Recarga da interrupção: 16s"}
 const WARNINGS = {"rupture": 2.0, "volley": 1.0, "lance": 1.6, "blink": 1.1, "ward": 1.3, "bond": 3.0, "spread": 3.0, "channel": 4.0}
@@ -26,6 +28,7 @@ const WARNINGS = {"rupture": 2.0, "volley": 1.0, "lance": 1.6, "blink": 1.1, "wa
 @export var visual_position = Vector2.ZERO
 @export var visual_direction = Vector2.RIGHT
 @export var visual_remaining = 0.0
+@export var visual_targets: Array = []
 @export var projectiles: Array = []
 @export var mechanic_targets: Array = []
 @export var speech = ""
@@ -206,6 +209,7 @@ func begin_spell(kind: String) -> void:
 func resolve_area() -> void:
 	if not multiplayer.is_server() or status != "active" or not danger_visible:
 		return
+	visual_targets = []
 	if boss.charCurrentLife > 0:
 		match spell_kind:
 			"bond":
@@ -224,6 +228,7 @@ func resolve_area() -> void:
 					var marked = MultiplayerManager.get_character(int(id))
 					if is_instance_valid(marked) and marked.charCurrentLife > 0:
 						centers.append(marked.global_position)
+				visual_targets = centers.duplicate()
 				for player in living_players():
 					var overlaps = 0
 					for center in centers:
@@ -235,6 +240,7 @@ func resolve_area() -> void:
 						player.deal_damage(18, boss)
 			"channel":
 				for player in living_players():
+					visual_targets.append(player.global_position)
 					player.deal_damage(42, boss)
 			"rupture":
 				for player in living_players():
@@ -262,7 +268,7 @@ func resolve_area() -> void:
 	visual_origin = danger_origin
 	visual_position = danger_position
 	visual_direction = danger_direction
-	visual_remaining = 0.65
+	visual_remaining = IMPACT_SECONDS
 	completed_spells += 1
 	last_spell = spell_kind
 	spell_cooldowns[spell_kind] = {"rupture": 8.0, "volley": 7.0, "lance": 10.0, "blink": 14.0, "ward": 9999.0, "bond": 14.0, "spread": 14.0, "channel": 18.0}[spell_kind]
@@ -309,6 +315,7 @@ func finish(result: String) -> void:
 	danger_remaining = 0
 	projectiles = []
 	visual_remaining = 0
+	visual_targets = []
 	boss.velocity = Vector2.ZERO
 	boss.charCurrentTarget = null
 	clear_effects()
@@ -350,6 +357,11 @@ func interrupt_channel(caster: Character) -> bool:
 		return false
 	danger_visible = false
 	danger_remaining = 0
+	visual_kind = "interrupted"
+	visual_origin = danger_origin
+	visual_position = danger_origin
+	visual_targets = []
+	visual_remaining = INTERRUPT_SECONDS
 	area_cooldown = 3.0
 	spell_cooldowns["channel"] = 18.0
 	completed_spells += 1
@@ -377,6 +389,7 @@ func reset_encounter(index: int = 1) -> void:
 	mechanic_candidates.clear()
 	projectiles = []
 	visual_remaining = 0
+	visual_targets = []
 	phase = 1
 	last_phase = 1
 	last_spell = ""
