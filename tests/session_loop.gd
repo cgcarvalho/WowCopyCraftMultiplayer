@@ -21,6 +21,11 @@ func clear_skills() -> void:
 		if node is Skill or node is CombatProjectile:
 			node.queue_free()
 
+func wait_wall(seconds: float) -> void:
+	var deadline = Time.get_ticks_msec() + roundi(seconds * 1000)
+	while Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+
 func _ready() -> void:
 	call_deferred("run")
 
@@ -136,7 +141,7 @@ func run() -> void:
 	check(not handler.valid_ground(rain, warrior, Vector2(NAN, 300)), "Server rejects non-finite ground aim")
 	check(not handler.valid_ground(rain, warrior, Vector2(9000, 300)), "Server rejects out-of-arena ground aim")
 	handler.loadSkillScene(rain.skillScenePath, 1, 0, Vector2(650, 330))
-	await get_tree().create_timer(0.7).timeout
+	await wait_wall(0.7)
 	var placed: HeroAbility
 	for node in main.get_children():
 		if node is HeroAbility and node.ability_id == "arrow_rain":
@@ -166,7 +171,7 @@ func run() -> void:
 	check(boss.charCurrentLife == 552, "Next boss gains 15 percent of base health")
 	check(is_equal_approx(warrior.damage_bonus, 1.12) and is_equal_approx(hunter.cooldown_multiplier, 0.88), "Chosen upgrades apply to the correct characters")
 	check(handler.round_token > old_token and handler.cooldowns.is_empty(), "Round reset clears cooldowns and invalidates old cast generations")
-	await get_tree().create_timer(1.2).timeout
+	await wait_wall(1.2)
 	check(boss.charCurrentLife == 552, "A cast started before victory cannot hit the next boss")
 	session._physics_process(3.1)
 	warrior.charCurrentLife = 0

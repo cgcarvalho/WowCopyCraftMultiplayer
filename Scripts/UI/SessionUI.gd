@@ -8,6 +8,7 @@ var selecting_class = false
 var resource_text: Label
 var passive_text: PassivePanel
 var aim_text: Label
+var target_range_text: Label
 var speech: Label
 var interrupt_button: Button
 var countdown_text: Label
@@ -89,6 +90,12 @@ func _ready() -> void:
 	aim_text.position = Vector2(380, 592)
 	aim_text.size = Vector2(590, 40)
 	screen.add_child(aim_text)
+	target_range_text = label("", 13, Color("a5edbd"))
+	target_range_text.position = Vector2(750, 86)
+	target_range_text.size = Vector2(390, 24)
+	target_range_text.add_theme_color_override("font_outline_color", Color.BLACK)
+	target_range_text.add_theme_constant_override("outline_size", 3)
+	screen.add_child(target_range_text)
 	speech = label("", 17, Color("e2b8ff"))
 	speech.position = Vector2(365, 105)
 	speech.size = Vector2(480, 55)
@@ -142,6 +149,7 @@ func layout_combat_hud() -> void:
 	passive_text.position = Vector2(380 + horizontal, 542 + bottom)
 	aim_text.position = Vector2(380 + horizontal, 592 + bottom)
 	interrupt_button.position = Vector2(970 + horizontal, 555 + bottom)
+	target_range_text.position = Vector2(750 + horizontal, 86)
 	speech.position.x = 365 + horizontal
 	countdown_text.position.x = 350 + horizontal
 
@@ -333,7 +341,7 @@ func _process(delta: float) -> void:
 	var hero: Character = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
 	var active = session.stage in ["active", "countdown"] and is_instance_valid(hero) and not hero.spectator
 	hud_backplate.visible = active
-	for node in [resource_text, passive_text, aim_text, interrupt_button]:
+	for node in [resource_text, passive_text, aim_text, interrupt_button, target_range_text]:
 		node.visible = active
 	for path in ["PlayerHP", "SkillBar"]:
 		main.get_node("CombatHUD/" + path).visible = active
@@ -348,7 +356,10 @@ func _process(delta: float) -> void:
 			passive_text.configure(hero)
 		passive_text.refresh()
 		var preview = main.get_node("CombatPreview")
-		aim_text.text = preview.hint if preview.aiming else "Tab: selecionar · F: interromper · Áreas: clique para confirmar"
+		target_range_text.text = preview.target_status()
+		target_range_text.add_theme_color_override("font_color", Color("ffad91") if target_range_text.text.begins_with("FORA") else Color("a5edbd"))
+		var queued = main.get_node("CombatHUD/SkillBar").queued_button
+		aim_text.text = preview.hint if preview.aiming else ("Na fila: " + queued.skillCast.skillName + " · Esc cancela" if is_instance_valid(queued) else "Tab / Shift+Tab: alvo · F: interromper · Áreas: clique confirma")
 		interrupt_button.text = "F · %ds" % ceili(hero.interrupt_remaining) if hero.interrupt_remaining > 0 else "F · Interromper"
 	var encounter = main.get_node("BossEncounter")
 	speech.text = encounter.speech if encounter.speech_remaining > 0 and session.stage != "lobby" else ""

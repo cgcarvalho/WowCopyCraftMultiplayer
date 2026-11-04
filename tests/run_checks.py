@@ -23,6 +23,7 @@ OFFLINE = [
     ('autoattack_resume', 'Autoattack resume failures: 0'),
     ('warrior_animations', 'Warrior animation failures: 0'),
     ('passive_clarity', 'Passive clarity failures: 0'),
+    ('fluid_combat', 'Fluid combat failures: 0'),
 ]
 NETWORK = [
     ('boss_network', 'NETWORK'),
@@ -30,6 +31,7 @@ NETWORK = [
     ('session_network', 'SESSION_NETWORK'),
     ('warrior_animation_network', 'WARRIOR_ANIMATION'),
     ('passive_network', 'PASSIVE_NETWORK'),
+    ('fluid_network', 'FLUID_NETWORK'),
 ]
 
 

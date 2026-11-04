@@ -11,6 +11,11 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 
+func wait_wall(seconds: float) -> void:
+	var deadline = Time.get_ticks_msec() + roundi(seconds * 1000)
+	while Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+
 func _ready() -> void:
 	call_deferred("run")
 
@@ -65,7 +70,7 @@ func run() -> void:
 	var button = bar.get_node("PanelContainer/HBoxContainer").get_child(3)
 	preview.begin(rain, button)
 	check(preview.confirm(destination), "Production targeting accepts a valid location in the new area")
-	await get_tree().create_timer(0.7).timeout
+	await wait_wall(0.7)
 	var placed: HeroAbility
 	for node in main.get_children():
 		if node is HeroAbility and node.ability_id == "arrow_rain":

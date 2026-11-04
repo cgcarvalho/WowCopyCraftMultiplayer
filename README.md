@@ -14,15 +14,15 @@ Protótipo multiplayer validado com Godot 4.7.1 (GDScript / Forward Plus).
 A conexão usa ENet/UDP na porta **8080**, com até quatro jogadores incluindo
    o host. Para jogar em LAN, permita essa porta no firewall do host.
 
-Movimento: WASD. Alvo: clique esquerdo ou Tab. O autoataque começa e retoma
-automaticamente contra um inimigo vivo selecionado, quando você está parado e
-no alcance. Movimento, conjuração e mira de áreas pausam o ataque; ao terminar,
+Movimento: WASD. Alvo: clique esquerdo, Tab ou Shift+Tab. O autoataque começa e retoma
+automaticamente contra um inimigo vivo selecionado no alcance, inclusive durante
+a caminhada. Conjuração e mira de áreas pausam o ataque; ao terminar,
 ele volta sem precisar pressionar o botão direito. Selecionar um aliado, perder o
 alvo ou ficar fora do alcance interrompe os ataques. O servidor mantém a validação
 de alcance e do intervalo entre golpes.
 Habilidades: **1 / 2 / 3**; ultimate: **R ou 4**. Cura sem aliado selecionado usa o próprio personagem; Alt + cura força autocura.
 **Arrow Rain:** pressione R/4 ou clique no ícone, mire com o mouse e confirme com clique esquerdo; Esc ou botão direito cancela sem gastar recurso. Consecration sempre consagra o chão sob o paladino.
-**Tab:** seleciona o inimigo mais próximo. **F:** interrompe Cataclismo Arcano (16s de recarga, alcance 200 para Warrior e 650 para as demais classes).
+**Tab / Shift+Tab:** percorrem os inimigos próximos, priorizando distância e direção de movimento. O HUD informa se o alvo está no alcance do autoataque. **F:** interrompe Cataclismo Arcano (16s de recarga, alcance 200 para Warrior e 650 para as demais classes).
 
 ## Validação
 
@@ -290,11 +290,11 @@ Com Godot 4.7.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa doze suítes offline e seis suítes ENet: cinco com dois processos
+O runner executa treze suítes offline e sete suítes ENet: seis com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
-As portas locais usadas pelos testes são UDP 18081 a 18086.
+As portas locais usadas pelos testes são UDP 18081 a 18087.
 
 A suíte `passive_clarity` confere as quatro passivas, seus indicadores e tooltips,
 incluindo ativação por um tick real de DoT e consumo de Dot Master. A suíte
@@ -395,8 +395,8 @@ verifica também a câmera e o tamanho do Jefferson no cliente remoto.
 
 ## Retomada do autoataque
 
-O personagem volta a atacar o inimigo selecionado ao ficar parado no alcance,
-depois de movimento, conjuração ou saída temporária de alcance. A preparação do
+O personagem mantém o ataque durante o movimento e volta a atacar o inimigo
+selecionado ao entrar no alcance, terminar uma conjuração ou cancelar a mira. A preparação do
 próximo golpe considera o último ataque aceito pelo servidor, evitando um ataque
 prematuro ao retomar. A mira de Arrow Rain e seu gesto de cancelamento pausam
 novos disparos; aliados, espectadores e alvos mortos não ativam ataques.
@@ -417,3 +417,33 @@ animados no Godot, com transparência, escala e desaparecimento. Fontes e prompt
 estão em `Art/Chars/Sir Gura Targao/ATTACKS.md`. Dano, custos e recargas foram
 preservados. A suíte `warrior_animations` cobre o ciclo visual e sua limpeza;
 `warrior_animation_network` verifica o Warrior remoto em dois processos ENet.
+
+## Controles e leitura do combate
+
+- **Ataques em movimento:** as quatro classes caminham e avançam o relógio do
+  autoataque ao mesmo tempo. A animação de caminhada intercala o contato do golpe.
+  Alcance, preparação e intervalo continuam validados pelo servidor. Aimed Shot
+  e as demais conjurações continuam sendo interrompidas por deslocamento.
+- **Fila de habilidades:** pressione uma habilidade nos últimos 200ms da recarga
+  ou conjuração para guardá-la. O selo **FILA** e o HUD identificam o comando.
+  Há uma única posição, substituída pela próxima habilidade pressionada. Esc,
+  troca de alvo, morte, espectador, troca de classe e reset cancelam a fila.
+  Antes da execução, alvo, alcance e recurso são verificados novamente. Uma
+  habilidade de chão apenas abre a mira quando fica pronta; ainda exige clique.
+- **Alvos:** Tab avança e Shift+Tab volta numa lista estável de inimigos vivos
+  a até 900 unidades. Distância e direção da última caminhada definem a prioridade;
+  aliados, espectadores e mortos são ignorados. A seleção mantém o contorno e
+  mostra **AO ALCANCE** ou **FORA DO ALCANCE DO AUTOATAQUE** no HUD.
+- **Impactos:** os contatos pessoais têm brilho curto e som de impacto. Efeitos
+  de outros aliados usam 40% da opacidade; seus acertos não sobrescrevem o brilho
+  dos seus próprios golpes. Ticks periódicos usam faíscas menores e não repetem o
+  som de contato. Números de dano e avisos de perigo do boss mantêm a legibilidade.
+
+Timers de recarga e de conjuração usam prazos monotônicos, como a validação de
+recargas do servidor. A fila admite o comando na janela de 200ms e oferece 50ms
+adicionais para callbacks de timers, sem enviar solicitações antes da prontidão.
+
+`tests/fluid_combat.tscn` verifica caminhada com dano real nas quatro classes,
+interrupção de Aimed Shot, fila e cancelamentos, navegação entre alvos e intensidade
+dos efeitos. `tests/fluid_network.tscn` verifica movimentação e disparos remotos,
+limite de frequência e uma Poison Arrow enfileirada ao final de um Aimed Shot real.

@@ -14,6 +14,11 @@ func check(ok: bool, text: String) -> void:
 		failures += 1
 		push_error(text)
 
+func wait_wall(seconds: float) -> void:
+	var deadline = Time.get_ticks_msec() + roundi(seconds * 1000)
+	while Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+
 func _ready() -> void:
 	call_deferred("run")
 
@@ -125,7 +130,7 @@ func run() -> void:
 	var paladin = spawn("Charger")
 	paladin.charCurrentLife = 50
 	cast(paladin, "holy_light", 0)
-	await get_tree().create_timer(1.3).timeout
+	await wait_wall(1.3)
 	check(paladin.charCurrentLife == 87, "Holy Light defaults to self and heals after server cast time")
 	mana = paladin.charCurrentMana
 	handler.cooldowns.clear()
@@ -142,7 +147,7 @@ func run() -> void:
 	paladin.position = Vector2(400, 300)
 	paladin.charCurrentMana = 5
 	cast(paladin, "divine_dawn", 0)
-	await get_tree().create_timer(0.9).timeout
+	await wait_wall(0.9)
 	check(paladin.charCurrentLife >= 125 and paladin.charShield == 35, "Divine Dawn ultimate heals and shields allies")
 	check(boss.charCurrentLife <= 431, "Divine Dawn also damages nearby enemies")
 	cleanup(paladin)
@@ -176,7 +181,7 @@ func run() -> void:
 	cast(hunter, "poison_arrow")
 	check(boss.debuffList.size() == 1 and poison.skillTimer == 0, "Same hunter refreshes poison rather than stacking")
 	cast(hunter, "arrow_rain")
-	await get_tree().create_timer(0.7).timeout
+	await wait_wall(0.7)
 	var rain = effect("arrow_rain")
 	rain._physics_process(1.0)
 	check(boss.charCurrentLife == 448, "Arrow Rain ultimate deals area damage")

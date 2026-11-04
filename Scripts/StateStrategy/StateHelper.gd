@@ -16,6 +16,7 @@ static func canMove(delta : float, state_machine : StateStrategy, checkIdle : bo
 		velocity.y -= 1
 
 	if velocity.length() > 0:
+		state_machine.statePlayer.last_move_direction = velocity.normalized()
 		velocity = velocity.normalized() * speed
 	
 	state_machine.statePlayer.global_position = ArenaNavigation.move(state_machine.statePlayer.global_position, velocity * delta)
@@ -39,7 +40,7 @@ static func checkAttack(state_machine: StateStrategy) -> void:
 			preview.suppress_attack = false
 		return
 	var player = state_machine.statePlayer
-	if player.charCurrentLife <= 0 or player.spectator or player.ability_animation_time > 0 or preview.aiming or not Input.get_vector("move_left", "move_right", "move_up", "move_down").is_zero_approx():
+	if player.charCurrentLife <= 0 or player.spectator or player.ability_animation_time > 0 or preview.aiming:
 		return
 	var target = player.charCurrentTarget
 	if is_instance_valid(target) and target.charCurrentLife > 0 and not target.spectator and target.charTeam != player.charTeam and player.global_position.distance_to(target.global_position) <= player.charRange:

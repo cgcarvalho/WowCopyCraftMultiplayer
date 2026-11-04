@@ -14,6 +14,7 @@ func launch(owner_character: Character, victim: Character, amount: int, attack_k
 	target = victim
 	damage = amount
 	style = attack_kind
+	modulate.a = CombatFeedback.effect_opacity(caster)
 	global_position = origin
 	z_index = Constants.PLAYER_Z_INDEX + 1
 	if style == "melee":

@@ -61,13 +61,15 @@ func run() -> void:
 		states._physics_process(0.02)
 		var origin = hero.position
 		states._physics_process(0.02)
-		check(states.current_state is Walk and hero.position.x > origin.x, hero_name + ": movement stays active instead of oscillating back to attack")
+		check(states.current_state is Attack and hero.position.x > origin.x, hero_name + ": walking advances without interrupting the attack state")
+		var attacking = states.current_state
+		var elapsed = attacking.elapsed
 		Input.action_release("move_right")
 		states._physics_process(0.02)
-		check(states.current_state is Idle, hero_name + ": restart waits until windup can finish after the previous accepted hit cooldown")
+		check(states.current_state == attacking and attacking.elapsed > elapsed, hero_name + ": stopping movement preserves the attack clock")
 		states.next_basic_attack_at_msec = 0
 		states._physics_process(0.02)
-		check(states.current_state is Attack, hero_name + ": autoattack resumes after movement stops")
+		check(states.current_state is Attack, hero_name + ": autoattack continues after movement stops")
 		boss.position = hero.position + Vector2(hero.charRange + 20, 0)
 		states._physics_process(0.02)
 		states._physics_process(0.02)
