@@ -66,12 +66,22 @@ func _process(delta: float) -> void:
 		presentation_position = global_position
 		visual_ready = true
 	presentation_position = presentation_position.lerp(global_position, 1.0 - exp(-18.0 * delta))
+	var casting = not dead and get_parent().status == "active" and get_parent().danger_visible
+	var preparation = clampf(1 - get_parent().danger_remaining / float(get_parent().WARNINGS[get_parent().spell_kind]), 0, 1) if casting else 0.0
+	var recoil = 0.0
+	if not dead and get_parent().visual_remaining > 0 and get_parent().visual_kind in ["lance", "volley", "rupture"]:
+		var release = clampf((1 - get_parent().visual_remaining / get_parent().IMPACT_SECONDS) * 3, 0, 1)
+		recoil = sin(release * PI)
 	var bob = 0.0 if dead else sin(Time.get_ticks_msec() * 0.003) * 5.0
-	$AnimatedSprite2D.position = presentation_position - global_position + Vector2(0, bob)
+	if casting:
+		bob -= sin(preparation * PI) * 9
+	$AnimatedSprite2D.position = presentation_position - global_position + Vector2(0, bob) - get_parent().visual_direction * recoil * 12
 	$AnimatedSprite2D.flip_h = facing_left
-	var pulse = 1.0 + (sin(Time.get_ticks_msec() * 0.008) * 0.025 if get_parent().danger_visible else 0.0)
+	var pulse = 1.0 + sin(preparation * PI) * 0.025
 	$AnimatedSprite2D.scale = Vector2.ONE * animation_scale * pulse * (1 - death_progress * 0.35)
 	if not dead:
+		$AnimatedSprite2D.rotation = (1 if facing_left else -1) * (sin(preparation * PI) * 0.035 - recoil * 0.025)
+		$AnimatedSprite2D.speed_scale = lerpf(0.65, 1.2, preparation) if casting else 1.0
 		$AnimatedSprite2D.play("walk" if velocity.length() > 10 else "idle")
 	else:
 		$AnimatedSprite2D.stop()
@@ -220,7 +230,7 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(charCurrentTarget):
 		velocity = Vector2.ZERO
 		return
-	facing_left = charCurrentTarget.global_position.x < global_position.x
+	facing_left = get_parent().danger_direction.x < 0 if get_parent().danger_visible else charCurrentTarget.global_position.x < global_position.x
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	if get_parent().danger_visible:
 		velocity = Vector2.ZERO

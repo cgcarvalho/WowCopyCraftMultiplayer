@@ -89,15 +89,21 @@ A luta termina com vitória ao zerar a vida do boss ou derrota quando não há
 jogadores vivos. O encerramento cancela avisos, tiros e habilidades pendentes.
 Após derrota, **Tentar novamente** restaura o grupo, os recursos e os cooldowns. Após vitória, cada participante escolhe uma melhoria e o host pode continuar. **Voltar à seleção** reinicia a expedição sem reconectar. Não há equipamentos ou ressurreição individual durante o combate.
 
-Os efeitos usam um atlas original animado em `Art/Skills/Jefferson/SpellAtlas.png`.
-Os estados da magia, mira, fase, efeitos de impacto e tiros ativos são replicados,
-inclusive para quem entra no meio da luta. Clientes não escolhem magias nem dano.
+Os efeitos usam uma sequência de 36 quadros gerada no **Ludo.ai**, adaptada para
+carga no cajado, erupções, orbes, lança azul, portais e escudo. A preparação
+acompanha o tempo da conjuração e o brilho segue a ponta do cajado em cada quadro.
+O impacto toca uma vez, os orbes se dissipam e interromper o Cataclismo contrai
+o sigilo. Contornos e textos de perigo continuam visíveis. Os estados da magia,
+mira, fase, posições de impacto e tiros ativos são replicados, inclusive para quem
+entra no meio da luta. Clientes não escolhem magias nem dano. Fontes do Ludo e
+detalhes dos atlas em [Art/Skills/Jefferson/README.md](Art/Skills/Jefferson/README.md).
 
 ### Testes
 
 ```sh
 godot --headless --path . res://tests/boss_fight.tscn
 godot --headless --path . res://tests/jefferson_tactics.tscn
+godot --headless --path . res://tests/jefferson_animations.tscn
 ```
 
 Para testar replicação ENet, execute em dois terminais (porta UDP 18081):
@@ -290,11 +296,16 @@ Com Godot 4.7.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa treze suítes offline e sete suítes ENet: seis com dois processos
+O runner executa catorze suítes offline e sete suítes ENet: seis com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
 As portas locais usadas pelos testes são UDP 18081 a 18087.
+
+A suíte `jefferson_animations` verifica os quadros dos efeitos do Ludo, a sincronia
+com a conjuração, a posição dos impactos, a interrupção e a limpeza dos efeitos.
+O teste `boss_network` também confere a animação de um impacto ao entrar em uma
+partida em andamento.
 
 A suíte `passive_clarity` confere as quatro passivas, seus indicadores e tooltips,
 incluindo ativação por um tick real de DoT e consumo de Dot Master. A suíte

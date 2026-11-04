@@ -44,6 +44,9 @@ func run() -> void:
 		encounter.boss.facing_left = true
 		encounter.boss.velocity = Vector2(18, 9)
 		encounter.projectiles = [{"id": 50, "position": Vector2(950, 100), "velocity": Vector2(-100, 0), "life": 3.0}]
+		encounter.visual_kind = "spread"
+		encounter.visual_remaining = encounter.IMPACT_SECONDS * 0.5
+		encounter.visual_targets = [Vector2(450, 350), Vector2(650, 350)]
 		print("NETWORK_SERVER_READY")
 		multiplayer.peer_disconnected.connect(on_disconnect)
 	else:
@@ -69,6 +72,11 @@ func run() -> void:
 			fail("Late join did not receive active projectiles")
 			return
 		print("PASS: late join receives active projectile sprites")
+		var visuals = encounter.get_node("SpellVisual")
+		if encounter.visual_targets != [Vector2(450, 350), Vector2(650, 350)] or not is_equal_approx(visuals.impact_progress(), 0.5):
+			fail("Late join did not receive fixed impact positions and animation progress")
+			return
+		print("PASS: late join receives impact positions and catches up to animation frame")
 		if not encounter.boss.facing_left or encounter.boss.velocity != Vector2(18, 9):
 			fail("Boss facing and motion state did not replicate")
 			return

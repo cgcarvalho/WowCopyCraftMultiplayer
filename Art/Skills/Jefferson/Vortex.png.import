@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnhy4wkx88kiy"
-path="res://.godot/imported/SpellAtlas.png-f959404d1d430def3cb075f263cc56e3.ctex"
+uid="uid://cvraof2y3kyiy"
+path="res://.godot/imported/Vortex.png-473e35932d474f4d1e534d2329103682.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Art/Skills/Jefferson/SpellAtlas.png"
-dest_files=["res://.godot/imported/SpellAtlas.png-f959404d1d430def3cb075f263cc56e3.ctex"]
+source_file="res://Art/Skills/Jefferson/Vortex.png"
+dest_files=["res://.godot/imported/Vortex.png-473e35932d474f4d1e534d2329103682.ctex"]
 
 [params]
 

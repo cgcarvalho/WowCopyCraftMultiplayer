@@ -125,7 +125,7 @@ func run() -> void:
 	check(encounter.projectiles.size() == 5, "Second phase widens volley to five orbs")
 	check(encounter.area_cooldown < encounter.AREA_INTERVAL, "Second phase shortens recovery between spells")
 	var visuals = encounter.get_node("SpellVisual")
-	check(visuals.atlas != null and visuals.atlas.get_width() >= 512 and visuals.atlas.get_height() >= 512, "Spell sprites load as a 4-column animated atlas")
+	check(visuals.frames != null and visuals.frames.has_animation("eruption"), "Ludo spell animations load")
 	check(boss.get_node("AnimatedSprite2D").scale.x >= 0.29, "Jefferson sprite is enlarged")
 	encounter.finish("victory")
 	check(encounter.projectiles.is_empty() and not encounter.danger_visible, "Victory cancels every pending projectile and warning")
