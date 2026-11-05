@@ -41,12 +41,13 @@ func run() -> void:
 	player.position = Vector2(450, 300)
 	var desired = boss.desired_velocity(player)
 	check(absf(desired.x) < 0.1 and absf(desired.y) > 10, "Mage strafes while in casting range")
-	var safe = boss.safe_position(Vector2(850, 185))
-	check(safe.distance_to(Vector2(850, 185)) >= 117.9, "Steering keeps boss outside tree trunks")
+	var trunk: Vector2 = ArenaNavigation.obstacles()[0]
+	var safe = boss.safe_position(trunk)
+	check(safe.distance_to(trunk) >= 117.9, "Steering keeps boss outside tree trunks")
 	check(Jefferson.ARENA.has_point(boss.safe_position(Vector2(-1000, -1000))), "Escape destination stays inside arena")
 	check(boss.safe_position(Vector2(9999, 9999)).x <= Jefferson.ARENA.end.x, "Escape cannot leave opposite arena boundary")
-	var edge = boss.safe_position(Vector2(850, 125))
-	check(edge.distance_to(Vector2(850, 185)) >= 117.9 and edge.y >= Jefferson.ARENA.position.y, "Tree avoidance remains valid next to arena wall")
+	var edge = boss.safe_position(trunk - Vector2(0, 60))
+	check(edge.distance_to(trunk) >= 117.9 and edge.y >= Jefferson.ARENA.position.y, "Tree avoidance remains valid next to arena wall")
 	var ally = Character.new()
 	ally.name = "2"
 	ally.charTotalLife = 100

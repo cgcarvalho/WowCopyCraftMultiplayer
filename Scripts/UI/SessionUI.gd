@@ -9,6 +9,7 @@ var resource_text: Label
 var passive_text: PassivePanel
 var aim_text: Label
 var target_range_text: Label
+var arena_text: Label
 var speech: Label
 var interrupt_button: Button
 var countdown_text: Label
@@ -82,6 +83,10 @@ func _ready() -> void:
 	resource_text.position = Vector2(100, 510)
 	resource_text.size = Vector2(570, 26)
 	screen.add_child(resource_text)
+	arena_text = label("", 14, Color("c9c4b8"))
+	arena_text.size = Vector2(390, 24)
+	arena_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	screen.add_child(arena_text)
 	passive_text = PassivePanel.new()
 	passive_text.position = Vector2(380, 542)
 	passive_text.size = Vector2(568, 49)
@@ -146,6 +151,7 @@ func layout_combat_hud() -> void:
 	hud_backplate.position = Vector2(90 + horizontal, 500 + bottom)
 	main.get_node("CombatHUD/SkillBar").position = Vector2(100 + horizontal, 550 + bottom)
 	resource_text.position = Vector2(100 + horizontal, 510 + bottom)
+	arena_text.position = Vector2(750 + horizontal, 510 + bottom)
 	passive_text.position = Vector2(380 + horizontal, 542 + bottom)
 	aim_text.position = Vector2(380 + horizontal, 592 + bottom)
 	interrupt_button.position = Vector2(970 + horizontal, 555 + bottom)
@@ -243,6 +249,34 @@ func add_report() -> void:
 			column.add_child(label("Destaque · " + badges, 14, Color("a5dbb4")))
 	content.add_child(label("Dano e cura efetivos: excesso de dano e sobrecura não contam. A contagem reinicia a cada tentativa.", 13, Color("c9c4b8")))
 
+func add_arenas() -> void:
+	content.add_child(label("ARENA · " + ArenaCatalog.definition(session.arena_id).name, 18, Color("edcf8d")))
+	var cards = HBoxContainer.new()
+	cards.add_theme_constant_override("separation", 12)
+	content.add_child(cards)
+	for id in ArenaCatalog.IDS:
+		var data = ArenaCatalog.definition(id)
+		var column = VBoxContainer.new()
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		column.custom_minimum_size.x = 250
+		cards.add_child(column)
+		var preview = ArenaPreview.new()
+		preview.arena_id = id
+		preview.custom_minimum_size = Vector2(250, 100)
+		column.add_child(preview)
+		var selected = session.arena_id == id
+		var choose = button(("✓ " if selected else "") + data.name + "\n" + data.description, func(): session.select_arena.rpc_id(1, id))
+		choose.name = "Arena_" + id
+		choose.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		choose.add_theme_font_size_override("font_size", 14)
+		choose.custom_minimum_size = Vector2(250, 64)
+		choose.disabled = not multiplayer.is_server() or session.transitioning or selected
+		choose.tooltip_text = "Azul: posições do grupo. Roxo: Jefferson. Obstáculos bloqueiam movimentação.\n" + ("A troca de arena cancela o Pronto do grupo." if session.stage == "lobby" else "A arena escolhida será usada no próximo combate.")
+		if selected:
+			choose.add_theme_color_override("font_disabled_color", Color("a5dbb4"))
+		column.add_child(choose)
+	content.add_child(label("O host escolhe a arena. Marque Pronto novamente após uma troca." if session.stage == "lobby" else "O host pode escolher outra arena para o próximo combate.", 13, Color("c9c4b8")))
+
 func rebuild() -> void:
 	for child in content.get_children():
 		content.remove_child(child)
@@ -256,6 +290,7 @@ func rebuild() -> void:
 			return
 		content.add_child(label("GRUPO · JEFFERSON, O ARCANISTA", 26, Color("edcf8d")))
 		content.add_child(label("Escolha sua classe, marque Pronto e aguarde o host iniciar.", 16))
+		add_arenas()
 		add_party()
 		var controls = HBoxContainer.new()
 		controls.add_theme_constant_override("separation", 12)
@@ -317,6 +352,7 @@ func rebuild() -> void:
 		elif not report_open and won:
 			content.add_child(label("Melhoria registrada. Aguardando os demais jogadores.", 16, Color("a5dbb4")))
 		if not report_open:
+			add_arenas()
 			add_party()
 		if is_host:
 			var retry = button("Próximo combate (+15% vida do boss)" if won else "Tentar novamente", func(): session.retry.rpc_id(1))
@@ -341,7 +377,7 @@ func _process(delta: float) -> void:
 	var hero: Character = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
 	var active = session.stage in ["active", "countdown"] and is_instance_valid(hero) and not hero.spectator
 	hud_backplate.visible = active
-	for node in [resource_text, passive_text, aim_text, interrupt_button, target_range_text]:
+	for node in [resource_text, arena_text, passive_text, aim_text, interrupt_button, target_range_text]:
 		node.visible = active
 	for path in ["PlayerHP", "SkillBar"]:
 		main.get_node("CombatHUD/" + path).visible = active
@@ -350,6 +386,7 @@ func _process(delta: float) -> void:
 	countdown_text.visible = session.stage == "countdown"
 	countdown_text.text = "COMEÇA EM\n%d" % maxi(1, ceili(session.countdown))
 	if active:
+		arena_text.text = ArenaCatalog.definition(session.arena_id).name
 		resource_text.text = "%s: %d / %d" % [hero.resource_name, int(hero.charCurrentMana), int(hero.charTotalMana)]
 		resource_text.add_theme_color_override("font_color", hero.resource_color)
 		if passive_text.hero != hero:
@@ -371,7 +408,7 @@ func _process(delta: float) -> void:
 	result_delay = maxf(0, result_delay - delta)
 	var member: Dictionary = session.roster.get(multiplayer.get_unique_id(), {})
 	overlay.visible = not selecting_class and result_delay <= 0 and (session.stage in ["lobby", "victory", "defeat"] or member.get("spectator", false))
-	var current = session.stage + ":" + str(session.revision) + ":" + str(session.roster) + ":" + str(session.report)
+	var current = session.stage + ":" + session.arena_id + ":" + str(session.revision) + ":" + str(session.roster) + ":" + str(session.report)
 	if current != signature:
 		signature = current
 		rebuild()

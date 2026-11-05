@@ -6,10 +6,10 @@ Protótipo multiplayer validado com Godot 4.7.1 (GDScript / Forward Plus).
 
 1. Abra `project.godot` no Godot 4.7.1 e aguarde a importação dos recursos.
 2. Execute o projeto (F6 executa uma cena; use F5 para executar o projeto).
-3. Em uma instância, escolha **Host Game**, selecione o personagem e marque **Estou pronto** no lobby.
+3. Em uma instância, escolha **Host Game**, selecione o personagem, escolha a arena no lobby e marque **Estou pronto**.
 4. Na outra instância, informe o IP ou hostname do host e escolha **Join Game**.
    Para testar na mesma máquina, use `127.0.0.1`. Selecione a classe e marque **Estou pronto**.
-5. O host escolhe **Iniciar encontro** quando todos estiverem prontos; a luta começa após uma contagem de 3 segundos. É possível jogar solo usando o mesmo fluxo.
+5. O host escolhe **Iniciar encontro** quando todos estiverem prontos; a luta começa após uma contagem de 3 segundos. Trocar a arena cancela o Pronto de todos. É possível jogar solo usando o mesmo fluxo.
 
 A conexão usa ENet/UDP na porta **8080**, com até quatro jogadores incluindo
    o host. Para jogar em LAN, permita essa porta no firewall do host.
@@ -45,6 +45,30 @@ recurso da classe, cooldown, alcance e tempo de conjuração, e replica os atrib
 O movimento continua sob autoridade do cliente; não há proteção completa
 contra adulteração de posição. Novas tentativas restauram os personagens sem encerrar a conexão; não há ressurreição individual durante uma luta.
 
+## Arenas
+
+O lobby oferece três arenas com prévias dos obstáculos e posições iniciais.
+Somente o host pode trocar o mapa, no lobby ou entre combates. Após uma vitória,
+abra **Melhorias e grupo** para escolher a próxima arena; melhorias e dificuldade
+da expedição são preservadas. Na derrota, é possível trocar antes de tentar de novo.
+Durante a contagem e a luta, a escolha fica bloqueada.
+
+| Arena | Terreno e movimentação |
+| --- | --- |
+| Clareira Verdejante | Ilha original reformada, piso com menos contraste, trilha discreta, decoração nas margens e duas árvores bloqueantes deslocadas para a lateral direita. |
+| Ruínas Arcanas | Piso de pedra gerado no Ludo.ai e quatro blocos nos flancos; o corredor central fica livre. |
+| Santuário Glacial | Piso gelado gerado no Ludo.ai, quatro posições próprias para o grupo e nenhum obstáculo dentro do campo de luta. Não altera a velocidade nem causa deslizamento. |
+
+Todas usam o mesmo enquadramento e limites de combate. Cada arena define suas
+posições iniciais, obstáculos e posição do Jefferson em `ArenaCatalog.gd`.
+O grupo inteiro recebe a escolha, inclusive ao entrar numa sessão em andamento.
+O reset confiável da rodada também inclui o identificador do mapa, aplicando
+cenário, colisão e posições antes de iniciar a luta. Trocar cenário remove o
+anterior imediatamente para impedir mapas sobrepostos.
+
+Os contornos dos perigos continuam independentes do piso. As texturas e a origem
+dos recursos estão em [Art/Terrain/Arenas/README.md](Art/Terrain/Arenas/README.md).
+
 ## Jefferson, o Arcanista
 
 O encontro começa depois que todos confirmam a classe e o estado Pronto, e o host inicia. Jefferson
@@ -54,9 +78,9 @@ interpolação visual da movimentação.
 O servidor escolhe alvos combinando proximidade e ameaça causada por dano.
 Uma pequena janela de compromisso com o alvo evita trocas constantes. Jefferson
 acelera e desacelera, recua de jogadores próximos, circula na distância de
-conjuração, contorna as duas árvores do mapa e evita áreas ofensivas dos jogadores.
-O movimento fica limitado à arena. O desenho das árvores é específico deste mapa;
-outros mapas precisarão fornecer seus próprios obstáculos.
+conjuração, contorna os obstáculos da arena escolhida e evita áreas ofensivas dos jogadores.
+O movimento fica limitado à arena. Navegação do grupo, Charge, reposicionamento
+e IA do boss usam a mesma lista de obstáculos definida por mapa.
 
 ### Magias
 
@@ -296,11 +320,16 @@ Com Godot 4.7.1 disponível e os recursos importados:
 python3 tests/run_checks.py --godot godot --network
 ```
 
-O runner executa catorze suítes offline e sete suítes ENet: seis com dois processos
+O runner executa quinze suítes offline e oito suítes ENet: sete com dois processos
 e uma com quatro jogadores reais. A nova
 suíte de sessão cobre prontidão, contagem, mecanismos cooperativos, interrupção,
 recompensas individuais, nova rodada, derrota, reset e troca de classe sem desconexão.
-As portas locais usadas pelos testes são UDP 18081 a 18087.
+As portas locais usadas pelos testes são UDP 18081 a 18088.
+
+`arenas` cobre os três mapas, escolha, prontidão, posições iniciais, colisão,
+navegação do boss, bloqueio durante a luta e troca entre rodadas com progressão.
+`arena_network` verifica entrada tardia, prévias do cliente, rejeição de troca por
+outro jogador e troca seguida imediatamente de início com posições sincronizadas.
 
 A suíte `jefferson_animations` verifica os quadros dos efeitos do Ludo, a sincronia
 com a conjuração, a posição dos impactos, a interrupção e a limpeza dos efeitos.
@@ -379,7 +408,8 @@ mostrar um cenário de **1536 × 864 unidades**. A área navegável aumenta de
 1050 × 370 para **1400 × 500**, aproximadamente 80% mais espaço de movimentação.
 
 `ForestArena.gd` estende o terreno com os tiles existentes, preservando as bordas
-da ilha e as duas árvores nas mesmas posições de colisão. A água continua além
+da ilha. A reforma da clareira move suas duas árvores bloqueantes para a lateral
+e reduz o contraste do centro da luta. A água continua além
 das bordas para preencher janelas com outras proporções. Os limites de movimento,
 as posições seguras do boss e a validação das áreas de magia usam a arena expandida.
 

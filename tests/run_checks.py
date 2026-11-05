@@ -21,6 +21,7 @@ OFFLINE = [
     ('talents_report', 'Talents report failures: 0'),
     ('skill_tooltips', 'Skill tooltip failures: 0'),
     ('arena_view', 'Arena view failures: 0'),
+    ('arenas', 'Arena failures: 0'),
     ('autoattack_resume', 'Autoattack resume failures: 0'),
     ('warrior_animations', 'Warrior animation failures: 0'),
     ('passive_clarity', 'Passive clarity failures: 0'),
@@ -33,6 +34,7 @@ NETWORK = [
     ('warrior_animation_network', 'WARRIOR_ANIMATION'),
     ('passive_network', 'PASSIVE_NETWORK'),
     ('fluid_network', 'FLUID_NETWORK'),
+    ('arena_network', 'ARENA_NETWORK'),
 ]
 
 

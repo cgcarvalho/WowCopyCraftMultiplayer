@@ -22,6 +22,7 @@ func _exit_tree() -> void:
 		uiHanlder.free()
 
 func _ready() -> void:
+	ArenaNavigation.configure($Session.arena_id)
 	multiplayer.peer_disconnected.connect(on_peer_disconnected)
 	multiplayer.peer_connected.connect(func(id): $Session.register_peer(id))
 	multiplayer.connected_to_server.connect(on_connected)
@@ -85,7 +86,7 @@ func add_player(spawn_data: Dictionary) -> Node:
 	player.name = str(id)
 	player.set_multiplayer_authority(id)
 	player.z_index = Constants.PLAYER_Z_INDEX
-	player.position = $Session.SPAWNS[slot] if $Session.running else players.get_node("SpawnPoint" + str(slot)).position
+	player.position = $Session.spawn_positions()[slot] if $Session.running else players.get_node("SpawnPoint" + str(slot)).position
 	MultiplayerManager.playerList[id] = player
 	return player
 
@@ -150,7 +151,16 @@ func loadCharSelectionScreen() -> void:
 func characterSelect(character: Character) -> void:
 	$SessionUI.selecting_class = false
 	request_player.rpc_id(1, character.scenePath)
-	uiHanlder.changeScene(Constants.MAP_FOREST)
+	show_arena()
+
+func show_arena() -> void:
+	if not is_node_ready() or $SessionUI.selecting_class:
+		return
+	var id: String = $Session.arena_id
+	var current = $CurrentMap.get_child(0) if $CurrentMap.get_child_count() > 0 else null
+	if current != null and current.get_meta("arena_id", "") == id:
+		return
+	uiHanlder.changeScene(ArenaCatalog.definition(id).scene)
 
 func leave_session() -> void:
 	MultiplayerManager.reset_session()
