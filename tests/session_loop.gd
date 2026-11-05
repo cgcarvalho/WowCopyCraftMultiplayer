@@ -130,9 +130,10 @@ func run() -> void:
 	check(encounter.danger_visible and warrior.interrupt_remaining == 0, "An out-of-range interrupt is rejected without spending cooldown")
 	encounter.resolve_area()
 	check(warrior.charCurrentLife == hp - 42, "Uninterrupted channel damages living players")
-	check(ArenaNavigation.move(Vector2(740, 185), Vector2(220, 0)).x <= 775, "Fast movement cannot tunnel through a tree")
+	var trunk: Vector2 = ArenaNavigation.obstacles()[0]
+	check(ArenaNavigation.move(trunk - Vector2(110, 0), Vector2(220, 0)).x <= trunk.x - 75, "Fast movement cannot tunnel through a tree")
 	check(ArenaNavigation.allowed(ArenaNavigation.move(Vector2(60, 300), Vector2(-800, 0))), "Player movement remains inside arena bounds")
-	check(ArenaNavigation.move(Vector2(740, 220), Vector2(120, 80)).distance_to(Vector2(740, 220)) > 30, "Player can slide around a trunk")
+	check(ArenaNavigation.move(trunk + Vector2(-110, 35), Vector2(120, 80)).distance_to(trunk + Vector2(-110, 35)) > 30, "Player can slide around a trunk")
 	# Aiming commits a finite, server-validated location only after confirmation.
 	var rain: HeroAbility = HeroAbility.create("arrow_rain")
 	warrior.skillList.append(rain)

@@ -38,9 +38,9 @@ func run() -> void:
 	check(grass.get_used_rect().end.x >= 94 and grass.get_used_rect().end.y >= 54, "Painted ground expands in both dimensions")
 	check(grass.get_cell_source_id(Vector2i(85, 35)) >= 0, "New reachable space has actual terrain underfoot")
 	check(water.get_cell_source_id(Vector2i(-16, -16)) >= 0 and water.get_cell_source_id(Vector2i(110, 65)) >= 0, "Water overscan fills the edges of non-widescreen windows")
-	check(map.get_node("Trees").get_used_cells().size() == 2 and ArenaNavigation.TRUNKS[0] == Vector2(850, 185), "Visual trees keep their existing gameplay collision positions")
-	var point = ArenaNavigation.move(Vector2(1090, 600), Vector2(320, 0))
-	check(point.is_equal_approx(Vector2(1410, 600)) and ArenaNavigation.allowed(point), "Player movement reaches the newly opened side of the arena")
+	check(not map.get_node("Trees").visible and map.has_node("Scenery") and ArenaNavigation.obstacles()[0] == Vector2(1230, 185), "Forest moves its blocking trees to the edges and opens the center")
+	var point = ArenaNavigation.move(Vector2(1090, 400), Vector2(320, 0))
+	check(point.is_equal_approx(Vector2(1410, 400)) and ArenaNavigation.allowed(point), "Player movement reaches the newly opened side through the clear central corridor")
 	check(ArenaNavigation.allowed(ArenaNavigation.move(point, Vector2(5000, 5000))), "Movement still stops at the expanded outer boundary")
 	var boss = encounter.boss
 	check(Jefferson.ARENA.has_point(boss.safe_position(Vector2(1350, 620))), "Boss navigation can use the expanded fighting area")

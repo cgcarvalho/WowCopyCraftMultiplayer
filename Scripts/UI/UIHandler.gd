@@ -38,8 +38,9 @@ func createBuffs(skill : Skill) -> void:
 
 func changeScene(path : String) -> Node:
 	var map = mainNode.get_node("CurrentMap")
-	if map.get_child_count() > 0:
-		map.get_child(0).queue_free()
+	for child in map.get_children():
+		map.remove_child(child)
+		child.queue_free()
 	var newScene = load(path).instantiate()
 	map.add_child(newScene)
 	

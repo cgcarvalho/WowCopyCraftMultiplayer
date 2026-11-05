@@ -1,6 +1,5 @@
 extends Node
 
-const SPAWNS = [Vector2(180, 420), Vector2(180, 250), Vector2(350, 420), Vector2(350, 250)]
 const UPGRADE_NAMES = {"offense": "Poder crescente", "endurance": "Vigor renovado", "mastery": "Maestria"}
 const UPGRADE_DESCRIPTIONS = {
 	"offense": "+12% de dano em ataques e habilidades.",
@@ -15,16 +14,27 @@ const UPGRADE_DESCRIPTIONS = {
 @export var countdown = 0.0
 @export var revision = 0
 @export var transitioning = false
+@export var arena_id = "forest":
+	set(value):
+		if not ArenaCatalog.ARENAS.has(value):
+			return
+		arena_id = value
+		ArenaNavigation.configure(value)
+		if is_node_ready() and get_parent().is_node_ready() and running:
+			get_parent().show_arena()
 @export var report: Dictionary = {}
 var combat_report = BattleReport.new()
 @onready var main = get_parent()
 
 func _ready() -> void:
 	var config = SceneReplicationConfig.new()
-	for property in ["running", "stage", "roster", "upgrades", "round_index", "countdown", "revision", "transitioning"]:
+	for property in ["running", "stage", "roster", "upgrades", "round_index", "countdown", "revision", "transitioning", "arena_id"]:
 		var path = NodePath(".:" + property)
 		config.add_property(path)
-		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
+		config.property_set_spawn(path, true)
+		# Layout changes use reliable delivery, ordered with the round reset RPC.
+		var mode = SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE if property == "arena_id" else SceneReplicationConfig.REPLICATION_MODE_ALWAYS
+		config.property_set_replication_mode(path, mode)
 	var sync = MultiplayerSynchronizer.new()
 	sync.name = "SessionSynchronizer"
 	sync.replication_config = config
@@ -34,6 +44,21 @@ func _ready() -> void:
 func sender_id() -> int:
 	var remote = multiplayer.get_remote_sender_id()
 	return remote if remote != 0 else multiplayer.get_unique_id()
+
+func spawn_positions() -> Array:
+	return ArenaCatalog.definition(arena_id).spawns
+
+@rpc("any_peer", "call_local", "reliable")
+func select_arena(id: String) -> void:
+	if not multiplayer.is_server() or sender_id() != 1 or not running or transitioning:
+		return
+	if stage not in ["lobby", "victory", "defeat"] or not ArenaCatalog.ARENAS.has(id) or id == arena_id:
+		return
+	arena_id = id
+	if stage == "lobby":
+		for member in roster.values():
+			member.ready = false
+	revision += 1
 
 func open_lobby() -> void:
 	if not multiplayer.is_server():
@@ -205,15 +230,17 @@ func prepare_round() -> void:
 	var positions: Dictionary = {}
 	var talents_by_peer: Dictionary = {}
 	for id in MultiplayerManager.playerList:
-		positions[id] = SPAWNS[main.used_slots.get(id, 0)]
+		positions[id] = spawn_positions()[main.used_slots.get(id, 0)]
 		talents_by_peer[id] = roster[id].get("talents", {})
 	report = {}
 	combat_report.begin(roster)
-	reset_round.rpc(round_index, positions, upgrades, talents_by_peer)
+	reset_round.rpc(round_index, positions, upgrades, talents_by_peer, arena_id)
 	revision += 1
 
 @rpc("authority", "call_local", "reliable")
-func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents_by_peer: Dictionary = {}) -> void:
+func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents_by_peer: Dictionary = {}, selected_arena: String = "") -> void:
+	if ArenaCatalog.ARENAS.has(selected_arena):
+		arena_id = selected_arena
 	report = {}
 	main.get_node("SkillHandler").reset_combat()
 	main.get_node("CombatPreview").cancel()
@@ -222,7 +249,7 @@ func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents
 	main.get_node("BossEncounter").reset_encounter(index)
 	for id in MultiplayerManager.playerList:
 		var hero = MultiplayerManager.playerList[id]
-		hero.reset_for_round(positions.get(id, SPAWNS[0]), choices.get(id, {}), talents_by_peer.get(id, {}))
+		hero.reset_for_round(positions.get(id, spawn_positions()[0]), choices.get(id, {}), talents_by_peer.get(id, {}))
 	var local = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
 	if is_instance_valid(local):
 		local.ui_handler.showPlayerHPBar(local, true)

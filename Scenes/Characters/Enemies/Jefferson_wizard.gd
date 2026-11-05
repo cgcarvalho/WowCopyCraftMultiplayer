@@ -11,7 +11,6 @@ const MELEE_INTERVAL = 1.6
 const VISUAL_HEIGHT = 630.0
 const VISUAL_SCALE = VISUAL_HEIGHT / 420.0
 const ARENA = ArenaNavigation.BOSS_BOUNDS
-const TREE_CENTERS = ArenaNavigation.TRUNKS
 var attack_cooldown = 0.0
 var velocity = Vector2.ZERO
 @export var facing_left = false
@@ -143,7 +142,7 @@ func predict_target(player: Character) -> Vector2:
 
 func safe_position(point: Vector2) -> Vector2:
 	var result = point.clamp(ARENA.position, ARENA.end)
-	for center in TREE_CENTERS:
+	for center in ArenaNavigation.obstacles():
 		var away = result - center
 		if away.length() < 118:
 			var projected = center + (away.normalized() if away.length() > 0.1 else Vector2.LEFT) * 118
@@ -185,8 +184,8 @@ func desired_velocity(target: Character) -> Vector2:
 		desired = -direction
 	else:
 		desired = direction.orthogonal() * (1.0 if int(movement_time / 4.0) % 2 == 0 else -1.0) * 0.7
-	# Steer around the two map trees; avoid walking through their visible trunks.
-	for center in TREE_CENTERS:
+	# Steer around the blockers declared by the selected arena.
+	for center in ArenaNavigation.obstacles():
 		var ahead = global_position + desired * 90
 		if ahead.distance_to(center) < 140:
 			var outward = (global_position - center).normalized()
