@@ -33,6 +33,12 @@ const WARNINGS = {"rupture": 2.0, "volley": 1.0, "lance": 1.6, "blink": 1.1, "wa
 @export var mechanic_targets: Array = []
 @export var speech = ""
 @export var speech_remaining = 0.0
+@export var conductor_health := Vector2i.ZERO:
+	set(value):
+		conductor_health = value
+		if is_node_ready():
+			for index in conductors.size():
+				conductors[index].apply_health(value[index])
 var completed_spells = 0
 var last_phase = 1
 const QUOTES = {
@@ -42,6 +48,7 @@ const QUOTES = {
 	"channel": "Silenciem-me... se forem capazes!"
 }
 @onready var boss: Jefferson = $"-1"
+@onready var conductors: Array[RunicConductor] = [$"-2", $"-3"]
 var area_cooldown = AREA_INTERVAL
 var opening_delay = 3.0
 var health_bar: ProgressBar
@@ -54,6 +61,9 @@ var projectile_id = 0
 var mechanic_candidates: Array[int] = []
 
 func _ready() -> void:
+	for index in conductors.size():
+		conductors[index].position = ArenaCatalog.ARENAS.ruins.conductors[index]
+		conductors[index].apply_health(conductor_health[index])
 	var layer = CanvasLayer.new()
 	add_child(layer)
 	health_bar = ProgressBar.new()
@@ -80,6 +90,24 @@ func living_players() -> Array[Character]:
 func ready_spell(kind: String) -> bool:
 	return float(spell_cooldowns.get(kind, 0)) <= 0
 
+func uses_runic_conductors() -> bool:
+	return ArenaNavigation.arena_id == "ruins"
+
+func has_runic_conductors() -> bool:
+	return conductor_health != Vector2i.ZERO
+
+func minimum_boss_life() -> int:
+	if status == "active" and uses_runic_conductors() and (not ward_used or has_runic_conductors()):
+		return boss.charTotalLife / 2
+	return 0
+
+func conductor_damaged(conductor: RunicConductor) -> void:
+	var health = conductor_health
+	health[conductors.find(conductor)] = conductor.charCurrentLife
+	conductor_health = health
+	if not has_runic_conductors():
+		announce.rpc("Égide quebrada! Ataquem Jefferson.", "interrupt")
+
 func select_spell() -> String:
 	var players = living_players()
 	var target = boss.choose_target()
@@ -89,7 +117,7 @@ func select_spell() -> String:
 		return "ward"
 	var session = get_parent().get_node("Session")
 	if session.running:
-		if phase == 2 and completed_spells % 3 == 2 and ready_spell("channel"):
+		if phase == 2 and not has_runic_conductors() and completed_spells % 3 == 2 and ready_spell("channel"):
 			return "channel"
 		if players.size() > 1:
 			if completed_spells % 4 == 1 and ready_spell("bond"):
@@ -139,6 +167,8 @@ func _physics_process(delta: float) -> void:
 	if phase != last_phase:
 		last_phase = phase
 		announce.rpc("Chega de jogos. Conheçam meu verdadeiro poder!", "phase")
+		if uses_runic_conductors():
+			opening_delay = 0.0
 	if danger_visible and spell_kind == "bond" and not mechanic_targets.is_empty():
 		var marked = MultiplayerManager.get_character(int(mechanic_targets[0]))
 		if is_instance_valid(marked) and marked.charCurrentLife > 0:
@@ -156,7 +186,7 @@ func _physics_process(delta: float) -> void:
 			resolve_area()
 	else:
 		area_cooldown -= delta
-		if area_cooldown <= 0:
+		if area_cooldown <= 0 or (phase == 2 and not ward_used and uses_runic_conductors()):
 			var selected = select_spell()
 			if not selected.is_empty():
 				begin_spell(selected)
@@ -262,7 +292,12 @@ func resolve_area() -> void:
 				boss.global_position = danger_position
 				boss.velocity = Vector2.ZERO
 			"ward":
-				boss.apply_shield(50)
+				if uses_runic_conductors():
+					var second = RunicConductor.MAX_HEALTH if living_players().size() >= 3 else 0
+					conductor_health = Vector2i(RunicConductor.MAX_HEALTH, second)
+					announce.rpc("A força das runas me protege!", "shield")
+				else:
+					boss.apply_shield(50)
 				ward_used = true
 	visual_kind = spell_kind
 	visual_origin = danger_origin
@@ -321,6 +356,8 @@ func finish(result: String) -> void:
 	clear_effects()
 
 func clear_effects() -> void:
+	if multiplayer.is_server():
+		conductor_health = Vector2i.ZERO
 	for node in get_parent().get_children():
 		if node is Skill or node is CombatProjectile:
 			node.queue_free()
@@ -339,7 +376,9 @@ func _process(_delta: float) -> void:
 	health_bar.value = boss.charCurrentLife
 	message.visible = status != "waiting"
 	var caption = "Jefferson • Fase %d" % phase
-	if boss.charShield > 0:
+	if has_runic_conductors():
+		caption += " • Égide ligada\nDestruam os condutores rúnicos"
+	elif boss.charShield > 0:
 		caption += " • Escudo %d" % boss.charShield
 	match status:
 		"victory": message.text = "Vitória! Jefferson foi derrotado."

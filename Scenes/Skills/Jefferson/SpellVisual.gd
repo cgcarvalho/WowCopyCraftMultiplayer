@@ -88,8 +88,11 @@ func sprite(clip: String, point: Vector2, size: Vector2, progress: float, angle:
 func _draw() -> void:
 	if not active_visuals():
 		return
-	if encounter.boss.charShield > 0:
+	if encounter.boss.charShield > 0 or encounter.has_runic_conductors():
 		sprite("sigil", encounter.boss.global_position, Vector2(300, 340) * Jefferson.VISUAL_SCALE, loop_progress("sigil", animation_time), animation_time * 0.35, Color(1, 1, 1, 0.65))
+	for conductor in encounter.conductors:
+		if conductor.charCurrentLife > 0:
+			draw_line(to_local(encounter.boss.global_position), to_local(conductor.global_position), Color(0.80, 0.62, 1.0, 0.45), 3, true)
 	if encounter.danger_visible:
 		draw_warning()
 		var progress = warning_progress()

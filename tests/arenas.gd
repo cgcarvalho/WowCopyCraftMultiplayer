@@ -78,9 +78,64 @@ func run() -> void:
 	session.select_arena("../../unexpected")
 	check(session.arena_id == current, "Unknown arena identifiers are rejected")
 	check(ArenaNavigation.move(Vector2(800, 400), Vector2(300, 0)).is_equal_approx(Vector2(1100, 400)), "Glacial center has no invisible forest blockers")
+	await check_runic_ward(main, hero)
 	get_tree().current_scene = self
 	main.queue_free()
 	await get_tree().process_frame
 	await get_tree().create_timer(1).timeout
 	print("Arena failures: ", failures)
 	get_tree().quit(1 if failures else 0)
+
+func check_runic_ward(main: Node, hero: Character) -> void:
+	var session = main.get_node("Session")
+	var encounter = main.get_node("BossEncounter")
+	var boss: Jefferson = encounter.boss
+	var preview = main.get_node("CombatPreview")
+	session.upgrades.clear()
+	session.select_arena("ruins")
+	session.set_ready(true)
+	session.start_match()
+	session._physics_process(3.1)
+	hero.charCritChance = 0
+	var floor_hp = boss.charTotalLife / 2
+	boss.deal_damage(boss.charTotalLife * 2, hero)
+	boss.deal_damage(20, hero)
+	check(boss.charCurrentLife == floor_hp and session.combat_report.rows[1].damage == boss.charTotalLife - floor_hp, "Burst damage stops at phase two and only actual damage is scored")
+	encounter._physics_process(0.1)
+	check(encounter.danger_visible and encounter.spell_kind == "ward", "Ruins prepare the ward as soon as phase two begins")
+	encounter.resolve_area()
+	var conductor: RunicConductor = MultiplayerManager.get_character(-2)
+	check(is_instance_valid(conductor) and MultiplayerManager.get_character(-3) == null, "Solo Ruins spawn exactly one conductor")
+	if not is_instance_valid(conductor):
+		return
+	hero.position = conductor.position - Vector2(100, 0)
+	preview.cycle_target()
+	check(hero.charCurrentTarget == conductor and ArenaNavigation.allowed(conductor.position), "The rune can be targeted by Tab from open ground")
+	preview.select_target(boss)
+	var click = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	conductor._input_event(get_viewport(), click, 0)
+	check(conductor.input_pickable and hero.charCurrentTarget == conductor, "Clicking the conductor selects it through the normal target flow")
+	boss.deal_damage(30, hero)
+	check(boss.charCurrentLife == floor_hp, "The linked ward prevents damage to Jefferson")
+	conductor.deal_damage(RunicConductor.MAX_HEALTH, hero)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(not encounter.has_runic_conductors() and MultiplayerManager.get_character(-2) == null and hero.charCurrentTarget == null, "Destroying the final conductor removes the ward and clears the dead target")
+	boss.deal_damage(30, hero)
+	check(boss.charCurrentLife == floor_hp - 30, "Jefferson takes damage again after the last conductor falls")
+	encounter.finish("defeat")
+	session.retry()
+	session._physics_process(3.1)
+	boss.deal_damage(boss.charTotalLife, hero)
+	encounter._physics_process(0.1)
+	encounter.resolve_area()
+	check(conductor.charCurrentLife == RunicConductor.MAX_HEALTH, "The next attempt restores the conductor at full health")
+	encounter.finish("defeat")
+	check(not conductor.visible and not conductor.input_pickable and MultiplayerManager.get_character(-2) == null, "A defeat removes live runes and their collision targets")
+	session.select_arena("glacier")
+	session.retry()
+	session._physics_process(3.1)
+	boss.deal_damage(boss.charTotalLife, hero)
+	check(boss.charCurrentLife == 0 and not encounter.has_runic_conductors(), "Switching arenas keeps the original unlinked fight")

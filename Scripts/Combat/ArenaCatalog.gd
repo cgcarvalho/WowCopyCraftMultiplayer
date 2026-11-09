@@ -15,12 +15,13 @@ const ARENAS = {
 	},
 	"ruins": {
 		"name": "Ruínas Arcanas",
-		"description": "Pedras nos flancos · Corredor central livre",
+		"description": "Pedras nos flancos · Condutores na fase 2",
 		"scene": "res://Scenes/Maps/MapRuins.tscn",
 		"floor": "res://Art/Terrain/Arenas/Ruins.png",
 		"color": Color("465460"), "rim": Color("a39978"), "outside": Color("202d37"),
 		"obstacles": [Vector2(580, 185), Vector2(1100, 185), Vector2(580, 595), Vector2(1100, 595)],
 		"spawns": [Vector2(180, 300), Vector2(180, 480), Vector2(340, 300), Vector2(340, 480)],
+		"conductors": [Vector2(830, 298), Vector2(830, 482)],
 		"boss": Vector2(1080, 390)
 	},
 	"glacier": {

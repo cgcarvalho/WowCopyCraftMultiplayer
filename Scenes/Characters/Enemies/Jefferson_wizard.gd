@@ -112,6 +112,9 @@ func choose_target() -> Character:
 			return charCurrentTarget
 	return best
 
+func minimum_life_after_damage() -> int:
+	return get_parent().minimum_boss_life()
+
 func deal_damage(damage: int, source: Character = null, periodic: bool = false, skill_multiplier: float = 1.0) -> void:
 	var before = charCurrentLife + charShield
 	super.deal_damage(damage, source, periodic, skill_multiplier)

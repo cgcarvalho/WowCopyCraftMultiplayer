@@ -8,6 +8,7 @@ var ui_handler: UIHandler
 var isCrit : bool = false
 @export var speed = 5.0
 var portraitImagePath : String
+var portrait_icon: Texture2D
 var scenePath : String
 var charTeam : Teams = Teams.BLUE
 
@@ -163,6 +164,9 @@ func battle_report() -> BattleReport:
 	var session = scene.get_node_or_null("Session") if scene != null else null
 	return session.combat_report if session != null and session.running and session.stage == "active" else null
 
+func minimum_life_after_damage() -> int:
+	return 0
+
 func deal_damage(damage: int, source: Character = null, periodic: bool = false, skill_multiplier: float = 1.0) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or damage <= 0 or spectator:
 		return
@@ -180,6 +184,9 @@ func deal_damage(damage: int, source: Character = null, periodic: bool = false, 
 	charShield -= absorbed
 	damage -= absorbed
 	var before = charCurrentLife
+	var life_floor = minimum_life_after_damage()
+	if life_floor > 0:
+		damage = mini(damage, maxi(0, before - life_floor))
 	charCurrentLife -= damage
 	var report = battle_report()
 	if report != null:

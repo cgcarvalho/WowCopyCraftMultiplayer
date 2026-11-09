@@ -44,7 +44,15 @@ def validate(output, marker):
     return len(re.findall(r'^PASS:', output, re.M))
 
 
-def network(godot, scene, prefix, clients=1):
+def wait_for_server(server, log, marker):
+    deadline = time.monotonic() + 15
+    while marker not in log.read_text(errors='replace'):
+        if server.poll() is not None or time.monotonic() > deadline:
+            raise RuntimeError(log.read_text(errors='replace'))
+        time.sleep(.1)
+
+
+def network(godot, scene, prefix, clients=1, late_client_marker=None):
     processes = []
     with tempfile.TemporaryDirectory(prefix='wowcopycraft-tests-') as directory:
         sides = ['client'] if clients == 1 else [f'client{i}' for i in range(1, clients + 1)]
@@ -54,12 +62,10 @@ def network(godot, scene, prefix, clients=1):
             with logs['server'].open('w') as so:
                 server = subprocess.Popen(base + ['--server'], stdout=so, stderr=subprocess.STDOUT)
                 processes.append(server)
-                deadline = time.monotonic() + 15
-                while f'{prefix}_SERVER_READY' not in logs['server'].read_text(errors='replace'):
-                    if server.poll() is not None or time.monotonic() > deadline:
-                        raise RuntimeError(logs['server'].read_text(errors='replace'))
-                    time.sleep(.1)
+                wait_for_server(server, logs['server'], f'{prefix}_SERVER_READY')
                 for index, side in enumerate(sides, 1):
+                    if late_client_marker and index == clients:
+                        wait_for_server(server, logs['server'], late_client_marker)
                     with logs[side].open('w') as co:
                         extra = [f'--slot={index}'] if clients > 1 else []
                         client = subprocess.Popen(base + ['--client', *extra], stdout=co, stderr=subprocess.STDOUT)
@@ -73,7 +79,8 @@ def network(godot, scene, prefix, clients=1):
             return count
         except (RuntimeError, subprocess.TimeoutExpired):
             for side, path in logs.items():
-                print(f'{side}:\n{path.read_text(errors="replace")}')
+                if path.exists():
+                    print(f'{side}:\n{path.read_text(errors="replace")}')
             raise
         finally:
             for process in processes:
@@ -103,6 +110,8 @@ def main():
         for scene, prefix in NETWORK:
             total += network(args.godot, scene, prefix)
         total += network(args.godot, 'party_report_network', 'PARTY_REPORT', clients=3)
+        total += network(args.godot, 'conductors_network', 'RUNES_NETWORK', clients=3,
+                         late_client_marker='RUNES_NETWORK_LATE_READY')
     print(f'Total: {total} checks passed')
 
 

@@ -56,7 +56,7 @@ Durante a contagem e a luta, a escolha fica bloqueada.
 | Arena | Terreno e movimentação |
 | --- | --- |
 | Clareira Verdejante | Ilha original reformada, piso com menos contraste, trilha discreta, decoração nas margens e duas árvores bloqueantes deslocadas para a lateral direita. |
-| Ruínas Arcanas | Piso de pedra gerado no Ludo.ai e quatro blocos nos flancos; o corredor central fica livre. |
+| Ruínas Arcanas | Piso de pedra gerado no Ludo.ai, quatro blocos nos flancos e Condutores Rúnicos na fase 2 de Jefferson. |
 | Santuário Glacial | Piso gelado gerado no Ludo.ai, quatro posições próprias para o grupo e nenhum obstáculo dentro do campo de luta. Não altera a velocidade nem causa deslizamento. |
 
 Todas usam o mesmo enquadramento e limites de combate. Cada arena define suas
@@ -90,10 +90,16 @@ e IA do boss usam a mesma lista de obstáculos definida por mapa.
 | Orbes do Vazio | Direções em leque por 1 s | Três projéteis esquiváveis, 12 de dano cada; cinco na fase 2. |
 | Lança Arcana | Faixa azul por 1,6 s | 22 de dano na linha; a mira não acompanha o jogador após o aviso. |
 | Passo Astral | Portais de origem e destino por 1,1 s | Reposicionamento para longe de jogadores próximos, sem dano. |
-| Égide Rúnica | Runas por 1,3 s | Escudo de 50, usado uma vez na transição de fase. |
+| Égide Rúnica | Runas por 1,3 s | Escudo de 50 na transição de fase. Nas Ruínas Arcanas, a proteção termina ao destruir os Condutores Rúnicos. |
 | Vínculo Astral | Círculo dourado acompanha o marcado por 3 s | 48 de dano dividido entre jogadores dentro de raio 130. Agrupe-se. |
 | Marcas do Caos | Círculos vermelhos acompanham jogadores por 3 s | Cada marca causa 18 em raio 95; sobreposição multiplica os impactos. Afaste-se. |
 | Cataclismo Arcano | Canalização de 4 s na fase 2 | 42 em todo o grupo, evitado com interrupção F. |
+
+Nas Ruínas Arcanas, a vida de Jefferson para em 50% enquanto a Égide estiver
+ligada. A conjuração ativa um condutor se houver até dois jogadores vivos ou
+dois se houver três ou quatro. Selecione os condutores com clique ou Tab e
+destrua todos para voltar a causar dano a Jefferson. O Cataclismo fica suspenso
+enquanto houver condutores ativos.
 
 A primeira fase tem 6 s de recuperação entre conjurações, além de seus avisos.
 Abaixo ou exatamente em **50% da vida**, a fase 2 acelera o movimento, reduz a
