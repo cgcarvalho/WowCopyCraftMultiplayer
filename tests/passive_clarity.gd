@@ -70,7 +70,7 @@ func run() -> void:
 	boss.charCritChance = 0
 	boss.position = Vector2(480, 300)
 	handler = main.get_node("SkillHandler")
-	for hero_name in ["Aurora", "SirGura", "Charger", "Lulu"]:
+	for hero_name in ["Aurora", "SirGura", "Charger", "Lulu", "Teo"]:
 		var hero = spawn(hero_name)
 		var info = ClassPassives.definition(hero.charClass)
 		check(info.name != "Sem passiva" and not info.summary.is_empty() and not info.description.is_empty(), hero_name + " has a named passive with a visible summary and full explanation")
@@ -172,7 +172,7 @@ func run() -> void:
 	var selection = load("res://Scenes/Components/PlayerSelect/PlayerSelect.tscn").instantiate()
 	main.add_child(selection)
 	var panels = panels_in(selection)
-	check(panels.size() == 4, "Character selection shows a separate visible passive panel for every hero")
+	check(panels.size() == 5, "Character selection shows a separate visible passive panel for every hero")
 	for panel in panels:
 		var info = ClassPassives.definition(panel.hero.charClass)
 		check(panel.selection and panel.title.text.contains("PASSIVA") and panel.detail.text == info.summary and not panel.progress.visible, panel.hero.charName + " selection shows the passive independently of active skills")

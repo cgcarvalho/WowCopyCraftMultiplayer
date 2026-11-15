@@ -35,6 +35,9 @@ func targeting() -> TargetMode:
 		return TargetMode.GROUND
 	return TargetMode.ENEMY
 
+func cast_requirement(_caster: Character, _ground: Vector2 = Vector2.INF) -> String:
+	return ""
+
 func _enter_tree() -> void:
 	z_index = Constants.SKILL_Z_INDEX
 
@@ -64,5 +67,5 @@ func cast_description() -> String:
 
 func tooltip_summary(hotkey: String) -> String:
 	var heading = skillName + (" · ULTIMATE" if is_ultimate else "")
-	var reach = "Você" if targeting() == TargetMode.SELF else "%d" % int(cast_range)
+	var reach = "Você" if targeting() == TargetMode.SELF and cast_range <= 0 else "%d" % int(cast_range)
 	return "%s [%s]\n%s%s\n\n%s: %d · Recarga: %.1f s\nConjuração: %s · Alcance: %s\nAlvo: %s" % [heading, hotkey, description, talent_description, cost_label, skillManaCost, skillCoolDownTime * cooldown_scale, cast_description(), reach, target_description()]

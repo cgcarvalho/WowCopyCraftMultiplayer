@@ -6,7 +6,8 @@ const ROLES = {
 	"Warlock": "Sombras, maldições e explosão de DoTs",
 	"Warrior": "Combate corpo a corpo e resistência",
 	"Paladin": "Cura, proteção e áreas sagradas",
-	"Hunter": "Flechas à distância, veneno e ataques em área"
+	"Hunter": "Flechas à distância, veneno e ataques em área",
+	"Engineer": "Rebites, dispositivos e dano em área"
 }
 
 func text_label(text: String, font_size: int, color = Color.WHITE) -> Label:
@@ -39,13 +40,13 @@ func _ready() -> void:
 	center.add_child(content)
 	content.add_child(text_label("ESCOLHA SEU PERSONAGEM", 26, Color("ffe299")))
 	var cards = HBoxContainer.new()
-	cards.add_theme_constant_override("separation", 14)
+	cards.add_theme_constant_override("separation", 12)
 	content.add_child(cards)
-	charList = [Aurora.new(), SirGura.new(), Charger.new(), Lulu.new()]
+	charList = [Aurora.new(), SirGura.new(), Charger.new(), Lulu.new(), Engineer.new()]
 	for character in charList:
 		character._enter_tree()
 		var panel = PanelContainer.new()
-		panel.custom_minimum_size.x = 236
+		panel.custom_minimum_size.x = 208
 		var box = StyleBoxFlat.new()
 		box.bg_color = Color("1b2435")
 		box.set_corner_radius_all(12)
@@ -59,15 +60,16 @@ func _ready() -> void:
 		column.add_theme_constant_override("separation", 8)
 		panel.add_child(column)
 		column.add_child(text_label(character.charName, 22))
-		column.add_child(text_label(character.charClass, 17, Color("ffe299")))
+		var class_name_text = "Engenheiro de Campo" if character is Engineer else character.charClass
+		column.add_child(text_label(class_name_text, 17, Color("ffe299")))
 		var portrait = TextureRect.new()
 		portrait.texture = load(character.portraitImagePath)
-		portrait.custom_minimum_size = Vector2(212, 96)
+		portrait.custom_minimum_size = Vector2(184, 96)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		column.add_child(portrait)
 		var role = text_label(ROLES[character.charClass], 14, Color("bdc7dc"))
-		role.custom_minimum_size = Vector2(212, 36)
+		role.custom_minimum_size = Vector2(184, 36)
 		role.mouse_filter = Control.MOUSE_FILTER_STOP
 		role.tooltip_text = "Recurso: " + character.resource_name
 		column.add_child(role)

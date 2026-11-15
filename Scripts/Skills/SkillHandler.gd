@@ -60,7 +60,7 @@ func cast_result(caster_id: int, path: String, accepted: bool, duration: float, 
 		CombatFeedback.play_sound("cast")
 
 func valid_ground(template: Skill, caster: Character, point: Vector2) -> bool:
-	return template.targeting() == Skill.TargetMode.GROUND and point.is_finite() and ArenaNavigation.BOUNDS.has_point(point) and caster.global_position.distance_to(point) <= template.cast_range
+	return template.targeting() == Skill.TargetMode.GROUND and point.is_finite() and ArenaNavigation.BOUNDS.has_point(point) and caster.global_position.distance_to(point) <= template.cast_range and template.cast_requirement(caster, point).is_empty()
 
 @rpc("any_peer", "call_local", "reliable")
 func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int, ground: Vector2 = Vector2.INF) -> void:
@@ -84,7 +84,7 @@ func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int, grou
 	var now = Time.get_ticks_msec()
 	var player_cooldowns: Dictionary = cooldowns.get(idCasterChar, {})
 	var proc = caster.shadow_bolt_ready and proc_ready.get(idCasterChar, "") == filePath
-	if not valid_target(template, caster, target) or (not proc and now < player_cooldowns.get(filePath, 0)) or caster.charCurrentMana < template.skillManaCost:
+	if not valid_target(template, caster, target) or (not proc and now < player_cooldowns.get(filePath, 0)) or caster.charCurrentMana < template.skillManaCost or not template.cast_requirement(caster, ground).is_empty():
 		cast_result.rpc(idCasterChar, filePath, false, 0.0, 0.0)
 		return
 	var cooldown = template.skillCoolDownTime * caster.cooldown_multiplier
@@ -113,7 +113,7 @@ func loadSkillScene(filePath: String, idCasterChar: int, idTargetChar: int, grou
 		return
 	if caster.charCurrentLife <= 0 or not valid_target(template, caster, target):
 		return
-	if explicit_ground and not valid_ground(template, caster, ground):
+	if (explicit_ground and not valid_ground(template, caster, ground)) or not template.cast_requirement(caster, ground).is_empty():
 		return
 	if template is DamageOverTime:
 		for effect in target.debuffList:

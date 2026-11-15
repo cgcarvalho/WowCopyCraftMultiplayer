@@ -27,6 +27,9 @@ static func definition(hero_class: String, talents: Dictionary = {}) -> Dictiona
 			var bonus = STEADY_TALENT_DAMAGE if TalentTree.has(talents, "marksman", 3) else STEADY_DAMAGE
 			return {"name": "Mira firme", "summary": "Fique parada por %.0fs para ganhar +%d%% de dano. Mover remove o bônus." % [STEADY_SECONDS, roundi(bonus * 100)],
 				"description": "Após %.0fs sem se mover, Lulu causa +%d%% em todo o dano, incluindo habilidades e veneno. Mover remove o bônus e reinicia a preparação. O talento Precisão absoluta aumenta o bônus para +%d%%." % [STEADY_SECONDS, roundi(bonus * 100), roundi(STEADY_TALENT_DAMAGE * 100)]}
+		"Engineer":
+			return {"name": "Circuito Fechado", "summary": "3 básicos dentro da Baliza: mais 14 de dano e 5 de Pressão.",
+				"description": "Cada ataque básico que acerta um inimigo dentro da sua Baliza ganha um acúmulo. O terceiro acerto causa mais 14 de dano e gera mais 5 de Pressão. O contador zera ao disparar Circuito Fechado, trocar a Baliza ou quando ela expira."}
 	return {"name": "Sem passiva", "summary": "Este personagem não possui passiva.", "description": "Este personagem não possui passiva."}
 
 static func state(hero) -> Dictionary:
@@ -44,4 +47,8 @@ static func state(hero) -> Dictionary:
 			var ready = hero.steady_time >= STEADY_SECONDS
 			var bonus = STEADY_TALENT_DAMAGE if TalentTree.has(hero.talents, "marksman", 3) else STEADY_DAMAGE
 			return {"text": "ATIVA · +%d%% de dano · mover remove o bônus" % roundi(bonus * 100) if ready else "Preparando · %.1f/%.0fs sem mover" % [hero.steady_time, STEADY_SECONDS], "value": clampf(hero.steady_time / STEADY_SECONDS, 0, 1), "active": ready}
+		"Engineer":
+			if hero.beacon_remaining <= 0:
+				return {"text": "Instale uma Baliza · tecla 2", "value": 0.0, "active": false}
+			return {"text": "%d/3 acertos · Baliza %.1fs" % [hero.circuit_hits, hero.beacon_remaining], "value": hero.circuit_hits / 3.0, "active": true}
 	return {"text": "Sem passiva", "value": 0.0, "active": false}

@@ -42,6 +42,16 @@ const TREES = {
 			["Disparo penetrante", "+25% de dano de Aimed Shot."],
 			["Preparação ágil", "Aimed Shot: preparação reduzida de 1s para 0,7s."],
 			["Precisão absoluta", "Mira firme concede +25% de dano, em vez de +15%."]]}
+	},
+	"Engineer": {
+		"workshop": {"name": "Oficina", "nodes": [
+			["Motor quente", "Tiro de Rebite gera 24 de Pressão dentro da sua Baliza, em vez de 18."],
+			["Trinca de campo", "Estouro de Válvula dentro da Baliza atinge o inimigo mais próximo fora da explosão a até 200 do centro por mais 10."],
+			["Forno contínuo", "Sobrecarga causa 16 por pulso em raio 135, em vez de 12 em raio 175."]]},
+		"safeguard": {"name": "Salvaguarda", "nodes": [
+			["Sinal portátil", "Baliza de Campo custa 0 de Pressão e dura 6 s em vez de 10 s."],
+			["Válvula de segurança", "Estouro de Válvula dentro da Baliza causa 23 de dano e concede 10 de escudo por 3 s aos aliados na área."],
+			["Rede de emergência", "Sobrecarga causa 10 por pulso e concede 6 de escudo por 3 s no primeiro e no último pulso."]]}
 	}
 }
 
@@ -87,6 +97,11 @@ static func configure_skill(skill: Skill, choices: Dictionary) -> void:
 			skill.skillDotSeconds = 10
 		if skill.ability_id == "consecration" and has(choices, "bulwark", 2):
 			skill.data.radius = 185
+		if skill.ability_id == "field_beacon" and has(choices, "safeguard", 1):
+			skill.skillManaCost = 0
+			skill.data.duration = 6
+		if skill.ability_id == "overload" and has(choices, "workshop", 3):
+			skill.data.radius = 135
 	# Each tooltip lists only the selected effects that can affect this skill.
 	var effects = PackedStringArray()
 	var hero_class = ""

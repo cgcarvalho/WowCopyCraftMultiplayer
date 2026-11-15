@@ -27,6 +27,10 @@ const DEFINITIONS = {
 	"poison_arrow": {"name": "Poison Arrow", "cd": 10, "mana": 20, "cast": 0, "mode": "ENEMY", "range": 700, "power": 8, "radius": 0, "duration": 8, "color": "a7ef70", "description": "Flecha: 8 de dano inicial + 4/s por 8s. Reaplicar renova o veneno do mesmo arqueiro."},
 	"multishot": {"name": "Multi-Shot", "cd": 9, "mana": 30, "cast": 0, "mode": "ENEMY", "range": 700, "power": 18, "radius": 210, "duration": 0, "color": "92deae", "description": "Dispara em até 3 inimigos próximos do alvo; 18 de dano por flecha."},
 	"arrow_rain": {"name": "Arrow Rain", "cd": 60, "mana": 60, "cast": 0.6, "mode": "GROUND", "range": 700, "power": 12, "radius": 185, "duration": 7, "color": "92deae", "description": "Escolha uma área no chão: 12 de dano/s por 7s. Clique confirma; Esc cancela."},
+	"rivet_shot": {"name": "Tiro de Rebite", "cd": 5, "mana": 0, "cast": 0.35, "mode": "ENEMY", "range": 590, "power": 16, "radius": 0, "duration": 0, "color": "ffb46d", "description": "Dispara um rebite que causa 16 de dano e gera 18 de Pressão ao acertar."},
+	"field_beacon": {"name": "Baliza de Campo", "cd": 12, "mana": 20, "cast": 0, "mode": "GROUND", "range": 480, "power": 0, "radius": 165, "duration": 10, "color": "ffa965", "description": "Instala uma Baliza por 10 s. Seus ataques básicos que acertam dentro do raio 165 carregam Circuito Fechado. Uma Baliza ativa por Téo."},
+	"valve_burst": {"name": "Estouro de Válvula", "cd": 9, "mana": 28, "cast": 0.45, "mode": "GROUND", "range": 480, "power": 23, "radius": 125, "duration": 0, "color": "ffd090", "description": "Causa 23 de dano em raio 125. Se o centro estiver na sua Baliza no impacto, causa 31."},
+	"overload": {"name": "Sobrecarga", "cd": 60, "mana": 60, "cast": 0.55, "mode": "SELF", "range": 480, "power": 12, "radius": 175, "duration": 5, "color": "ffa965", "description": "Requer sua Baliza ativa a até 480. Ativa uma área de raio 175 por 5 s com quatro pulsos de 12 de dano."},
 }
 
 static func create(id: String) -> Skill:
@@ -51,7 +55,7 @@ func configure(id: String) -> void:
 	description = data.description
 	cast_range = data.range
 	target_mode = TargetMode[data.mode]
-	is_ultimate = id in ["soul_reap", "bladestorm", "divine_dawn", "arrow_rain"]
+	is_ultimate = id in ["soul_reap", "bladestorm", "divine_dawn", "arrow_rain", "overload"]
 	tint = Color(data.color)
 	skillDotSeconds = data.duration
 

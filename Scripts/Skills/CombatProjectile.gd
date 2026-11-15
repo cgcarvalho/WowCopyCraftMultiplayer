@@ -8,6 +8,7 @@ var style = "arrow"
 var elapsed = 0.0
 var landed = false
 var basic = false
+signal hit(target: Character)
 
 func launch(owner_character: Character, victim: Character, amount: int, attack_kind: String, origin: Vector2) -> void:
 	caster = owner_character
@@ -36,7 +37,8 @@ func _physics_process(delta: float) -> void:
 		landed = true
 		target.deal_damage(damage, caster)
 		if basic:
-			caster.on_basic_hit()
+			caster.on_basic_hit(target)
+		hit.emit(target)
 		if style != "melee":
 			queue_free()
 	if elapsed > (0.25 if style == "melee" else 2.0):
@@ -52,6 +54,9 @@ func _draw() -> void:
 			draw_polyline(PackedVector2Array([Vector2(0, -5), Vector2(10, 0), Vector2(0, 5)]), Color("d6f5d0"), 2, true)
 			for sign_value in [-1, 1]:
 				draw_line(Vector2(-24, 0), Vector2(-32, sign_value * 6), Color("92deae"), 2, true)
+		"rivet":
+			draw_line(Vector2(-24, 0), Vector2(4, 0), Color("ffb46d"), 3, true)
+			draw_rect(Rect2(-4, -3, 10, 6), Color("ffe0a8"))
 		_:
 			var tint = Color("ffe299") if style == "holy" else Color("bc7bff")
 			draw_circle(Vector2.ZERO, 8, tint)

@@ -119,6 +119,7 @@ func _physics_process(delta: float) -> void:
 		die()
 		return
 	if multiplayer.is_server():
+		expire_shields()
 		update_class_passive(delta)
 		if passiveSkill:
 			passiveSkill.physics_process(delta)
@@ -179,6 +180,7 @@ func deal_damage(damage: int, source: Character = null, periodic: bool = false, 
 		damage = maxi(1, roundi(damage * 0.9))
 	if has_paladin_aura():
 		damage = maxi(1, roundi(damage * (1 - ClassPassives.AURA_REDUCTION)))
+	expire_shields()
 	var absorbed = mini(charShield, damage)
 	consume_shield(absorbed)
 	charShield -= absorbed
@@ -212,13 +214,17 @@ func apply_heal(heal: int, source: Character = null) -> void:
 		DamageNumbers.display_number.rpc(charCurrentLife - before, global_position, false, true)
 		CombatFeedback.impact.rpc(int(name), global_position, "heal", int(source.name) if is_instance_valid(source) else 0)
 
-func apply_shield(shield: int, source: Character = null) -> void:
+func apply_shield(shield: int, source: Character = null, duration: float = 0.0) -> void:
 	if not multiplayer.is_server() or charCurrentLife <= 0 or spectator:
 		return
+	expire_shields()
 	if shield <= charShield:
 		return
 	reconcile_shield_sources()
-	shield_sources.append({"id": int(source.name) if is_instance_valid(source) else 0, "amount": shield - charShield})
+	var contribution = {"id": int(source.name) if is_instance_valid(source) else 0, "amount": shield - charShield}
+	if duration > 0:
+		contribution.expires_at = Time.get_ticks_msec() + roundi(duration * 1000)
+	shield_sources.append(contribution)
 	charShield = shield
 	if shield > 0:
 		CombatFeedback.impact.rpc(int(name), global_position, "shield", int(source.name) if is_instance_valid(source) else 0)
@@ -230,6 +236,16 @@ func reconcile_shield_sources() -> void:
 	if total != charShield:
 		# Legacy/debug direct assignments have no known provider.
 		shield_sources = [{"id": 0, "amount": charShield}] if charShield > 0 else []
+
+func expire_shields() -> void:
+	if shield_sources.is_empty():
+		return
+	var now = Time.get_ticks_msec()
+	for index in range(shield_sources.size() - 1, -1, -1):
+		var contribution: Dictionary = shield_sources[index]
+		if contribution.get("expires_at", now + 1) <= now:
+			charShield = maxi(0, charShield - int(contribution.amount))
+			shield_sources.remove_at(index)
 
 func consume_shield(amount: int) -> void:
 	reconcile_shield_sources()
@@ -327,7 +343,7 @@ func gain_resource(amount: float) -> void:
 	if multiplayer.is_server() and charCurrentLife > 0:
 		charCurrentMana += amount
 
-func on_basic_hit() -> void:
+func on_basic_hit(_target: Character = null) -> void:
 	if not multiplayer.is_server():
 		return
 	if charClass == "Warrior":

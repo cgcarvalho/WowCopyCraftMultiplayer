@@ -41,7 +41,7 @@ func run() -> void:
 	encounter.boss.set_physics_process(false)
 	encounter.status = "active"
 	var bar = main.get_node("CombatHUD/SkillBar")
-	for hero_name in ["Aurora", "SirGura", "Charger", "Lulu"]:
+	for hero_name in ["Aurora", "SirGura", "Charger", "Lulu", "Teo"]:
 		main.request_player("res://Scenes/Characters/Heroes/" + hero_name + ".tscn")
 		var hero: Character = MultiplayerManager.playerList[1]
 		hero.set_physics_process(false)
@@ -101,7 +101,7 @@ func run() -> void:
 	var selection = load("res://Scenes/Components/PlayerSelect/PlayerSelect.tscn").instantiate()
 	main.add_child(selection)
 	var rows = previews_in(selection)
-	check(rows.size() == 16, "Selection screen exposes all sixteen playable abilities")
+	check(rows.size() == 20, "Selection screen exposes all twenty playable abilities")
 	for row in rows:
 		var panel = row._make_custom_tooltip(row.tooltip_text)
 		check(row.mouse_filter == Control.MOUSE_FILTER_STOP and complete(panel, row.skill), row.skill.skillName + ": selection tooltip receives hover over the entire icon/name row")

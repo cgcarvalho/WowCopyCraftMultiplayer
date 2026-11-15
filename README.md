@@ -189,6 +189,15 @@ papel e repertório. Os valores são um primeiro ajuste de balanceamento para o 
 | Sir Gura | Warrior | Charge (10s): avanço e 16 de dano | Cleave (5s): 24 em área corpo a corpo | Second Wind (18s): cura 30 e proteção 15 | Bladestorm (60s): 12 de dano/s por 6s, acompanha o guerreiro |
 | Charger | Paladin | Holy Light (8s): cura 32, conjuração 1,2s | Judgement (6s): 24 de dano sagrado | Consecration (16s): 8s no chão, 7 de dano/s e 3 de cura/s | Divine Dawn (65s): cura 40, proteção 35 e 35 de dano aos inimigos próximos |
 | Lulu | Hunter | Aimed Shot (6s): 32 de dano, conjuração 1s | Poison Arrow (10s): 8 inicial + 4/s por 8s | Multi-Shot (9s): até 3 flechas de 18 | Arrow Rain (60s): área fixa, 12 de dano/s por 7s |
+| Téo | Engenheiro de Campo | Tiro de Rebite (5s): 16 de dano e 18 de Pressão ao acertar | Baliza de Campo (12s): área de raio 165 por 10s | Estouro de Válvula (9s): 23 de dano em área, ou 31 dentro da Baliza | Sobrecarga (60s): quatro pulsos de 12 em torno da Baliza |
+
+Téo começa a rodada com 20 de Pressão e ganha 7 a cada ataque básico que acerta.
+**Circuito Fechado** acrescenta 14 de dano e 5 de Pressão a cada terceiro acerto
+básico na área da sua Baliza. Use **2** para instalar a Baliza com um clique.
+O **3** usa a mesma mira e ganha força quando o centro da explosão está dentro da
+Baliza. Use **R** com 60 de Pressão e uma Baliza ativa a até 480 unidades. A
+Sobrecarga permanece no local em que foi ativada. As trilhas **Oficina** e
+**Salvaguarda** ficam no menu de talentos.
 
 Sir Gura tem 150 HP e autoataque corpo a corpo de 10 a cada 0,9s. Charger tem
 130 HP e golpe de 8 a cada 1,1s. Lulu tem 100 HP e flechas de 8 a cada 1,15s;

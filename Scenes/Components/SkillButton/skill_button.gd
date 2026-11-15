@@ -115,6 +115,10 @@ func execute_request(chosen_target: Variant = null) -> bool:
 func validateCast(ignore_casting: bool = false, chosen_target: Variant = null) -> bool:
 	if skillPlayer.charCurrentLife <= 0 or (player_cast_bar.is_casting and not ignore_casting):
 		return false
+	var requirement = skillCast.cast_requirement(skillPlayer)
+	if not requirement.is_empty():
+		feedback(requirement)
+		return false
 	if skillPlayer.charCurrentMana < skillCast.skillManaCost:
 		feedback(skillPlayer.resource_name + " insuficiente")
 		return false

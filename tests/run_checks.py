@@ -26,6 +26,7 @@ OFFLINE = [
     ('warrior_animations', 'Warrior animation failures: 0'),
     ('passive_clarity', 'Passive clarity failures: 0'),
     ('fluid_combat', 'Fluid combat failures: 0'),
+    ('engineer', 'Engineer failures: 0'),
 ]
 NETWORK = [
     ('boss_network', 'NETWORK'),
@@ -35,6 +36,7 @@ NETWORK = [
     ('passive_network', 'PASSIVE_NETWORK'),
     ('fluid_network', 'FLUID_NETWORK'),
     ('arena_network', 'ARENA_NETWORK'),
+    ('engineer_network', 'ENGINEER_NETWORK'),
 ]
 
 

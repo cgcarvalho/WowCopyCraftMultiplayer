@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Characters/Heroes/Teo.gd" id="1"]
+[ext_resource type="SpriteFrames" path="res://Art/Chars/Teo/Animations.tres" id="2"]
+
+[sub_resource type="RectangleShape2D" id="SelectionShape"]
+size = Vector2(125, 195)
+
+[sub_resource type="SceneReplicationConfig" id="MovementConfig"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("AnimatedSprite2D:flip_h")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("AnimatedSprite2D:animation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
+[node name="Teo" type="Area2D"]
+script = ExtResource("1")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -14)
+scale = Vector2(0.85, 0.85)
+sprite_frames = ExtResource("2")
+animation = &"idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("SelectionShape")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("MovementConfig")

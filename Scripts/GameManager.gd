@@ -5,6 +5,7 @@ const HERO_SCENES = [
 	"res://Scenes/Characters/Heroes/SirGura.tscn",
 	"res://Scenes/Characters/Heroes/Lulu.tscn",
 	"res://Scenes/Characters/Heroes/Charger.tscn",
+	Engineer.SCENE_PATH,
 ]
 @onready var players: Node = %Players
 @onready var multiplayer_spawner: MultiplayerSpawner = %MultiplayerSpawner

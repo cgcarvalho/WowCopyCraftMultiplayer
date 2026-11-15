@@ -144,6 +144,15 @@ func _draw() -> void:
 		point = hero.charCurrentTarget.global_position
 	var valid = not aiming or get_parent().get_node("SkillHandler").valid_ground(preview_skill, hero, point)
 	var tint = Color("a6dbae") if valid else Color("ff6969")
+	if preview_skill is EngineerAbility and hero is Engineer:
+		match preview_skill.ability_id:
+			"overload":
+				if not preview_skill.cast_requirement(hero).is_empty():
+					return
+				point = hero.beacon_position
+			"valve_burst":
+				if valid and hero.in_beacon(point):
+					tint = Engineer.DEVICE_COLOR
 	draw_circle(to_local(point), radius, Color(tint, 0.12))
 	draw_arc(to_local(point), radius, 0, TAU, 70, Color(tint, 0.85), 3, true)
 
