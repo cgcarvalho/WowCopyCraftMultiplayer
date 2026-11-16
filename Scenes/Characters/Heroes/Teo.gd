@@ -14,6 +14,7 @@ var circuit_hits := 0
 var overload_position := Vector2.ZERO
 var overload_remaining := 0.0
 var overload_pulses := 0
+var beacon_lifetime := 10.0
 
 func _enter_tree() -> void:
 	super._enter_tree()
@@ -36,7 +37,7 @@ func _enter_tree() -> void:
 	if not is_inside_tree():
 		return
 	var config = SceneReplicationConfig.new()
-	for property in ["beacon_position", "beacon_remaining", "circuit_hits", "overload_position", "overload_remaining"]:
+	for property in ["beacon_position", "beacon_remaining", "beacon_lifetime", "circuit_hits", "overload_position", "overload_remaining"]:
 		var property_path = NodePath(".:" + property)
 		config.add_property(property_path)
 		config.property_set_replication_mode(property_path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -54,6 +55,10 @@ func configure_resource() -> void:
 	manaRegen = 0
 	super.configure_resource()
 
+func _ready() -> void:
+	super._ready()
+	SkillFX.install_pose($AnimatedSprite2D, &"pose_device")
+
 func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}) -> void:
 	clear_devices()
 	super.reset_for_round(point, choices, selected_talents)
@@ -68,7 +73,10 @@ func in_beacon(point: Vector2) -> bool:
 	return beacon_remaining > 0 and point.distance_to(beacon_position) <= BEACON_RADIUS
 
 func deploy_beacon(point: Vector2, duration: float) -> void:
+	if beacon_remaining > 0 and beacon_position.distance_squared_to(point) > 4.0:
+		CombatFeedback.show_skill_effect(&"beacon_exit", beacon_position, self, 110)
 	beacon_position = point
+	beacon_lifetime = duration
 	beacon_remaining = duration
 	circuit_hits = 0
 
@@ -83,6 +91,7 @@ func on_basic_hit(target: Character = null) -> void:
 		circuit_hits = 0
 		target.deal_damage(14, self)
 		gain_resource(5)
+		CombatFeedback.show_skill_effect(&"spark", target.global_position, self, 130)
 
 func on_rivet_hit(target: Character) -> void:
 	if multiplayer.is_server():
@@ -111,6 +120,7 @@ func update_devices(delta: float) -> void:
 		beacon_remaining = maxf(0.0, beacon_remaining - delta)
 		if beacon_remaining == 0:
 			circuit_hits = 0
+			CombatFeedback.show_skill_effect(&"beacon_exit", beacon_position, self, 110)
 	if overload_remaining <= 0:
 		return
 	overload_remaining = maxf(0.0, overload_remaining - delta)
@@ -123,36 +133,51 @@ func pulse_overload() -> void:
 	var emergency = TalentTree.has(talents, "safeguard", 3)
 	var power = 16 if TalentTree.has(talents, "workshop", 3) else (10 if emergency else 12)
 	var radius = overload_radius()
+	CombatFeedback.show_skill_effect(&"coil", overload_position, self, radius * 2)
 	for target in MultiplayerManager.enemies.values():
 		if is_instance_valid(target) and target.global_position.distance_to(overload_position) <= radius:
 			target.deal_damage(power, self, true)
 	if emergency and overload_pulses in [1, 4]:
 		for ally in MultiplayerManager.playerList.values():
-			if is_instance_valid(ally) and ally.global_position.distance_to(overload_position) <= radius:
+			if is_instance_valid(ally) and ally.charCurrentLife > 0 and not ally.spectator and ally.global_position.distance_to(overload_position) <= radius:
 				ally.apply_shield(6, self, 3.0)
+				CombatFeedback.show_skill_effect(&"shield", ally.global_position, self, 96, 0, 0, ally)
 
 func _process(delta: float) -> void:
 	super._process(delta)
 	queue_redraw()
 
 func _draw() -> void:
+	super._draw()
 	if charCurrentLife <= 0 or spectator:
 		return
 	var opacity = CombatFeedback.effect_opacity(self)
 	if beacon_remaining > 0:
 		var center = to_local(beacon_position)
 		var tint = Color(DEVICE_COLOR, opacity * 0.90)
+		var phase = clampf((beacon_lifetime - beacon_remaining) / 0.65, 0, 1)
+		var retiring = clampf(beacon_remaining / 0.5, 0.0, 1.0)
 		for mark in 24:
 			var angle = TAU * mark / 24.0
 			draw_arc(center, BEACON_RADIUS, angle, angle + 0.13, 3, tint, 2.5, true)
-		draw_circle(center, 10, Color("482f32"))
-		draw_circle(center, 6, tint)
-		draw_arc(center, 16, 0, TAU, 28, tint, 2.0, true)
-		draw_line(center + Vector2(0, -10), center + Vector2(0, -24), tint, 3.0, true)
+		var art_point = center + Vector2(0, -41)
+		var art_size = Vector2.ONE * 116 * lerpf(0.5, 1.0, retiring)
+		if not SkillFX.draw_clip(self, &"beacon", art_point, art_size, phase, 0, Color(1, 1, 1, opacity * retiring)):
+			for dx in [-23, 0, 23]:
+				draw_line(art_point, center + Vector2(dx, 0), tint, 4, true)
+			draw_circle(art_point, 10, tint)
+		for light in 3:
+			var slot = center + Vector2((light - 1) * 11, 12)
+			draw_rect(Rect2(slot - Vector2(4, 4), Vector2(8, 8)), Color(0.16, 0.10, 0.08, opacity))
+			if light < circuit_hits:
+				draw_circle(slot, 3, Color("fff3b7") * Color(1, 1, 1, opacity))
 	if overload_remaining > 0:
 		var center = to_local(overload_position)
 		var radius = overload_radius()
 		var cycle = fposmod(OVERLOAD_DURATION - overload_remaining, PULSE_INTERVAL) / PULSE_INTERVAL
-		draw_circle(center, radius, Color(DEVICE_COLOR, opacity * 0.09))
-		draw_arc(center, radius, 0, TAU, 72, Color(DEVICE_COLOR, opacity * 0.65), 3.0, true)
-		draw_arc(center, lerpf(12, radius, cycle), 0, TAU, 64, Color(DEVICE_COLOR, opacity * (0.7 - 0.4 * cycle)), 2.0, true)
+		var rim_color = Color(0.99, 0.78, 0.48, opacity * 0.72)
+		SkillFX.rim(self, center, radius, rim_color, 12, PI / 12)
+		SkillFX.draw_clip(self, &"coil", center + Vector2(0, -49), Vector2.ONE * 138, cycle, 0, Color(1, 1, 1, opacity))
+		for i in 4:
+			var unit = Vector2.from_angle(i * TAU / 4 + PI / 4)
+			SkillFX.arrow(self, center + unit * lerpf(42.0, radius - 21.0, cycle), unit, rim_color)

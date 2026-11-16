@@ -103,9 +103,12 @@ func minimum_boss_life() -> int:
 
 func conductor_damaged(conductor: RunicConductor) -> void:
 	var health = conductor_health
+	if conductor.charCurrentLife <= 0:
+		CombatFeedback.show_skill_effect(&"rune_break", conductor.global_position, boss, 146)
 	health[conductors.find(conductor)] = conductor.charCurrentLife
 	conductor_health = health
 	if not has_runic_conductors():
+		CombatFeedback.show_skill_effect(&"interrupt", boss.global_position, boss, 258)
 		announce.rpc("Égide quebrada! Ataquem Jefferson.", "interrupt")
 
 func select_spell() -> String:
@@ -251,6 +254,8 @@ func resolve_area() -> void:
 				for player in grouped:
 					if grouped.size() >= 2:
 						credit_mechanic(player)
+						var beam = player.global_position - danger_position
+						CombatFeedback.show_skill_effect(&"link", danger_position, boss, beam.length(), beam.angle())
 					player.deal_damage(shared, boss)
 			"spread":
 				var centers: Array[Vector2] = []
@@ -359,7 +364,7 @@ func clear_effects() -> void:
 	if multiplayer.is_server():
 		conductor_health = Vector2i.ZERO
 	for node in get_parent().get_children():
-		if node is Skill or node is CombatProjectile:
+		if node is Skill or node is CombatProjectile or node is SkillFX:
 			node.queue_free()
 	for player in MultiplayerManager.playerList.values():
 		if is_instance_valid(player):
@@ -405,6 +410,9 @@ func interrupt_channel(caster: Character) -> bool:
 	spell_cooldowns["channel"] = 18.0
 	completed_spells += 1
 	last_spell = "channel"
+	var staff: Vector2 = $SpellVisual.staff_point()
+	var beam = staff - caster.global_position
+	CombatFeedback.show_skill_effect(&"interrupt_line", caster.global_position, caster, beam.length(), beam.angle())
 	var report = caster.battle_report()
 	if report != null:
 		report.add(int(caster.name), "interrupts", 1)

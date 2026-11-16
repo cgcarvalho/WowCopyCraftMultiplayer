@@ -4,6 +4,10 @@ extends Character
 var image_path = "res://Art/Chars/Lulu - Hunter/Lulu Stand.png"
 var scene_path = "res://Scenes/Characters/Heroes/Lulu.tscn"
 
+func _ready() -> void:
+	super._ready()
+	SkillFX.install_pose($AnimatedSprite2D, &"pose_aimed")
+
 func _enter_tree() -> void:
 	super._enter_tree()
 	charName = "Lulu"

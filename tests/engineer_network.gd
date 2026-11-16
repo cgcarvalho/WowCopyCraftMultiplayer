@@ -9,6 +9,7 @@ var main: Node
 var session: Node
 var encounter: Node
 var acknowledged := false
+var saw_overload_pulse := false
 
 func _ready() -> void:
 	call_deferred("run")
@@ -82,6 +83,9 @@ func run_client() -> void:
 	if not check(await wait_until(func(): return MultiplayerManager.playerList.get(id) is Engineer), "Client receives its selected Engineer"):
 		return
 	var teo = MultiplayerManager.playerList[id] as Engineer
+	main.child_entered_tree.connect(func(child: Node):
+		if child is SkillFX and child.clip == &"coil":
+			saw_overload_pulse = child.initial_point == POINT and child.diameter == 350)
 	session.set_ready.rpc_id(1, true)
 	if not check(await wait_until(func(): return session.stage == "active"), "Client enters combat"):
 		return
@@ -99,6 +103,8 @@ func run_client() -> void:
 	if not check(await wait_until(func(): return teo.overload_position == POINT and teo.overload_remaining > 0), "Client sees the Overload in the correct location"):
 		return
 	if not check(await wait_until(func(): return teo.charCurrentLife == 0 and teo.beacon_remaining == 0 and teo.overload_remaining == 0), "Replicated devices clear when the Engineer dies"):
+		return
+	if not check(saw_overload_pulse, "Client sees the server's pulse centered on the saved Beacon spot and using its combat radius"):
 		return
 	acknowledge.rpc_id(1)
 	multiplayer.multiplayer_peer.get_host().flush()

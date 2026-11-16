@@ -56,8 +56,11 @@ func cast_result(caster_id: int, path: String, accepted: bool, duration: float, 
 				skill.resetCastTime = false
 	cast_confirmed.emit(caster_id, path, accepted, duration, cooldown)
 	if accepted and is_instance_valid(caster):
-		caster.play_ability(duration)
+		caster.play_ability(duration, path)
 		CombatFeedback.play_sound("cast")
+		if path == ShadowBolt.filePath and duration == 0.0:
+			var direction = Vector2.RIGHT if caster.get_node("AnimatedSprite2D").flip_h else Vector2.LEFT
+			CombatFeedback.show_skill_effect(&"bolt", caster.global_position + caster.weapon_offset("bolt", direction), caster, 72)
 
 func valid_ground(template: Skill, caster: Character, point: Vector2) -> bool:
 	return template.targeting() == Skill.TargetMode.GROUND and point.is_finite() and ArenaNavigation.BOUNDS.has_point(point) and caster.global_position.distance_to(point) <= template.cast_range and template.cast_requirement(caster, point).is_empty()

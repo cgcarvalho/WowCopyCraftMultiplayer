@@ -33,7 +33,7 @@ func cast(caster: Character, target: Character) -> void:
 			var projectile = CombatProjectile.new()
 			get_parent().add_child(projectile)
 			projectile.hit.connect(engineer.on_rivet_hit)
-			projectile.launch(caster, target, int(data.power), "rivet", caster.global_position)
+			projectile.launch(caster, target, int(data.power), "rivet_skill", caster.global_position)
 		"field_beacon":
 			if multiplayer.is_server():
 				engineer.deploy_beacon(aim_position, float(data.duration))
@@ -52,6 +52,10 @@ func burst(engineer: Engineer) -> void:
 	var protective = linked and TalentTree.has(engineer.talents, "safeguard", 2)
 	var chain = linked and TalentTree.has(engineer.talents, "workshop", 2)
 	var power = 31 if linked and not protective else int(data.power)
+	cue(&"valve", global_position, float(data.radius) * 2, 0.0, 1 if linked else 0)
+	if linked:
+		var offset = global_position - engineer.beacon_position
+		cue(&"link", engineer.beacon_position, offset.length(), offset.angle())
 	var extra_target: Character
 	var extra_distance = 200.0
 	for target in all_characters():
@@ -61,6 +65,7 @@ func burst(engineer: Engineer) -> void:
 		if target.charTeam == engineer.charTeam:
 			if protective and distance <= float(data.radius):
 				target.apply_shield(10, engineer, 3.0)
+				cue(&"shield", target.global_position, 92, 0, 0, target)
 		elif distance <= float(data.radius):
 			hurt(target, power)
 		elif chain and distance <= extra_distance:
@@ -68,6 +73,8 @@ func burst(engineer: Engineer) -> void:
 			extra_distance = distance
 	if extra_target != null:
 		hurt(extra_target, 10)
+		var arc = extra_target.global_position - global_position
+		cue(&"link", global_position, arc.length(), arc.angle())
 
 func _physics_process(delta: float) -> void:
 	if not living():
@@ -83,5 +90,4 @@ func _draw() -> void:
 		return
 	var progress = clampf(elapsed / 0.45, 0, 1)
 	var radius = float(data.radius)
-	draw_circle(Vector2.ZERO, radius, Color(tint, 0.16 * (1.0 - progress)))
-	draw_arc(Vector2.ZERO, lerpf(radius * 0.35, radius, progress), 0, TAU, 56, Color(tint, 0.8 * (1.0 - progress)), 4, true)
+	SkillFX.rim(self, Vector2.ZERO, radius, Color(tint, 0.35 * (1.0 - progress)), 8)

@@ -12,6 +12,12 @@ var visual_duration = 0.65
 var tint = Color.WHITE
 var skillTimer = 0.0
 var skillDotSeconds = 0
+var display_offset := Vector2.ZERO
+var facing := Vector2.RIGHT
+var trail := PackedVector2Array()
+var shield_cue = false
+
+const PROJECTILES = {"aimed_shot": "aimed", "judgement": "hammer", "multishot": "arrow_fork", "poison_arrow": "poison"}
 
 const DEFINITIONS = {
 	"soul_reap": {"name": "Soul Reap", "cd": 60, "mana": 35, "cast": 1.2, "mode": "ENEMY", "range": 700, "power": 45, "radius": 130, "duration": 0, "color": "b979ff", "description": "Explode sombras: 45 de dano + 12 por DoT seu no alvo. Atinge inimigos próximos."},
@@ -64,6 +70,12 @@ func cast(caster: Character, target: Character) -> void:
 	targetCharacter = target
 	global_position = caster.global_position
 	destination = aim_position if aim_position.is_finite() else target.global_position
+	if global_position.distance_squared_to(destination) > 0.01:
+		facing = global_position.direction_to(destination)
+	if ability_id in PROJECTILES:
+		display_offset = caster.weapon_offset(PROJECTILES[ability_id], facing)
+	if ability_id in ["consecration", "arrow_rain"]:
+		z_index = 1
 	if ability_id in ["consecration", "arrow_rain"]:
 		global_position = destination
 	if ability_id == "poison_arrow":
@@ -101,29 +113,49 @@ func impact() -> void:
 	match ability_id:
 		"holy_light":
 			targetCharacter.apply_heal(power, casterCharacter)
+			cue(&"heal", targetCharacter.global_position, 132, 0, 0, targetCharacter)
 		"second_wind":
 			casterCharacter.apply_heal(power, casterCharacter)
 			casterCharacter.apply_shield(30 if TalentTree.has(casterCharacter.talents, "guardian", 2) else 15, casterCharacter)
+			shield_cue = true
+			cue(&"wind", global_position, 145)
 		"divine_dawn":
 			for character in all_characters():
-				if not is_instance_valid(character) or character.global_position.distance_to(global_position) > float(data.radius):
+				if not is_instance_valid(character) or character.charCurrentLife <= 0 or character.spectator or character.global_position.distance_to(global_position) > float(data.radius):
 					continue
 				if character.charTeam == casterCharacter.charTeam:
 					character.apply_heal(60 if TalentTree.has(casterCharacter.talents, "light", 3) else power, casterCharacter)
 					character.apply_shield(50 if TalentTree.has(casterCharacter.talents, "bulwark", 3) else 35, casterCharacter)
+					cue(&"shield", character.global_position, 100, 0, 0, character)
 				else:
 					character.deal_damage(35, casterCharacter)
+					cue(&"slash", character.global_position, 75)
+			cue(&"dawn", global_position, 245)
 		"cleave", "soul_reap":
+			var dot_count = 0
 			if ability_id == "soul_reap":
 				for effect in targetCharacter.debuffList:
 					if is_instance_valid(effect) and effect.casterCharacter == casterCharacter:
+						dot_count += 1
 						power += 18 if TalentTree.has(casterCharacter.talents, "affliction", 3) else 12
+			if ability_id == "soul_reap":
+				cue(&"reap", global_position, 240, 0.0, dot_count)
+			else:
+				cue(&"slash", global_position, 95, facing.angle())
 			for character in all_characters():
 				if is_instance_valid(character) and character.charTeam != casterCharacter.charTeam and character.global_position.distance_to(global_position) <= float(data.radius):
 					hurt(character, power)
 		_:
 			if is_instance_valid(targetCharacter) and targetCharacter.charCurrentLife > 0:
 				hurt(targetCharacter, power)
+				match ability_id:
+					"judgement": cue(&"hammer_seal", targetCharacter.global_position, 110)
+					"charge": cue(&"slash", targetCharacter.global_position, 124, facing.angle())
+					"poison_arrow": cue(&"poison", targetCharacter.global_position, 78)
+					"aimed_shot": cue(&"slash", targetCharacter.global_position, 86, facing.angle())
+
+func cue(clip: StringName, point: Vector2, size: float, angle: float = 0.0, marks: int = 0, recipient: Character = null) -> void:
+	CombatFeedback.show_skill_effect(clip, point, casterCharacter, size, angle, marks, recipient)
 
 func hurt(character: Character, power: int, periodic: bool = false) -> void:
 	character.deal_damage(power, casterCharacter, periodic, TalentTree.skill_damage(casterCharacter.talents, self))
@@ -133,6 +165,7 @@ func tick_effect() -> void:
 		return
 	if ability_id == "poison_arrow":
 		hurt(targetCharacter, 6 if TalentTree.has(casterCharacter.talents, "venom", 1) else 4, true)
+		cue(&"poison", targetCharacter.global_position, 45)
 		return
 	for character in all_characters():
 		if not is_instance_valid(character) or character.charCurrentLife <= 0:
@@ -141,8 +174,16 @@ func tick_effect() -> void:
 			continue
 		if character.charTeam != casterCharacter.charTeam:
 			hurt(character, data.power, true)
+			if ability_id in ["consecration", "arrow_rain"]:
+				cue(&"slash", character.global_position, 56)
 		elif ability_id == "consecration":
+			var life_before = character.charCurrentLife
 			character.apply_heal(3, casterCharacter)
+			if character.charCurrentLife > life_before:
+				cue(&"heal", character.global_position, 44, 0, 0, character)
+	if ability_id in ["bladestorm", "arrow_rain", "consecration"]:
+		var wave := StringName(ability_id)
+		cue(wave, global_position, float(data.radius) * 2)
 
 func _physics_process(delta: float) -> void:
 	if not living():
@@ -150,13 +191,25 @@ func _physics_process(delta: float) -> void:
 		return
 	elapsed += delta
 	skillTimer = elapsed
+	if shield_cue and elapsed >= 0.18:
+		shield_cue = false
+		if casterCharacter.charShield > 0:
+			cue(&"shield", casterCharacter.global_position, 112)
 	if ability_id == "bladestorm":
 		global_position = casterCharacter.global_position
 	if ability_id == "charge":
 		if not is_instance_valid(targetCharacter) or targetCharacter.charCurrentLife <= 0:
+			cue(&"wind", global_position, 80)
 			queue_free()
 			return
 		var offset = casterCharacter.global_position - targetCharacter.global_position
+		if offset.length_squared() > 1:
+			facing = -offset.normalized()
+		if absf(facing.x) > 0.02:
+			casterCharacter.get_node("AnimatedSprite2D").flip_h = facing.x > 0
+		trail.append(casterCharacter.global_position)
+		if trail.size() > 7:
+			trail.remove_at(0)
 		var stop = targetCharacter.global_position + offset.normalized() * 70
 		if casterCharacter.is_multiplayer_authority():
 			casterCharacter.global_position = ArenaNavigation.move(casterCharacter.global_position, (stop - casterCharacter.global_position).limit_length(delta * 900))
@@ -165,12 +218,15 @@ func _physics_process(delta: float) -> void:
 			impact()
 			queue_free()
 		elif elapsed > 1.0:
+			cue(&"wind", global_position, 80)
 			queue_free()
-	elif ability_id in ["aimed_shot", "judgement", "multishot", "poison_arrow"] and not impacted:
+	elif ability_id in PROJECTILES and not impacted:
 		if not is_instance_valid(targetCharacter) or targetCharacter.charCurrentLife <= 0:
 			queue_free()
 			return
 		destination = targetCharacter.global_position
+		if destination.distance_squared_to(global_position) > 16:
+			facing = global_position.direction_to(destination)
 		global_position = global_position.move_toward(destination, 850 * delta)
 		if global_position.distance_to(destination) < 4:
 			impact()
@@ -186,13 +242,15 @@ func _physics_process(delta: float) -> void:
 					if is_instance_valid(character) and character != targetCharacter and character.charTeam != casterCharacter.charTeam and character.charCurrentLife > 0 and character.global_position.distance_to(destination) <= float(data.radius):
 						var bolt = CombatProjectile.new()
 						get_parent().add_child(bolt)
-						bolt.launch(casterCharacter, character, data.power, "arrow", destination)
+						bolt.launch(casterCharacter, character, data.power, "arrow_fork", destination)
 						count += 1
+				if count > 1:
+					cue(&"fork", destination, 94, facing.angle(), count - 1)
 			if ability_id != "poison_arrow":
 				queue_free()
 				return
 	# Projectiles may take longer than the short impact animation at full range.
-	if ability_id in ["aimed_shot", "judgement", "multishot", "poison_arrow"] and not impacted:
+	if ability_id in PROJECTILES and not impacted:
 		if elapsed > 2.0:
 			queue_free()
 		queue_redraw()
@@ -216,36 +274,60 @@ func renewDot() -> void:
 	elapsed = 0
 	skillTimer = 0
 	next_tick = 1.0
+	if is_instance_valid(targetCharacter):
+		cue(&"poison", targetCharacter.global_position, 68)
 
 func _exit_tree() -> void:
 	if is_instance_valid(targetCharacter):
 		targetCharacter.debuffList.erase(self)
 
 func _draw() -> void:
-	if ability_id in ["aimed_shot", "multishot", "judgement", "poison_arrow"] and not impacted:
-		var direction = (destination - global_position).normalized()
-		draw_line(-direction * 30, direction * 10, tint, 3, true)
-		draw_line(direction * 10, direction.rotated(0.6) * -4, tint, 3, true)
-		draw_line(direction * 10, direction.rotated(-0.6) * -4, tint, 3, true)
+	if ability_id in PROJECTILES and not impacted:
+		var point = display_offset * (1.0 - minf(elapsed / 0.19, 1.0))
+		draw_projectile(self, PROJECTILES[ability_id], point, facing, tint, elapsed)
 		return
 	if ability_id == "poison_arrow":
-		draw_arc(Vector2.ZERO, 24, elapsed, elapsed + TAU * 0.8, 24, Color(tint, 0.6), 2, true)
-		return
-	var radius = maxf(float(data.radius), 45)
-	var long_effect = float(data.duration) > 0
-	var fade = 1.0 if long_effect else maxf(0, 1 - elapsed / visual_duration)
-	draw_circle(Vector2.ZERO, radius, Color(tint, 0.08 * fade))
-	draw_arc(Vector2.ZERO, radius, 0, TAU, 64, Color(tint, 0.65 * fade), 2.5, true)
-	if ability_id == "consecration" or ability_id == "divine_dawn":
-		draw_line(Vector2(-25, 0), Vector2(25, 0), Color(tint, fade), 5, true)
-		draw_line(Vector2(0, -38), Vector2(0, 38), Color(tint, fade), 5, true)
-	elif ability_id == "arrow_rain":
-		for i in 12:
-			var angle = i * 2.4
-			var point = Vector2.from_angle(angle) * radius * sqrt((i + 1) / 13.0)
-			var drop = fmod(elapsed * 170 + i * 19, 65)
-			draw_line(point + Vector2(0, drop - 65), point + Vector2(-8, drop - 88), Color(tint, 0.85), 2, true)
-	else:
+		var remaining = maxf(0, float(data.duration) - elapsed)
 		for i in 3:
-			var angle = elapsed * 7 + i * TAU / 3
-			draw_arc(Vector2.ZERO, radius * (0.7 + i * 0.08), angle, angle + 1.2, 18, Color(tint, fade), 5, true)
+			var point = Vector2.from_angle(elapsed * 2 + i * TAU / 3) * 34
+			var fade = clampf(remaining / 0.48, 0, 1)
+			draw_circle(point + Vector2(0, -23), lerpf(2, 4, fade), Color(tint, 0.32 * fade))
+	if ability_id == "charge":
+		for i in range(1, trail.size()):
+			var alpha = float(i) / trail.size() * 0.42
+			draw_line(to_local(trail[i - 1]) + Vector2(0, 18), to_local(trail[i]) + Vector2(0, 18), Color(tint, alpha), 4 + i, true)
+	if ability_id in ["consecration", "arrow_rain", "bladestorm", "soul_reap", "divine_dawn", "cleave"]:
+		var radius = float(data.radius)
+		var fade = 1.0 if float(data.duration) > 0 else maxf(0, 1 - elapsed / visual_duration)
+		SkillFX.rim(self, Vector2.ZERO, radius, Color(tint, 0.42 * fade), 12 if ability_id == "consecration" else 0)
+		if ability_id == "consecration":
+			var pulse = 0.20 + 0.55 * pow(1 - fposmod(elapsed, 1.0), 4)
+			SkillFX.draw_clip(self, &"consecration", Vector2.ZERO, Vector2.ONE * radius * 2, 0.0, 0.0, Color(1, 1, 1, pulse))
+		elif ability_id == "arrow_rain":
+			var until_hit = next_tick - elapsed
+			if until_hit < 0.40:
+				var air_time = clampf(1 - until_hit / 0.40, 0.0, 1.0)
+				for i in 8:
+					var point = SkillFX.volley_point(i, radius)
+					var height = lerpf(132.0, 8.0, air_time)
+					var arrow_point = point - Vector2(height * 0.24, height)
+					if not SkillFX.draw_clip(self, &"arrow", arrow_point, Vector2.ONE * 96, air_time * 0.68, 0, Color(1, 1, 1, 0.88)):
+						draw_line(arrow_point - Vector2(10, 42), arrow_point, Color(0.7, 0.96, 0.74, 0.8), 3.0, true)
+
+static func draw_projectile(canvas: CanvasItem, style: String, point: Vector2, direction: Vector2, tint: Color, time: float) -> void:
+	if style == "hammer":
+		if SkillFX.draw_clip(canvas, &"hammer", point, Vector2(78, 78), fposmod(time * 3, 1), direction.angle()):
+			return
+		canvas.draw_line(point - direction * 18, point + direction * 9, tint, 5, true)
+		canvas.draw_line(point + direction * 9 - direction.orthogonal() * 12, point + direction * 9 + direction.orthogonal() * 12, tint, 9, true)
+		return
+	var tail = 65.0 if style == "aimed" else 34.0
+	var width = 4.5 if style == "aimed" else 2.5
+	canvas.draw_line(point - direction * tail, point + direction * 10, tint, width, true)
+	SkillFX.arrow(canvas, point, direction, tint, width)
+	if style == "poison":
+		canvas.draw_circle(point + direction * 12, 5, tint)
+		canvas.draw_circle(point - direction * 14 + direction.orthogonal() * 5, 3, Color(tint, 0.65))
+	if style == "arrow_fork":
+		for side in [-1.0, 1.0]:
+			canvas.draw_line(point, point + direction.rotated(side * 0.44) * -26, tint, 3, true)

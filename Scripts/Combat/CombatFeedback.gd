@@ -60,6 +60,22 @@ func impact(victim_id: int, point: Vector2, kind: String, source_id: int = 0, pe
 	if not periodic:
 		play_sound(kind, intensity)
 
+func show_skill_effect(clip: StringName, point: Vector2, caster: Character, diameter: float, direction: float = 0.0, accents: int = 0, recipient: Character = null) -> void:
+	if multiplayer.is_server():
+		var caster_id = int(caster.name) if is_instance_valid(caster) else 0
+		var recipient_id = int(recipient.name) if is_instance_valid(recipient) else 0
+		skill_effect.rpc(clip, point, caster_id, diameter, direction, accents, recipient_id)
+
+@rpc("authority", "call_local", "reliable")
+func skill_effect(clip: StringName, point: Vector2, caster_id: int, diameter: float, direction: float, accents: int, recipient_id: int) -> void:
+	var scene = get_tree().current_scene
+	if not is_instance_valid(scene) or scene.get_node_or_null("SkillHandler") == null:
+		return
+	var effect = SkillFX.new()
+	var alpha = 1.0 if recipient_id == multiplayer.get_unique_id() else effect_opacity(MultiplayerManager.get_character(caster_id))
+	effect.configure(clip, point, alpha, diameter, direction, accents)
+	scene.add_child(effect)
+
 func _exit_tree() -> void:
 	for player in players:
 		player.stop()

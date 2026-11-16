@@ -72,14 +72,23 @@ func _process(delta: float) -> void:
 		var release = clampf((1 - get_parent().visual_remaining / get_parent().IMPACT_SECONDS) * 3, 0, 1)
 		recoil = sin(release * PI)
 	var bob = 0.0 if dead else sin(Time.get_ticks_msec() * 0.003) * 5.0
+	var channeling = casting and get_parent().spell_kind == "channel"
 	if casting:
 		bob -= sin(preparation * PI) * 9
+	if channeling:
+		bob -= sin(preparation * PI * 0.5) * 22
+	var interrupt_drop = 0.0
+	if get_parent().visual_kind == "interrupted" and get_parent().visual_remaining > 0.0:
+		var recover = 1.0 - get_parent().visual_remaining / get_parent().INTERRUPT_SECONDS
+		interrupt_drop = sin(recover * PI) * 0.22
+		bob += interrupt_drop * 66
 	$AnimatedSprite2D.position = presentation_position - global_position + Vector2(0, bob) - get_parent().visual_direction * recoil * 12
 	$AnimatedSprite2D.flip_h = facing_left
 	var pulse = 1.0 + sin(preparation * PI) * 0.025
 	$AnimatedSprite2D.scale = Vector2.ONE * animation_scale * pulse * (1 - death_progress * 0.35)
 	if not dead:
-		$AnimatedSprite2D.rotation = (1 if facing_left else -1) * (sin(preparation * PI) * 0.035 - recoil * 0.025)
+		var lean = 0.075 if channeling else 0.035
+		$AnimatedSprite2D.rotation = (1 if facing_left else -1) * (sin(preparation * PI) * lean - recoil * 0.025 + interrupt_drop)
 		$AnimatedSprite2D.speed_scale = lerpf(0.65, 1.2, preparation) if casting else 1.0
 		$AnimatedSprite2D.play("walk" if velocity.length() > 10 else "idle")
 	else:

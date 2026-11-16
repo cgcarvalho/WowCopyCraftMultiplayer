@@ -126,6 +126,7 @@ func run() -> void:
 	dash._physics_process(0.4)
 	dash._physics_process(0.02)
 	check(warrior.global_position.distance_to(boss.global_position) <= 100 and boss.charCurrentLife == 428, "Charge closes the gap and deals one melee hit")
+	check(warrior.get_node("AnimatedSprite2D").flip_h, "The Charge pose faces the actual direction of travel")
 	cleanup(warrior)
 	var paladin = spawn("Charger")
 	paladin.charCurrentLife = 50

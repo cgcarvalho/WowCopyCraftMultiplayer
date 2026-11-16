@@ -10,6 +10,8 @@ var basic_flash_remaining = 0.0
 
 func _ready() -> void:
 	super._ready()
+	SkillFX.install_pose($AnimatedSprite2D, &"pose_charge")
+	SkillFX.install_pose($AnimatedSprite2D, &"pose_spin")
 	# Separate presentation lets the sword spin continue during movement.
 	# Only accepted attacks produce effects; gameplay stays server-controlled.
 	attack_body = AnimatedSprite2D.new()
@@ -51,8 +53,12 @@ func play_skill_animation(skill: Skill) -> void:
 		return
 	attack_effect = skill
 	basic_flash_remaining = 0
-	attack_body.play(StringName(skill.ability_id))
-	attack_body.set_frame_and_progress(0, 0)
+	var body_animation = StringName(skill.ability_id)
+	if skill.ability_id == "bladestorm" and attack_body.sprite_frames.has_animation(&"pose_spin"):
+		body_animation = &"pose_spin"
+	attack_body.play(body_animation)
+	var contact_frame = 3 if skill.ability_id == "cleave" else 0
+	attack_body.set_frame_and_progress(contact_frame, 0)
 	attack_sprite.play(StringName(skill.ability_id))
 	attack_sprite.set_frame_and_progress(0, 0)
 	update_attack_presentation()
@@ -82,14 +88,10 @@ func update_attack_presentation() -> void:
 		attack_body.flip_h = body.flip_h
 		attack_body.modulate = body.modulate
 		if attack_effect.ability_id == "bladestorm":
-			var turn = cos(attack_effect.elapsed * TAU * 1.5)
-			attack_body.scale.x *= maxf(0.4, absf(turn))
-			attack_body.position.x += 37 * (1 - attack_body.scale.x)
-			attack_body.flip_h = body.flip_h if turn >= 0 else not body.flip_h
 			attack_sprite.position = Vector2(0, 30)
 			attack_sprite.scale = Vector2.ONE * 1.1
 			attack_sprite.rotation = attack_effect.elapsed * TAU * 1.5
-			attack_sprite.modulate.a = 0.75
+			attack_sprite.modulate.a = 0.54 + 0.25 * pow(1 - fposmod(attack_effect.elapsed, 1), 5)
 		else:
 			var progress = clampf(attack_effect.elapsed / attack_effect.visual_duration, 0, 1)
 			attack_sprite.scale *= lerpf(0.65, 1.15, sin(progress * PI))

@@ -79,4 +79,4 @@ replication_config = SubResource("Replication")
 
 [node name="SpellVisual" type="Node2D" parent="."]
 script = ExtResource("3")
-z_index = 3
+z_index = 4

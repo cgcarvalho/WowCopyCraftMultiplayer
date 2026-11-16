@@ -89,10 +89,18 @@ func _draw() -> void:
 	if not active_visuals():
 		return
 	if encounter.boss.charShield > 0 or encounter.has_runic_conductors():
-		sprite("sigil", encounter.boss.global_position, Vector2(300, 340) * Jefferson.VISUAL_SCALE, loop_progress("sigil", animation_time), animation_time * 0.35, Color(1, 1, 1, 0.65))
+		var linked = encounter.has_runic_conductors()
+		var aura_tint = Color(0.8, 0.64, 1.0, 0.74) if linked else Color(1, 0.84, 0.54, 0.58)
+		sprite("sigil", encounter.boss.global_position, Vector2(300, 340) * Jefferson.VISUAL_SCALE, loop_progress("sigil", animation_time), animation_time * 0.35, aura_tint)
 	for conductor in encounter.conductors:
 		if conductor.charCurrentLife > 0:
-			draw_line(to_local(encounter.boss.global_position), to_local(conductor.global_position), Color(0.80, 0.62, 1.0, 0.45), 3, true)
+			var start = to_local(conductor.global_position) + Vector2(0, -20)
+			var end = to_local(encounter.boss.global_position)
+			draw_line(start, end, Color(0.34, 0.21, 0.52, 0.64), 7, true)
+			draw_line(start, end, Color(0.91, 0.75, 1.0, 0.74), 2, true)
+			for i in 3:
+				var pulse = fposmod(animation_time * 1.75 + float(i) / 3, 1)
+				draw_circle(start.lerp(end, pulse), 3, Color("f0cbff"))
 	if encounter.danger_visible:
 		draw_warning()
 		var progress = warning_progress()
@@ -102,25 +110,40 @@ func _draw() -> void:
 		var opacity = clampf(encounter.visual_remaining / 0.3, 0, 1)
 		var tint = Color(1, 1, 1, opacity)
 		match encounter.visual_kind:
-			"rupture": sprite("eruption", encounter.visual_position, Vector2.ONE * encounter.AREA_RADIUS * 2.15, progress, 0, tint)
+			"rupture":
+				sprite("eruption", encounter.visual_position, Vector2.ONE * encounter.AREA_RADIUS * 2.15, minf(1.0, 0.13 + progress), 0, tint)
+				var center = to_local(encounter.visual_position)
+				SkillFX.rim(self, center, encounter.AREA_RADIUS, Color(1, 0.47, 0.28, opacity * (1 - progress)), 8)
+				for i in 6:
+					var offset = Vector2.from_angle(i * TAU / 6.0)
+					var bend = center + offset.rotated(0.26) * encounter.AREA_RADIUS * 0.43
+					draw_polyline(PackedVector2Array([center, bend, center + offset * encounter.AREA_RADIUS * lerpf(0.47, 0.96, progress)]), Color(1, 0.45, 0.3, opacity * (1 - progress)), 2.3, true)
 			"lance":
 				var middle = encounter.visual_origin + encounter.visual_direction * encounter.LANCE_LENGTH / 2
-				sprite("lance", middle, Vector2(encounter.LANCE_LENGTH, encounter.LANCE_RADIUS * 2), progress, encounter.visual_direction.angle(), tint)
+				sprite("lance", middle, Vector2(encounter.LANCE_LENGTH, encounter.LANCE_RADIUS * 2), minf(1, 0.12 + progress), encounter.visual_direction.angle(), tint)
 			"blink":
 				sprite("sigil", encounter.visual_origin, Vector2.ONE * lerpf(270, 90, progress), progress, -progress * TAU, tint)
-				sprite("eruption", encounter.visual_position, Vector2.ONE * lerpf(120, 330, progress), progress, 0, tint)
+				sprite("sigil", encounter.visual_position, Vector2.ONE * lerpf(90, 285, progress), progress, progress * TAU, Color(0.65, 0.84, 1.0, opacity))
 			"ward": sprite("sigil", encounter.visual_origin, Vector2.ONE * lerpf(200, 450, progress), progress, progress, tint)
 			"bond":
 				sprite("sigil", encounter.visual_position, Vector2.ONE * 260, progress, progress, tint)
 				draw_arc(to_local(encounter.visual_position), 130, 0, TAU, 64, Color(1, 0.85, 0.4, opacity), 4, true)
-			"spread", "channel":
+			"spread":
 				for point in encounter.visual_targets:
-					sprite("eruption", point, Vector2.ONE * (190 if encounter.visual_kind == "spread" else 240), progress, 0, tint)
-				if encounter.visual_kind == "channel":
-					sprite("sigil", encounter.visual_origin, Vector2.ONE * lerpf(350, 600, progress), progress, progress, Color(1, 1, 1, opacity * 0.5))
-			"interrupted": sprite("sigil", encounter.visual_origin, Vector2.ONE * lerpf(400, 70, progress), 1 - progress, -progress * 2, Color(0.65, 0.85, 1, opacity * 0.6))
+					sprite("eruption", point, Vector2.ONE * 190, progress, 0, Color(1, 0.55, 0.72, opacity))
+			"channel":
+				for point in encounter.visual_targets:
+					var offset: Vector2 = point - encounter.visual_origin
+					draw_line(to_local(encounter.visual_origin), to_local(encounter.visual_origin + offset * minf(progress * 5, 1)), Color(0.92, 0.72, 1.0, opacity * 0.75), 5, true)
+					sprite("eruption", point, Vector2(108, 260), progress, 0, Color(0.84, 0.62, 1, opacity))
+				var column = to_local(encounter.visual_origin) + Vector2(0, -150)
+				SkillFX.draw_clip(self, &"cataclysm", column, Vector2(230, 375), progress, 0, tint)
+			"interrupted":
+				sprite("sigil", encounter.visual_origin, Vector2.ONE * lerpf(400, 70, progress), 1 - progress, -progress * 2, Color(0.65, 0.85, 1, opacity * 0.6))
 		if encounter.visual_kind in ["lance", "volley", "rupture"]:
 			sprite("orb", staff_point(), Vector2.ONE * lerpf(150, 20, progress), progress, 0, tint)
+			if progress < 0.36:
+				draw_arc(to_local(staff_point()), lerpf(11, 44, progress / 0.36), 0, TAU, 32, Color(0.92, 0.78, 1.0, 1 - progress / 0.36), 3, true)
 	for projectile in encounter.projectiles:
 		var point: Vector2 = display_positions.get(projectile["id"], projectile["position"])
 		var direction: Vector2 = projectile["velocity"]
@@ -155,19 +178,39 @@ func draw_warning() -> void:
 			sprite("sigil", encounter.danger_position, Vector2.ONE * 230, fraction, fraction, Color(1, 1, 1, 0.22))
 			draw_circle(center, 130, Color(1, 0.8, 0.2, 0.15))
 			draw_arc(center, 130, 0, TAU, 64, Color("ffe18e"), 4, true)
+			for i in 6:
+				var outward = Vector2.from_angle(i * TAU / 6)
+				SkillFX.arrow(self, center + outward * 117, -outward, Color("ffe18e"))
 			warning_label(center + Vector2(-80, -140), "JUNTEM-SE · DIVIDIR DANO", 15, Color("ffe18e"))
 		"spread":
+			var own_id = multiplayer.get_unique_id()
+			var local_point = Vector2.INF
+			var points: Array[Vector2] = []
 			for id in encounter.mechanic_targets:
 				var hero = MultiplayerManager.get_character(int(id))
 				if is_instance_valid(hero) and hero.charCurrentLife > 0:
 					var point = to_local(hero.global_position)
+					points.append(point)
+					if int(id) == own_id:
+						local_point = point
 					sprite("charge", hero.global_position, Vector2.ONE * 170, fraction, fraction, Color(1, 0.55, 0.7, 0.22))
 					draw_circle(point, 95, Color(0.9, 0.1, 0.3, 0.16))
-					draw_arc(point, 95, 0, TAU, 48, Color("ff6b7d"), 3, true)
-					warning_label(point + Vector2(-35, -105), "AFASTE-SE", 14, Color("ff97a3"))
+					SkillFX.rim(self, point, 95, Color("ffdce3") if int(id) == own_id else Color("ff6b7d"))
+					for i in 6:
+						var unit = Vector2.from_angle(i * TAU / 6)
+						SkillFX.arrow(self, point + unit * 81, unit, Color("ffb1bb"), 2.0)
+			if local_point.is_finite():
+				var overlapping = 0
+				for point in points:
+					if point.distance_to(local_point) < 190:
+						overlapping += 1
+				if overlapping > 1:
+					SkillFX.rim(self, local_point, 87, Color("ffc2c9"), 14)
+				warning_label(local_point + Vector2(-62, -103), "AFASTE-SE · %.1fs" % encounter.danger_remaining, 15, Color("fff1f3"))
 		"channel":
 			sprite("sigil", encounter.danger_origin, Vector2(340, 340) * Jefferson.VISUAL_SCALE, fraction, fraction * TAU, Color(1, 1, 1, 0.4))
 			draw_arc(origin, 140 * Jefferson.VISUAL_SCALE, 0, TAU * fraction, 64, Color("ffb8ff"), 6, true)
+			SkillFX.draw_clip(self, &"cataclysm", origin + Vector2(0, -135), Vector2(180, 300), fraction * 0.53, 0, Color(1.0, 1.0, 1.0, 0.68))
 			warning_label(origin + Vector2(-100, -Jefferson.VISUAL_HEIGHT / 2 - 10), "F · INTERROMPER CATACLISMO", 16, Color("ffe18e"))
 		"rupture":
 			sprite("charge", encounter.danger_position, Vector2.ONE * encounter.AREA_RADIUS * 1.8, fraction, 0, Color(1, 1, 1, 0.3))
@@ -188,8 +231,8 @@ func draw_warning() -> void:
 				draw_line(origin + direction * 80, origin + direction * 350, Color(0.8, 0.3, 1, 0.35), 3, true)
 			sprite("orb", encounter.danger_origin, Vector2(100, 100) * (0.5 + fraction * 0.5), fraction)
 		"blink":
-			sprite("sigil", encounter.danger_origin, Vector2(190, 190) * Jefferson.VISUAL_SCALE, fraction, fraction * TAU, Color(1, 1, 1, 0.65))
-			sprite("sigil", encounter.danger_position, Vector2(220, 220) * Jefferson.VISUAL_SCALE, fraction, -fraction * TAU, Color(1, 1, 1, 0.65))
-			draw_arc(center, 85, 0, TAU, 64, Color(0.6, 0.3, 1, 0.7), 2, true)
+			sprite("sigil", encounter.danger_origin, Vector2.ONE * lerpf(210, 76, fraction), fraction, -fraction * TAU, Color(0.76, 0.58, 1, 0.69))
+			sprite("sigil", encounter.danger_position, Vector2.ONE * lerpf(76, 210, fraction), fraction, fraction * TAU, Color(0.54, 0.81, 1, 0.69))
+			SkillFX.rim(self, center, 85, Color(0.54, 0.81, 1, 0.7), 4, PI / 4)
 		"ward":
 			sprite("sigil", encounter.danger_origin, Vector2(300, 300) * Jefferson.VISUAL_SCALE * (0.6 + fraction * 0.4), fraction, fraction, Color(1, 1, 1, 0.55))

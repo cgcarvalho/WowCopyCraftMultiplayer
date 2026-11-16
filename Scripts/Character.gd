@@ -40,6 +40,12 @@ var charClass = ""
 var attack_interval = 1.0
 var attack_style = "melee"
 var ability_animation_time = 0.0
+var ability_pose: StringName = &"cast"
+var ability_pose_speed := 1.0
+var cast_visual = ""
+var ability_animation_length = 0.45
+var aura_was_active = false
+var aura_flash = 0.0
 var basic_animation_remaining = 0.0
 var last_move_direction = Vector2.RIGHT
 var resource_name = "Mana"
@@ -140,7 +146,7 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(charCurrentTarget):
 		$AnimatedSprite2D.flip_h = global_position.x < charCurrentTarget.global_position.x
 	if ability_animation_time > 0:
-		$AnimatedSprite2D.play("cast")
+		$AnimatedSprite2D.play(ability_pose, ability_pose_speed)
 	
 	if charCurrentLife <= 0:
 		die()
@@ -301,9 +307,32 @@ func copy_animation(frames: SpriteFrames, source: StringName, destination: Strin
 	for index in frames.get_frame_count(source):
 		frames.add_frame(destination, frames.get_frame_texture(source, index), frames.get_frame_duration(source, index))
 
-func play_ability(duration: float) -> void:
-	ability_animation_time = maxf(duration, 0.45)
-	$AnimatedSprite2D.play("cast")
+func play_ability(duration: float, path: String = "") -> void:
+	cast_visual = path.get_file().get_basename()
+	var pose: StringName = &"cast"
+	match cast_visual:
+		"aimed_shot": pose = &"pose_aimed"
+		"charge": pose = &"pose_charge"
+		"field_beacon", "valve_burst", "overload": pose = &"pose_device"
+	var body: AnimatedSprite2D = $AnimatedSprite2D
+	ability_pose = pose if body.sprite_frames.has_animation(pose) else &"cast"
+	ability_animation_length = maxf(duration, 0.65 if ability_pose == &"pose_device" else 0.45)
+	ability_animation_time = ability_animation_length
+	ability_pose_speed = 1.0
+	if ability_pose == &"pose_aimed":
+		var frames = body.sprite_frames
+		var art_duration = frames.get_frame_count(ability_pose) / frames.get_animation_speed(ability_pose)
+		ability_pose_speed = art_duration / ability_animation_length
+	body.play(ability_pose, ability_pose_speed)
+
+func weapon_offset(style: String, aim: Vector2) -> Vector2:
+	var side = -1.0 if aim.x < 0.0 else 1.0
+	match style:
+		"arrow", "arrow_fork", "aimed", "poison": return Vector2(side * 49, -20)
+		"rivet", "rivet_skill": return Vector2(side * 33, -20)
+		"magic", "bolt": return Vector2(side * 29, -21)
+		"hammer", "holy": return Vector2(side * 51, -31)
+	return Vector2.ZERO
 
 func play_skill_animation(_skill: Skill) -> void:
 	pass
@@ -385,6 +414,53 @@ func passive_text() -> String:
 
 func _process(delta: float) -> void:
 	update_presentation(delta)
+	if multiplayer.get_unique_id() == int(name):
+		var aura_now = has_paladin_aura()
+		if aura_now != aura_was_active:
+			aura_was_active = aura_now
+			aura_flash = 0.46
+		aura_flash = maxf(0.0, aura_flash - delta)
+		queue_redraw()
+
+func _draw() -> void:
+	if spectator or charCurrentLife <= 0 or multiplayer.get_unique_id() != int(name):
+		return
+	var side = 1.0 if $AnimatedSprite2D.flip_h else -1.0
+	var point = Vector2(side * 60, -44)
+	if aura_flash > 0:
+		var aura_color = Color(1, 0.88, 0.49, aura_flash * 1.6)
+		draw_arc(Vector2(0, 80), 30, PI * 0.1, PI * 0.9, 20, aura_color, 2.5, true)
+	if charClass == "Warrior" and charShield > 0:
+		draw_arc(Vector2(0, 48), 93, 0.15, PI - 0.15, 38, Color(0.61, 0.88, 1.0, 0.54), 4, true)
+	if ability_animation_time > 0:
+		var progress = 1.0 - clampf(ability_animation_time / ability_animation_length, 0.0, 1.0)
+		match cast_visual:
+			"Shadow_bolt", "soul_reap":
+				var focus = Vector2(side * 45, -46)
+				var pulse = sin(progress * PI) * 0.7
+				draw_circle(focus, 9 + progress * 8, Color(0.78, 0.49, 1.0, pulse))
+			"aimed_shot":
+				var bow_side = point + Vector2(side * 27, 0)
+				draw_line(bow_side, bow_side + Vector2(side * lerpf(14, 72, progress), 0), Color(0.8, 1, 0.73, 0.41), 2.5, true)
+	var color: Color
+	match charClass:
+		"Warlock":
+			if not shadow_bolt_ready:
+				return
+			color = Color("cda3ff")
+		"Warrior":
+			if momentum < ClassPassives.MOMENTUM_MAX:
+				return
+			color = Color("ffc595")
+		"Hunter":
+			if steady_time < ClassPassives.STEADY_SECONDS:
+				return
+			color = Color("c1efae")
+		"Paladin":
+			return
+		_: return
+	var radius = 6 + sin(Time.get_ticks_msec() * 0.006) * 1.5
+	draw_polyline(PackedVector2Array([point + Vector2(0, -radius), point + Vector2(radius, 0), point + Vector2(0, radius), point - Vector2(radius, 0), point + Vector2(0, -radius)]), color, 2.0, true)
 
 func update_presentation(delta: float) -> void:
 	flash_time = maxf(0, flash_time - delta)
@@ -417,6 +493,8 @@ func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dict
 	interrupt_remaining = 0
 	charCurrentTarget = null
 	ability_animation_time = 0
+	aura_was_active = false
+	aura_flash = 0
 	basic_animation_remaining = 0
 	momentum = 0
 	momentum_time = 0

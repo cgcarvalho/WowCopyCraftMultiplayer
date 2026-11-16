@@ -6,6 +6,7 @@ var main: Node
 var boss: Character
 var handler: Node
 var client_id = 0
+var saw_personal_shield = false
 
 func wait_wall(seconds: float) -> void:
 	var deadline = Time.get_ticks_msec() + roundi(seconds * 1000)
@@ -55,6 +56,9 @@ func run() -> void:
 		var hunter = MultiplayerManager.playerList[client_id]
 		hunter.position = Vector2(400, 300)
 		hunter.set_physics_process(false)
+		main.child_entered_tree.connect(func(child: Node):
+			if child is SkillFX and child.clip == &"shield" and child.initial_point.distance_to(hunter.global_position) < 6.0:
+				saw_personal_shield = is_equal_approx(child.opacity, 1.0))
 		await get_tree().create_timer(0.4).timeout
 		handler.loadSkillScene.rpc_id(1, "res://Scenes/Skills/Classes/holy_light.tscn", client_id, client_id)
 		handler.loadSkillScene.rpc_id(1, "res://Scenes/Skills/Classes/poison_arrow.tscn", client_id, -1)
@@ -99,6 +103,8 @@ func verify_poison() -> void:
 func verify_client_state() -> void:
 	var hunter = MultiplayerManager.playerList[client_id]
 	if not check(hunter.charCurrentLife == 100 and hunter.charShield == 35, "Remote client receives ultimate health and shield"):
+		return
+	if not check(saw_personal_shield, "Remote ally sees the shield effect at their own position with full opacity"):
 		return
 	if not check(main.get_node("DotStatusUI").groups_for(boss).size() == 1, "Client sees replicated poison status"):
 		return
