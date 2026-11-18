@@ -100,6 +100,12 @@ func _draw() -> void:
 	var point = Vector2.ZERO
 	var size = Vector2.ONE * diameter
 	match clip:
+		&"pierce":
+			var unit = Vector2.from_angle(direction)
+			var color = Color(0.83, 1.0, 0.76, fade)
+			draw_line(-unit * radius, unit * radius, color, 3.5, true)
+			arrow(self, unit * radius * 0.85, unit, color)
+			return
 		&"arrow_rain":
 			for i in 8:
 				var point_on_floor = volley_point(i, radius)

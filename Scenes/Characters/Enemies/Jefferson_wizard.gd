@@ -55,7 +55,8 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	update_presentation(delta)
-	visible = get_parent().status != "waiting"
+	visible = get_parent().status in ["active", "victory", "defeat"]
+	input_pickable = get_parent().status == "active" and not spectator
 	var dead = charCurrentLife <= 0
 	modulate = Color(0.7, 0.6, 0.8, 1 - death_progress * 0.85) if dead else Color.WHITE
 	if not dead and flash_time <= 0:

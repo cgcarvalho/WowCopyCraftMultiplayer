@@ -40,6 +40,7 @@ func become_host() -> void:
 		return
 	%MultiplayerHUD.hide()
 	$Session.open_lobby()
+	$Session.select_encounter_mode("expedition")
 	loadCharSelectionScreen()
 
 func join_game() -> void:

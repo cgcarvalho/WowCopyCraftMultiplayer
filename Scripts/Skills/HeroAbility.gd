@@ -11,11 +11,13 @@ var impacted = false
 var visual_duration = 0.65
 var tint = Color.WHITE
 var skillTimer = 0.0
-var skillDotSeconds = 0
+var skillDotSeconds = 0.0
 var display_offset := Vector2.ZERO
 var facing := Vector2.RIGHT
 var trail := PackedVector2Array()
 var shield_cue = false
+var secondary_effect = false
+var drag_ready: Dictionary = {}
 
 const PROJECTILES = {"aimed_shot": "aimed", "judgement": "hammer", "multishot": "arrow_fork", "poison_arrow": "poison"}
 
@@ -81,6 +83,9 @@ func cast(caster: Character, target: Character) -> void:
 	if ability_id == "poison_arrow":
 		for effect in target.debuffList:
 			if is_instance_valid(effect) and effect is HeroAbility and effect.ability_id == ability_id and effect.casterCharacter == caster:
+				effect.data.duration = data.duration
+				effect.skillDotSeconds = skillDotSeconds
+				effect.secondary_effect = false
 				effect.renewDot()
 				queue_free()
 				return
@@ -105,6 +110,7 @@ func impact() -> void:
 	impacted = true
 	if not multiplayer.is_server() or not living():
 		return
+	var primary_before = targetCharacter.charCurrentLife + targetCharacter.charShield if is_instance_valid(targetCharacter) else 0
 	var power: int = data.power
 	if ability_id == "judgement":
 		casterCharacter.gain_resource(1)
@@ -153,6 +159,8 @@ func impact() -> void:
 					"charge": cue(&"slash", targetCharacter.global_position, 124, facing.angle())
 					"poison_arrow": cue(&"poison", targetCharacter.global_position, 78)
 					"aimed_shot": cue(&"slash", targetCharacter.global_position, 86, facing.angle())
+	var effective = primary_before - targetCharacter.charCurrentLife - targetCharacter.charShield if is_instance_valid(targetCharacter) else 0
+	MasteryEffects.skill_impact(self, effective)
 
 func cue(clip: StringName, point: Vector2, size: float, angle: float = 0.0, marks: int = 0, recipient: Character = null) -> void:
 	CombatFeedback.show_skill_effect(clip, point, casterCharacter, size, angle, marks, recipient)
@@ -163,6 +171,7 @@ func hurt(character: Character, power: int, periodic: bool = false) -> void:
 func tick_effect() -> void:
 	if not multiplayer.is_server() or not living():
 		return
+	MasteryEffects.periodic(self)
 	if ability_id == "poison_arrow":
 		hurt(targetCharacter, 6 if TalentTree.has(casterCharacter.talents, "venom", 1) else 4, true)
 		cue(&"poison", targetCharacter.global_position, 45)

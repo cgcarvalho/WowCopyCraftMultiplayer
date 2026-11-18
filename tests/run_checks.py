@@ -27,6 +27,7 @@ OFFLINE = [
     ('passive_clarity', 'Passive clarity failures: 0'),
     ('fluid_combat', 'Fluid combat failures: 0'),
     ('engineer', 'Engineer failures: 0'),
+    ('masteries_minions', 'Mastery and minion failures: 0'),
 ]
 NETWORK = [
     ('boss_network', 'NETWORK'),
@@ -114,6 +115,8 @@ def main():
         total += network(args.godot, 'party_report_network', 'PARTY_REPORT', clients=3)
         total += network(args.godot, 'conductors_network', 'RUNES_NETWORK', clients=3,
                          late_client_marker='RUNES_NETWORK_LATE_READY')
+        total += network(args.godot, 'masteries_minions_network', 'MINIONS_NETWORK', clients=3,
+                         late_client_marker='MINIONS_NETWORK_LATE_READY')
     print(f'Total: {total} checks passed')
 
 

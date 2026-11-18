@@ -243,7 +243,7 @@ func run() -> void:
 	session.stage = "lobby"
 	ui.talents_open = true
 	ui.rebuild()
-	check(ui.content.get_child_count() == 5, "Lobby UI builds two talent paths with redistribution and back controls")
+	check(ui.content.get_child_count() >= 5 and ui.content.find_children("Mastery_*", "Button", true, false).size() == 2, "Lobby UI builds both talent paths, their mastery choices, redistribution and back controls")
 	session.prepare_round()
 	check(session.report.is_empty() and session.combat_report.rows[1].damage == 0 and session.combat_report.elapsed == 0, "Next attempt starts fresh statistics without accumulating previous results")
 	get_tree().current_scene = self

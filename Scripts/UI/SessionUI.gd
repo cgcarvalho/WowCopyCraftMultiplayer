@@ -13,6 +13,7 @@ var arena_text: Label
 var speech: Label
 var interrupt_button: Button
 var countdown_text: Label
+var enemy_cast_text: Label
 var result_delay = 0.0
 var hud_backplate: Panel
 var last_stage = ""
@@ -108,11 +109,20 @@ func _ready() -> void:
 	speech.add_theme_color_override("font_outline_color", Color.BLACK)
 	speech.add_theme_constant_override("outline_size", 5)
 	screen.add_child(speech)
-	interrupt_button = button("F · Interromper", func(): main.get_node("SkillHandler").request_interrupt.rpc_id(1))
+	interrupt_button = button("F · Interromper", func():
+		var handler = main.get_node("SkillHandler")
+		handler.request_interrupt.rpc_id(1, handler.interrupt_target_id()))
 	interrupt_button.position = Vector2(970, 555)
 	interrupt_button.size = Vector2(170, 44)
-	interrupt_button.tooltip_text = "Interrompe Cataclismo Arcano. Recarga: 16s. Alcance: 200 para Warrior, 650 para as demais classes."
+	interrupt_button.tooltip_text = "Interrompe o Acólito selecionado ou Cataclismo Arcano. Recarga: 16s. Alcance: 200 para Warrior, 650 para as demais classes."
 	screen.add_child(interrupt_button)
+	enemy_cast_text = label("", 13, Color("ffe9ae"))
+	enemy_cast_text.position = Vector2(0, 23)
+	enemy_cast_text.size = Vector2(260, 36)
+	enemy_cast_text.add_theme_color_override("font_outline_color", Color.BLACK)
+	enemy_cast_text.add_theme_constant_override("outline_size", 3)
+	main.get_node("CombatHUD/TargetCastBar").add_child(enemy_cast_text)
+	enemy_cast_text.hide()
 	countdown_text = label("", 54, Color("ffe4a6"))
 	countdown_text.position = Vector2(350, 230)
 	countdown_text.size = Vector2(450, 130)
@@ -174,6 +184,8 @@ func add_party() -> void:
 		var text = "%s · %s · %s" % [member.name, member["class"] if member["class"] != "" else "Sem classe", state]
 		if member["class"] != "":
 			text += "\n" + TalentTree.summary(member["class"], member.get("talents", {}))
+			if not str(member.get("mastery", "")).is_empty():
+				text += " · " + MasteryCatalog.summary(str(member.mastery))
 		content.add_child(label(text, 16, Color("a5dbb4") if member.ready else Color("c9c4b8")))
 
 func show_talents(value: bool) -> void:
@@ -211,6 +223,22 @@ func add_talents(member: Dictionary) -> void:
 			if rank >= tier:
 				node.add_theme_color_override("font_disabled_color", Color("a5dbb4"))
 			column.add_child(node)
+		var mastery_id = MasteryCatalog.for_branch(member.get("class", ""), branch)
+		if not mastery_id.is_empty():
+			var data: Dictionary = MasteryCatalog.DEFINITIONS[mastery_id]
+			var selected = member.get("mastery", "") == mastery_id
+			var final_choice = button(("✓ " if selected else "") + "MAESTRIA · " + str(data.name) + "\n" + str(data.text), func(): session.learn_mastery.rpc_id(1, "" if selected else mastery_id))
+			final_choice.name = "Mastery_" + mastery_id
+			final_choice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			final_choice.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			final_choice.custom_minimum_size = Vector2(382, 118)
+			final_choice.disabled = session.transitioning or not MasteryCatalog.valid(member["class"], choices, mastery_id)
+			final_choice.icon = MasteryCatalog.icon(mastery_id)
+			final_choice.add_theme_constant_override("icon_max_width", 44)
+			final_choice.expand_icon = true
+			final_choice.tooltip_text = str(data.text) + "\nRequer 2 pontos nesta trilha. Escolha uma maestria por personagem."
+			column.add_child(final_choice)
+	content.add_child(label("MAESTRIA · 1 escolha própria, liberada com 2 pontos na trilha.\n" + MasteryCatalog.summary(str(member.get("mastery", ""))), 15, Color("b7dfec")))
 	var reset = button("Redistribuir pontos · grátis", func(): session.reset_talents.rpc_id(1))
 	reset.disabled = session.transitioning or TalentTree.spent(choices) == 0
 	content.add_child(reset)
@@ -277,6 +305,18 @@ func add_arenas() -> void:
 		column.add_child(choose)
 	content.add_child(label("O host escolhe a arena. Marque Pronto novamente após uma troca." if session.stage == "lobby" else "O host pode escolher outra arena para o próximo combate.", 13, Color("c9c4b8")))
 
+func add_encounter_modes() -> void:
+	content.add_child(label("ENCONTRO", 18, Color("edcf8d")))
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	content.add_child(row)
+	for value in EncounterDirector.MODES:
+		var choose = button(("✓ " if session.encounter_mode == value else "") + EncounterDirector.MODES[value], func(): session.select_encounter_mode.rpc_id(1, value))
+		choose.name = "Mode_" + value
+		choose.disabled = not multiplayer.is_server() or session.transitioning or session.encounter_mode == value
+		row.add_child(choose)
+	content.add_child(label("Ondas e Jefferson começa com dois grupos de inimigos. A pausa final restaura vida, recurso e recargas. Reforços acrescenta inimigos durante a luta do chefe.", 14, Color("c9c4b8")))
+
 func rebuild() -> void:
 	for child in content.get_children():
 		content.remove_child(child)
@@ -291,6 +331,7 @@ func rebuild() -> void:
 		content.add_child(label("GRUPO · JEFFERSON, O ARCANISTA", 26, Color("edcf8d")))
 		content.add_child(label("Escolha sua classe, marque Pronto e aguarde o host iniciar.", 16))
 		add_arenas()
+		add_encounter_modes()
 		add_party()
 		var controls = HBoxContainer.new()
 		controls.add_theme_constant_override("separation", 12)
@@ -383,10 +424,14 @@ func _process(delta: float) -> void:
 		main.get_node("CombatHUD/" + path).visible = active
 	if not active:
 		main.get_node("CombatHUD/TargetHP").hide()
+		main.get_node("CombatHUD/TargetCastBar").hide()
+		enemy_cast_text.hide()
 	countdown_text.visible = session.stage == "countdown"
 	countdown_text.text = "COMEÇA EM\n%d" % maxi(1, ceili(session.countdown))
 	if active:
-		arena_text.text = ArenaCatalog.definition(session.arena_id).name
+		var director = main.get_node("EncounterDirector")
+		var status_text = director.caption()
+		arena_text.text = status_text if not status_text.is_empty() else ArenaCatalog.definition(session.arena_id).name
 		resource_text.text = "%s: %d / %d" % [hero.resource_name, int(hero.charCurrentMana), int(hero.charTotalMana)]
 		resource_text.add_theme_color_override("font_color", hero.resource_color)
 		if passive_text.hero != hero:
@@ -396,7 +441,9 @@ func _process(delta: float) -> void:
 		target_range_text.text = preview.target_status()
 		target_range_text.add_theme_color_override("font_color", Color("ffad91") if target_range_text.text.begins_with("FORA") else Color("a5edbd"))
 		var queued = main.get_node("CombatHUD/SkillBar").queued_button
-		aim_text.text = preview.hint if preview.aiming else ("Na fila: " + queued.skillCast.skillName + " · Esc cancela" if is_instance_valid(queued) else "Tab / Shift+Tab: alvo · F: interromper · Áreas: clique confirma")
+		var mastery_text = " · " + MasteryCatalog.summary(hero.mastery) if not hero.mastery.is_empty() else ""
+		aim_text.text = preview.hint if preview.aiming else ("Na fila: " + queued.skillCast.skillName + " · Esc cancela" if is_instance_valid(queued) else "Tab: alvo · F: interromper" + mastery_text)
+		update_enemy_cast(hero)
 		interrupt_button.text = "F · %ds" % ceili(hero.interrupt_remaining) if hero.interrupt_remaining > 0 else "F · Interromper"
 	var encounter = main.get_node("BossEncounter")
 	speech.text = encounter.speech if encounter.speech_remaining > 0 and session.stage != "lobby" else ""
@@ -412,3 +459,22 @@ func _process(delta: float) -> void:
 	if current != signature:
 		signature = current
 		rebuild()
+
+func update_enemy_cast(hero: Character) -> void:
+	var bar = main.get_node("CombatHUD/TargetCastBar")
+	var target = hero.charCurrentTarget
+	enemy_cast_text.hide()
+	if target is LesserEnemy:
+		bar.visible = target.cast_remaining > 0 and target.charCurrentLife > 0
+		if bar.visible:
+			bar.cast_bar.show()
+			bar.cast_bar.value = 1 - target.cast_remaining / maxf(0.01, target.cast_total)
+			bar.tooltip_text = ("F · Interrompível" if target.enemy_kind == "acolyte" else "Saia da linha") + " · %.1fs" % target.cast_remaining
+			enemy_cast_text.text = ("Selo Volátil · %.1fs · F" if target.enemy_kind == "acolyte" else "Bote Arcano · %.1fs · Desvie") % target.cast_remaining
+			enemy_cast_text.show()
+		else:
+			bar.cast_bar.hide()
+	else:
+		bar.visible = true
+		if not bar.is_casting:
+			bar.cast_bar.hide()

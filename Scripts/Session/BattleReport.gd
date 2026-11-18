@@ -13,7 +13,10 @@ func begin(roster: Dictionary) -> void:
 		var member: Dictionary = roster[id]
 		if member.spectator or member["class"] == "":
 			continue
-		rows[id] = {"name": member.name, "class": member["class"], "talents": TalentTree.summary(member["class"], member.get("talents", {})),
+		var summary = TalentTree.summary(member["class"], member.get("talents", {}))
+		if not str(member.get("mastery", "")).is_empty():
+			summary += " · " + MasteryCatalog.summary(str(member.mastery))
+		rows[id] = {"name": member.name, "class": member["class"], "talents": summary,
 			"damage": 0, "healing": 0, "absorbed": 0, "damage_taken": 0, "interrupts": 0, "mechanics": 0, "deaths": 0}
 
 func add(id: int, metric: String, amount: int) -> void:

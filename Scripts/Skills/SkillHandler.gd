@@ -19,7 +19,8 @@ func _ready() -> void:
 func encounter_finished() -> bool:
 	var encounter = get_parent().get_node_or_null("BossEncounter")
 	var session = get_parent().get_node_or_null("Session")
-	return (session != null and session.running and session.stage != "active") or (encounter != null and encounter.status in ["victory", "defeat"])
+	var director = get_parent().get_node_or_null("EncounterDirector")
+	return (session != null and session.running and session.stage != "active") or (encounter != null and encounter.status in ["victory", "defeat"]) or (director != null and director.phase == "rest")
 
 func valid_sender(id: int) -> bool:
 	var sender = multiplayer.get_remote_sender_id()
@@ -158,7 +159,7 @@ func reset_combat() -> void:
 	combat_reset.emit()
 
 @rpc("any_peer", "call_local", "reliable")
-func request_interrupt() -> void:
+func request_interrupt(target_id: int = 0) -> void:
 	if not multiplayer.is_server() or encounter_finished():
 		return
 	var id = multiplayer.get_remote_sender_id()
@@ -169,16 +170,26 @@ func request_interrupt() -> void:
 	if not is_instance_valid(caster) or caster.charCurrentLife <= 0 or caster.spectator or caster.interrupt_remaining > 0:
 		return
 	var reach = 200.0 if caster.charClass == "Warrior" else 650.0
-	if caster.global_position.distance_to(encounter.boss.global_position) > reach:
+	var target = MultiplayerManager.get_character(target_id) if target_id < 0 else caster.charCurrentTarget
+	if not is_instance_valid(target) or target.charTeam == caster.charTeam or target.charCurrentLife <= 0 or target.spectator:
+		target = encounter.boss
+	if caster.global_position.distance_to(target.global_position) > reach:
 		return
-	if encounter.interrupt_channel(caster):
+	var interrupted = target.interrupt_cast(caster) if target is LesserEnemy else (target == encounter.boss and encounter.interrupt_channel(caster))
+	if interrupted:
 		caster.interrupt_remaining = 16.0
-		interrupt_feedback.rpc(id)
+		interrupt_feedback.rpc(id, target.charName)
+
+func interrupt_target_id() -> int:
+	var local = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
+	if is_instance_valid(local) and is_instance_valid(local.charCurrentTarget) and local.charCurrentTarget.charTeam != local.charTeam:
+		return int(local.charCurrentTarget.name)
+	return 0
 
 @rpc("authority", "call_local", "reliable")
-func interrupt_feedback(_id: int) -> void:
+func interrupt_feedback(_id: int, target_name: String = "Jefferson") -> void:
 	CombatFeedback.play_sound("interrupt")
-	get_parent().get_node("CombatHUD/SkillBar").show_feedback("Cataclismo interrompido!")
+	get_parent().get_node("CombatHUD/SkillBar").show_feedback("Cataclismo interrompido!" if target_name == "Jefferson" else target_name + " interrompido!")
 
 @rpc("authority", "call_local", "reliable")
 func refresh_dot(path: String, caster_id: int, target_id: int) -> void:
@@ -188,8 +199,67 @@ func refresh_dot(path: String, caster_id: int, target_id: int) -> void:
 		return
 	for effect in target.debuffList:
 		if is_instance_valid(effect) and effect.skillScenePath == path and effect.casterCharacter == caster:
+			for template in caster.skillList:
+				if template.skillScenePath == path and template is DamageOverTime:
+					effect.skillDotSeconds = template.skillDotSeconds
+					effect.secondary_effect = false
 			effect.renewDot()
 			return
+
+@rpc("authority", "call_local", "reliable")
+func secondary_projectile(caster_id: int, target_id: int, power: int, style: String, origin: Vector2) -> void:
+	var caster = MultiplayerManager.get_character(caster_id)
+	var target = MultiplayerManager.get_character(target_id)
+	if encounter_finished() or not is_instance_valid(caster) or not is_instance_valid(target) or caster.charCurrentLife <= 0 or target.charCurrentLife <= 0 or target.spectator or caster.charTeam == target.charTeam:
+		return
+	var projectile = CombatProjectile.new()
+	get_parent().add_child(projectile)
+	projectile.launch(caster, target, power, style, origin)
+
+@rpc("authority", "call_local", "reliable")
+func copy_dot(path: String, caster_id: int, target_id: int, duration: float) -> void:
+	var caster = MultiplayerManager.get_character(caster_id)
+	var target = MultiplayerManager.get_character(target_id)
+	if not is_instance_valid(caster) or not is_instance_valid(target) or caster.charCurrentLife <= 0 or target.charCurrentLife <= 0 or target.spectator or target.charTeam == caster.charTeam or duration <= 0 or duration > 6 or not is_finite(duration) or encounter_finished():
+		return
+	var template: Skill
+	for candidate in caster.skillList:
+		if candidate.skillScenePath == path:
+			template = candidate
+			break
+	if template == null or not (template is DamageOverTime or (template is HeroAbility and template.ability_id == "poison_arrow")):
+		return
+	for old in target.debuffList:
+		if not is_instance_valid(old) or old.casterCharacter != caster or old.skillScenePath != path:
+			continue
+		if old is DamageOverTime:
+			old.skillDotSeconds = maxf(old.skillDotSeconds - old.skillTimer, duration)
+			old.skillTimer = 0
+		elif old is HeroAbility:
+			old.data.duration = maxf(float(old.data.duration) - old.elapsed, duration)
+			old.skillDotSeconds = float(old.data.duration)
+			old.elapsed = 0
+			old.skillTimer = 0
+			old.next_tick = 1
+		return
+	var effect: Skill = load(path).instantiate()
+	TalentTree.configure_skill(effect, caster.talents)
+	get_parent().add_child(effect)
+	effect.secondary_effect = true
+	if effect is DamageOverTime:
+		effect.skillDotSeconds = duration
+		effect.cast(caster, target)
+		if multiplayer.is_server():
+			checkPassive(effect, caster)
+	else:
+		effect.data.duration = duration
+		effect.skillDotSeconds = duration
+		effect.casterCharacter = caster
+		effect.targetCharacter = target
+		effect.impacted = true
+		effect.global_position = target.global_position
+		target.debuffList.append(effect)
+	effect.modulate.a = CombatFeedback.effect_opacity(caster)
 
 # Only the server broadcasts effects; clients animate, server mutates combat state.
 @rpc("authority", "call_local", "reliable")

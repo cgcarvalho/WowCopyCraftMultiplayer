@@ -5,10 +5,11 @@ class_name DamageOverTime
 signal onDamage
 
 var skillBaseDamage : int
-var skillDotSeconds : int
+var skillDotSeconds : float
 var timer = 0.0
 var skillTimer = 0.0
 var sprite_scale := Vector2.ONE
+var secondary_effect = false
 
 func cast(casterChar : Character, targerChar : Character) -> void:
 	casterCharacter = casterChar
@@ -30,7 +31,7 @@ func setSkillInicialPosition() -> void:
 	global_position.y += 12
 
 func _physics_process(delta: float) -> void:
-	if not is_instance_valid(targetCharacter) or (casterCharacter != null and not is_instance_valid(casterCharacter)):
+	if not is_instance_valid(targetCharacter) or targetCharacter.charCurrentLife <= 0 or (casterCharacter != null and (not is_instance_valid(casterCharacter) or casterCharacter.charCurrentLife <= 0)):
 		queue_free()
 		return
 	setSkillInicialPosition()

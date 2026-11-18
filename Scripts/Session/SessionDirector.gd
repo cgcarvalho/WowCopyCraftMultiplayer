@@ -14,6 +14,7 @@ const UPGRADE_DESCRIPTIONS = {
 @export var countdown = 0.0
 @export var revision = 0
 @export var transitioning = false
+@export var encounter_mode = "boss"
 @export var arena_id = "forest":
 	set(value):
 		if not ArenaCatalog.ARENAS.has(value):
@@ -28,7 +29,7 @@ var combat_report = BattleReport.new()
 
 func _ready() -> void:
 	var config = SceneReplicationConfig.new()
-	for property in ["running", "stage", "roster", "upgrades", "round_index", "countdown", "revision", "transitioning", "arena_id"]:
+	for property in ["running", "stage", "roster", "upgrades", "round_index", "countdown", "revision", "transitioning", "arena_id", "encounter_mode"]:
 		var path = NodePath(".:" + property)
 		config.add_property(path)
 		config.property_set_spawn(path, true)
@@ -68,10 +69,20 @@ func open_lobby() -> void:
 	register_peer(1)
 	main.get_node("BossEncounter").status = "waiting"
 
+@rpc("any_peer", "call_local", "reliable")
+func select_encounter_mode(value: String) -> void:
+	if not multiplayer.is_server() or sender_id() != 1 or not running or transitioning or stage != "lobby" or not EncounterDirector.MODES.has(value):
+		return
+	if encounter_mode != value:
+		encounter_mode = value
+		for member in roster.values():
+			member.ready = false
+		revision += 1
+
 func register_peer(id: int) -> void:
 	if not multiplayer.is_server() or not running or roster.has(id):
 		return
-	roster[id] = {"name": "Host" if id == 1 else "Jogador %d" % (roster.size() + 1), "class": "", "talents": {}, "ready": false, "reward": "skip" if stage in ["victory", "defeat"] else "", "spectator": stage != "lobby"}
+	roster[id] = {"name": "Host" if id == 1 else "Jogador %d" % (roster.size() + 1), "class": "", "talents": {}, "mastery": "", "ready": false, "reward": "skip" if stage in ["victory", "defeat"] else "", "spectator": stage != "lobby"}
 	if not report.is_empty() and id in multiplayer.get_peers():
 		publish_report.rpc_id(id, report)
 	revision += 1
@@ -103,6 +114,7 @@ func selected(id: int, hero: Character) -> void:
 	register_peer(id)
 	if roster[id]["class"] != hero.charClass:
 		roster[id].talents = {}
+		roster[id].mastery = ""
 	roster[id]["class"] = hero.charClass
 	roster[id].ready = false
 	hero.spectator = roster[id].spectator
@@ -122,6 +134,8 @@ func learn_talent(branch: String, tier: int) -> void:
 	if not TalentTree.valid(member["class"], choices):
 		return
 	member.talents = choices
+	if not MasteryCatalog.valid(member["class"], choices, str(member.get("mastery", ""))):
+		member.mastery = ""
 	member.ready = false
 	revision += 1
 
@@ -131,7 +145,20 @@ func reset_talents() -> void:
 	if not multiplayer.is_server() or not running or transitioning or stage != "lobby" or not roster.has(id):
 		return
 	roster[id].talents = {}
+	roster[id].mastery = ""
 	roster[id].ready = false
+	revision += 1
+
+@rpc("any_peer", "call_local", "reliable")
+func learn_mastery(value: String) -> void:
+	var id = sender_id()
+	if not multiplayer.is_server() or not running or transitioning or stage != "lobby" or not roster.has(id):
+		return
+	var member: Dictionary = roster[id]
+	if not MasteryCatalog.valid(member["class"], member.get("talents", {}), value):
+		return
+	member.mastery = value
+	member.ready = false
 	revision += 1
 
 @rpc("any_peer", "call_local", "reliable")
@@ -161,6 +188,8 @@ func can_start() -> bool:
 	for id in roster:
 		if not roster[id].ready or roster[id]["class"] == "" or not MultiplayerManager.playerList.has(id):
 			return false
+		if not MasteryCatalog.valid(roster[id]["class"], roster[id].get("talents", {}), str(roster[id].get("mastery", ""))):
+			return false
 	return true
 
 @rpc("any_peer", "call_local", "reliable")
@@ -182,6 +211,7 @@ func finished(result: String) -> void:
 	# Reliable RPCs allow ENet fragmentation and deliver a complete final snapshot.
 	publish_report.rpc(report)
 	stage = result
+	main.get_node("EncounterDirector").reset()
 	for id in roster:
 		roster[id].reward = "" if result == "victory" and not roster[id].spectator else "skip"
 	revision += 1
@@ -229,16 +259,18 @@ func prepare_round() -> void:
 		roster[id].reward = ""
 	var positions: Dictionary = {}
 	var talents_by_peer: Dictionary = {}
+	var masteries_by_peer: Dictionary = {}
 	for id in MultiplayerManager.playerList:
 		positions[id] = spawn_positions()[main.used_slots.get(id, 0)]
 		talents_by_peer[id] = roster[id].get("talents", {})
+		masteries_by_peer[id] = roster[id].get("mastery", "")
 	report = {}
 	combat_report.begin(roster)
-	reset_round.rpc(round_index, positions, upgrades, talents_by_peer, arena_id)
+	reset_round.rpc(round_index, positions, upgrades, talents_by_peer, arena_id, masteries_by_peer)
 	revision += 1
 
 @rpc("authority", "call_local", "reliable")
-func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents_by_peer: Dictionary = {}, selected_arena: String = "") -> void:
+func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents_by_peer: Dictionary = {}, selected_arena: String = "", masteries_by_peer: Dictionary = {}) -> void:
 	if ArenaCatalog.ARENAS.has(selected_arena):
 		arena_id = selected_arena
 	report = {}
@@ -247,13 +279,26 @@ func reset_round(index: int, positions: Dictionary, choices: Dictionary, talents
 	main.get_node("CombatHUD/PlayerCastBar").cancel_cast()
 	main.get_node("CombatHUD/TargetCastBar").cancel_cast()
 	main.get_node("BossEncounter").reset_encounter(index)
+	main.get_node("EncounterDirector").reset()
 	for id in MultiplayerManager.playerList:
 		var hero = MultiplayerManager.playerList[id]
-		hero.reset_for_round(positions.get(id, spawn_positions()[0]), choices.get(id, {}), talents_by_peer.get(id, {}))
+		hero.reset_for_round(positions.get(id, spawn_positions()[0]), choices.get(id, {}), talents_by_peer.get(id, {}), str(masteries_by_peer.get(id, "")))
 	var local = MultiplayerManager.playerList.get(multiplayer.get_unique_id())
 	if is_instance_valid(local):
 		local.ui_handler.showPlayerHPBar(local, true)
 		local.ui_handler.createSkillBar()
+	main.get_node("CombatHUD/TargetHP").hide()
+
+@rpc("authority", "call_local", "reliable")
+func restore_for_boss() -> void:
+	main.get_node("SkillHandler").reset_combat()
+	main.get_node("CombatPreview").cancel()
+	main.get_node("CombatHUD/PlayerCastBar").cancel_cast()
+	for id in MultiplayerManager.playerList:
+		if not roster.has(id) or roster[id].spectator:
+			continue
+		var hero: Character = MultiplayerManager.playerList[id]
+		hero.reset_for_round(spawn_positions()[main.used_slots.get(id, 0)], upgrades.get(id, {}), roster[id].get("talents", {}), str(roster[id].get("mastery", "")))
 	main.get_node("CombatHUD/TargetHP").hide()
 
 @rpc("any_peer", "call_local", "reliable")
@@ -269,12 +314,14 @@ func return_to_selection() -> void:
 	for member in roster.values():
 		member.ready = false
 		member.talents = {}
+		member.mastery = ""
 		member.spectator = false
 		member.reward = ""
 	revision += 1
 	main.get_node("SkillHandler").reset_combat()
 	main.get_node("BossEncounter").status = "waiting"
 	main.get_node("BossEncounter").clear_effects()
+	main.get_node("EncounterDirector").reset()
 	for id in MultiplayerManager.playerList.keys():
 		if await main.retire_character(id):
 			if roster.has(id):
@@ -302,5 +349,5 @@ func _physics_process(delta: float) -> void:
 		if countdown <= 0:
 			stage = "active"
 			combat_report.active = true
-			main.get_node("BossEncounter").status = "active"
+			main.get_node("EncounterDirector").begin()
 			revision += 1

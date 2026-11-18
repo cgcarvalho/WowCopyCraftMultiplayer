@@ -106,7 +106,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			confirm(get_global_mouse_position())
 			get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("interrupt"):
-		get_parent().get_node("SkillHandler").request_interrupt.rpc_id(1)
+		var handler = get_parent().get_node("SkillHandler")
+		handler.request_interrupt.rpc_id(1, handler.interrupt_target_id())
 		get_viewport().set_input_as_handled()
 
 func _process(_delta: float) -> void:

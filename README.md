@@ -6,7 +6,7 @@ Protótipo multiplayer validado com Godot 4.7.1 (GDScript / Forward Plus).
 
 1. Abra `project.godot` no Godot 4.7.1 e aguarde a importação dos recursos.
 2. Execute o projeto (F6 executa uma cena; use F5 para executar o projeto).
-3. Em uma instância, escolha **Host Game**, selecione o personagem, escolha a arena no lobby e marque **Estou pronto**.
+3. Em uma instância, escolha **Host Game**, selecione o personagem, escolha a arena e o modo do encontro no lobby, distribua seus talentos e marque **Estou pronto**.
 4. Na outra instância, informe o IP ou hostname do host e escolha **Join Game**.
    Para testar na mesma máquina, use `127.0.0.1`. Selecione a classe e marque **Estou pronto**.
 5. O host escolhe **Iniciar encontro** quando todos estiverem prontos; a luta começa após uma contagem de 3 segundos. Trocar a arena cancela o Pronto de todos. É possível jogar solo usando o mesmo fluxo.
@@ -22,7 +22,91 @@ alvo ou ficar fora do alcance interrompe os ataques. O servidor mantém a valida
 de alcance e do intervalo entre golpes.
 Habilidades: **1 / 2 / 3**; ultimate: **R ou 4**. Cura sem aliado selecionado usa o próprio personagem; Alt + cura força autocura.
 **Arrow Rain:** pressione R/4 ou clique no ícone, mire com o mouse e confirme com clique esquerdo; Esc ou botão direito cancela sem gastar recurso. Consecration sempre consagra o chão sob o paladino.
-**Tab / Shift+Tab:** percorrem os inimigos próximos, priorizando distância e direção de movimento. O HUD informa se o alvo está no alcance do autoataque. **F:** interrompe Cataclismo Arcano (16s de recarga, alcance 200 para Warrior e 650 para as demais classes).
+**Tab / Shift+Tab:** percorrem os inimigos próximos, priorizando distância e direção de movimento. O HUD informa se o alvo está no alcance do autoataque. **F:** interrompe o Acólito selecionado ou Cataclismo Arcano (16s de recarga, alcance 200 para Warrior e 650 para as demais classes). Uma tentativa inválida não gasta a recarga.
+
+## Maestrias e encontros com inimigos menores
+
+Na **Árvore de talentos**, os três pontos continuam permitindo uma distribuição
+3/0 ou 2/1 entre as trilhas da classe. Agora existe também **uma escolha de
+maestria**, independente desses pontos, liberada ao investir dois pontos na mesma
+trilha. É possível jogar sem maestria. Redistribuir talentos remove uma escolha
+que perdeu o pré-requisito; mudar a classe também limpa a escolha. O servidor
+valida a classe, a trilha e o estado do lobby, e alterações cancelam seu Pronto.
+
+As dez opções aparecem com ícone, pré-requisito e descrição. O efeito escolhido
+também aparece no HUD, no resumo do grupo, no resultado e na descrição da habilidade:
+
+- **Aurora — Contágio Sombrio:** Soul Reap copia seus DoTs para até dois inimigos
+  a até 130 unidades do alvo, conservando no máximo seis segundos restantes.
+  **Eco Voraz:** Shadow Bolt cria até dois projéteis secundários, com 35% do dano,
+  em inimigos a até 180 unidades do impacto.
+- **Sir Gura — Tempestade de Arrasto:** cada inimigo menor dentro de Bladestorm
+  pode ser puxado 35 unidades a cada dois segundos, respeitando os obstáculos.
+  **Guarda Compartilhada:** Second Wind concede ao aliado mais próximo a até
+  220 unidades metade do escudo da habilidade por três segundos.
+- **Charger — Luz em Cadeia:** Holy Light também cura outro aliado a até 200
+  unidades do alvo por 35% da cura base, priorizando a menor porcentagem de vida.
+  **Piso Protetor:** cada tick de Consecration renova quatro de proteção por
+  1,2 segundo nos aliados da área.
+- **Lulu — Infecção Residual:** quando morre um alvo com seu veneno original,
+  até dois inimigos a até 160 unidades recebem no máximo quatro segundos do
+  tempo restante. A cópia não repete o dano inicial nem volta a se propagar.
+  **Linha Perfurante:** depois do impacto, Aimed Shot percorre mais 180 unidades
+  e pode atingir dois outros inimigos na linha por 45% do dano.
+- **Téo — Rebite Condutor:** Circuito Fechado dispara um rebite de sete de dano
+  em outro inimigo a até 180 unidades do atingido. **Circuito de Amparo:** o
+  circuito renova seis de proteção por dois segundos nos aliados dentro da Baliza.
+
+Proteções renováveis mantêm uma contribuição limitada por fonte e habilidade:
+ticks sucessivos não somam escudo indefinidamente. Os projéteis secundários não
+ativam novos ecos ou circuitos, e cópias de veneno não criam uma cadeia infinita.
+Cada dano secundário calcula seu próprio crítico com a chance do autor e aplica
+os bônus de saída uma vez; o crítico do impacto original não é multiplicado
+novamente. Cura em cadeia usa os bônus de cura e a aura do destinatário.
+
+O host escolhe um dos três encontros:
+
+- **Ondas e Jefferson**, padrão ao hospedar: uma onda de um Acólito ensina a
+  interrupção; após dois segundos chega um grupo misto. Depois dele, há uma pausa
+  de seis segundos e restauração de vida, recurso inicial e recargas antes do boss.
+- **Jefferson:** começa diretamente com o encontro existente.
+- **Jefferson com reforços:** acrescenta grupos ao atingir 75% e 35% de vida,
+  uma vez por limite. A entrada espera Cataclismo, Vínculo, Marcas e Condutores
+  terminarem e respeita o máximo de três inimigos menores vivos, ou o número
+  de participantes quando o grupo é menor.
+
+Os três inimigos usam navegação da arena, seleção por clique/Tab, vida e avisos
+replicados. A entrada tem 1,2 segundo de aviso antes de se tornarem alvos:
+
+- **Acólito do Vazio:** 50 HP solo; conjura por dois segundos uma área fixa de
+  raio 60 que causa dez de dano. Saia do círculo ou interrompa com F. Após o
+  impacto há seis segundos de recuperação; interrompê-lo causa recuperação de 1,5s.
+- **Guarda Rúnico:** 80 HP solo; golpe de seis a cada 1,8 segundo no corpo a corpo.
+  Protege outro Acólito ou Sabueso próximo com 20 de escudo por quatro segundos,
+  a cada oito segundos. Matar o Guarda remove apenas a proteção que ele concedeu.
+- **Sabueso Arcano:** 35 HP solo; persegue o jogador mais distante e mantém o
+  alvo por quatro segundos. Avisa seu avanço por 0,8 segundo, percorre até
+  180 unidades e causa oito de dano na linha; depois recupera por um segundo.
+  O avanço tem seis segundos de intervalo e pode ser evitado caminhando.
+
+A vida cresce 15% por participante adicional. A onda mista tem Acólito e Sabueso
+solo; acrescenta Guarda em dupla, outro Sabueso em trio e outro Acólito com quatro
+jogadores. Quem entra durante a tentativa permanece espectador e não aumenta a
+onda atual. As ondas não dão recompensas separadas: a vitória exige derrotar
+Jefferson. Vitória, derrota e retorno à seleção removem os inimigos temporários.
+
+As **16 animações dos inimigos e os dez ícones de maestria** foram criados no
+Ludo.ai. Fontes, organização e preparação dos atlas estão em
+[Art/Enemies/Ludo/README.md](Art/Enemies/Ludo/README.md).
+
+As suítes `masteries_minions` e `masteries_minions_network` verificam os efeitos
+reais, pré-requisitos, interrupção remota, escala para um a quatro participantes,
+três arenas, proteção, esquivas, ondas, entrada tardia e limpeza. Para executar
+toda a bateria, incluindo os testes entre processos:
+
+```sh
+python tests/run_checks.py --godot /caminho/para/godot --network
+```
 
 ## Validação
 

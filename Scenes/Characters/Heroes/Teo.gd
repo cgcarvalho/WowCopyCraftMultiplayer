@@ -59,9 +59,9 @@ func _ready() -> void:
 	super._ready()
 	SkillFX.install_pose($AnimatedSprite2D, &"pose_device")
 
-func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}) -> void:
+func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}, selected_mastery: String = "") -> void:
 	clear_devices()
-	super.reset_for_round(point, choices, selected_talents)
+	super.reset_for_round(point, choices, selected_talents, selected_mastery)
 
 func clear_devices() -> void:
 	beacon_remaining = 0
@@ -92,6 +92,7 @@ func on_basic_hit(target: Character = null) -> void:
 		target.deal_damage(14, self)
 		gain_resource(5)
 		CombatFeedback.show_skill_effect(&"spark", target.global_position, self, 130)
+		MasteryEffects.circuit(self, target)
 
 func on_rivet_hit(target: Character) -> void:
 	if multiplayer.is_server():

@@ -65,6 +65,7 @@ var damage_bonus = 1.0
 var healing_bonus = 1.0
 var cooldown_multiplier = 1.0
 var talents: Dictionary = {}
+var mastery = ""
 var shield_sources: Array = []
 
 #Skills
@@ -82,7 +83,7 @@ func _enter_tree() -> void:
 	if not is_inside_tree():
 		return
 	var config = SceneReplicationConfig.new()
-	for property in ["charCurrentLife", "charCurrentMana", "charShield", "charTotalLife", "momentum", "momentum_time", "steady_time", "shadow_bolt_ready", "spectator", "damage_bonus", "healing_bonus", "cooldown_multiplier", "interrupt_remaining", "talents"]:
+	for property in ["charCurrentLife", "charCurrentMana", "charShield", "charTotalLife", "momentum", "momentum_time", "steady_time", "shadow_bolt_ready", "spectator", "damage_bonus", "healing_bonus", "cooldown_multiplier", "interrupt_remaining", "talents", "mastery"]:
 		var path = NodePath(".:" + property)
 		config.add_property(path)
 		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
@@ -196,6 +197,8 @@ func deal_damage(damage: int, source: Character = null, periodic: bool = false, 
 	if life_floor > 0:
 		damage = mini(damage, maxi(0, before - life_floor))
 	charCurrentLife -= damage
+	if before > 0 and charCurrentLife == 0:
+		MasteryEffects.poison_death(self)
 	var report = battle_report()
 	if report != null:
 		report.damage(self, source, before - charCurrentLife, charCurrentLife == 0)
@@ -242,6 +245,30 @@ func reconcile_shield_sources() -> void:
 	if total != charShield:
 		# Legacy/debug direct assignments have no known provider.
 		shield_sources = [{"id": 0, "amount": charShield}] if charShield > 0 else []
+
+func has_sourced_shield(source_id: int, key: String) -> bool:
+	for contribution in shield_sources:
+		if int(contribution.id) == source_id and contribution.get("key", "") == key and int(contribution.amount) > 0:
+			return true
+	return false
+
+func remove_sourced_shield(source_id: int, key: String) -> void:
+	if not multiplayer.is_server():
+		return
+	reconcile_shield_sources()
+	for index in range(shield_sources.size() - 1, -1, -1):
+		var contribution: Dictionary = shield_sources[index]
+		if int(contribution.id) == source_id and contribution.get("key", "") == key:
+			charShield = maxi(0, charShield - int(contribution.amount))
+			shield_sources.remove_at(index)
+
+func upsert_shield(amount: int, source: Character, duration: float, key: String) -> void:
+	if not multiplayer.is_server() or charCurrentLife <= 0 or spectator or not is_instance_valid(source) or amount <= 0:
+		return
+	expire_shields()
+	remove_sourced_shield(int(source.name), key)
+	shield_sources.append({"id": int(source.name), "amount": amount, "key": key, "expires_at": Time.get_ticks_msec() + roundi(duration * 1000)})
+	charShield += amount
 
 func expire_shields() -> void:
 	if shield_sources.is_empty():
@@ -472,8 +499,9 @@ func update_presentation(delta: float) -> void:
 		sprite.rotation = -0.8 * death_progress
 		modulate = Color(0.7, 0.7, 0.7, 1 - death_progress * 0.75)
 
-func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}) -> void:
+func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}, selected_mastery: String = "") -> void:
 	talents = selected_talents.duplicate(true) if TalentTree.valid(charClass, selected_talents) else {}
+	mastery = selected_mastery if MasteryCatalog.valid(charClass, talents, selected_mastery) else ""
 	charTotalLife = roundi(base_life * (1 + 0.2 * int(choices.get("endurance", 0)) + (0.2 if TalentTree.has(talents, "guardian", 3) else 0.0)))
 	charCurrentLife = charTotalLife
 	charShield = 0
@@ -490,6 +518,8 @@ func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dict
 	for skill in skillList:
 		TalentTree.configure_skill(skill, talents)
 		skill.cooldown_scale = cooldown_multiplier
+		if MasteryCatalog.affects(mastery, skill):
+			skill.talent_description += "\nMaestria · " + MasteryCatalog.DEFINITIONS[mastery].text
 	interrupt_remaining = 0
 	charCurrentTarget = null
 	ability_animation_time = 0

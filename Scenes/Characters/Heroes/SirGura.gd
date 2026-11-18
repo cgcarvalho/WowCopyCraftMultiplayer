@@ -109,8 +109,8 @@ func update_attack_presentation() -> void:
 			attack_sprite.modulate.a = minf(1, basic_flash_remaining / 0.12)
 	attack_sprite.modulate.a *= CombatFeedback.effect_opacity(self)
 
-func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}) -> void:
-	super.reset_for_round(point, choices, selected_talents)
+func reset_for_round(point: Vector2, choices: Dictionary, selected_talents: Dictionary = {}, selected_mastery: String = "") -> void:
+	super.reset_for_round(point, choices, selected_talents, selected_mastery)
 	attack_effect = null
 	basic_flash_remaining = 0
 	update_attack_presentation()

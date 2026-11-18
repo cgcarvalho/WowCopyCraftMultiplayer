@@ -364,7 +364,7 @@ func clear_effects() -> void:
 	if multiplayer.is_server():
 		conductor_health = Vector2i.ZERO
 	for node in get_parent().get_children():
-		if node is Skill or node is CombatProjectile or node is SkillFX:
+		if node is Skill or node is CombatProjectile or node is SkillFX or node is PiercingArrow:
 			node.queue_free()
 	for player in MultiplayerManager.playerList.values():
 		if is_instance_valid(player):
@@ -376,11 +376,14 @@ func _process(_delta: float) -> void:
 		previous_status = status
 		if status in ["victory", "defeat"]:
 			clear_effects()
-	health_bar.visible = status != "waiting"
+	health_bar.visible = status in ["active", "victory", "defeat"]
 	health_bar.max_value = boss.charTotalLife
 	health_bar.value = boss.charCurrentLife
 	message.visible = status != "waiting"
 	var caption = "Jefferson • Fase %d" % phase
+	if status == "prelude":
+		message.text = get_parent().get_node("EncounterDirector").caption()
+		return
 	if has_runic_conductors():
 		caption += " • Égide ligada\nDestruam os condutores rúnicos"
 	elif boss.charShield > 0:

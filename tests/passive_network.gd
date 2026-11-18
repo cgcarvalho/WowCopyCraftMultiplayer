@@ -4,6 +4,7 @@ const PORT = 18086
 var main: Node
 var host = false
 var client_id = 0
+var expiry_confirmed = false
 
 func check(ok: bool, message: String) -> bool:
 	if not ok:
@@ -131,15 +132,30 @@ func verify_consumed() -> void:
 		return
 	MultiplayerManager.playerList[1].update_class_passive(4.1)
 	finish_client.rpc_id(client_id)
-	await get_tree().create_timer(0.5).timeout
+	var deadline = Time.get_ticks_msec() + 5000
+	while not expiry_confirmed and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	if not check(expiry_confirmed, "Client acknowledges the replicated passive expiry before the host closes"):
+		return
 	print("PASSIVE_NETWORK_SERVER_PASS")
 	get_tree().quit()
 
 @rpc("authority", "reliable")
 func finish_client() -> void:
-	await get_tree().create_timer(0.2).timeout
 	var warrior = MultiplayerManager.playerList[1]
+	# Observe replication instead of assuming delivery within a fixed 200 ms.
+	var deadline = Time.get_ticks_msec() + 3000
+	while warrior.momentum != 0 and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
 	if not check(warrior.momentum == 0 and not ClassPassives.state(warrior).active, "Remote Warrior indicator expires when the server removes the stacks"):
 		return
+	confirm_expiry.rpc_id(1)
+	multiplayer.multiplayer_peer.get_host().flush()
 	print("PASSIVE_NETWORK_CLIENT_PASS")
+	await get_tree().create_timer(0.1).timeout
 	get_tree().quit()
+
+@rpc("any_peer", "reliable")
+func confirm_expiry() -> void:
+	if host and multiplayer.get_remote_sender_id() == client_id:
+		expiry_confirmed = true

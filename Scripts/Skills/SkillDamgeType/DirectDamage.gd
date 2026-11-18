@@ -67,4 +67,7 @@ func _physics_process(delta: float) -> void:
 			CombatFeedback.show_skill_effect(&"bolt", targetCharacter.global_position, casterCharacter, 86)
 		queue_free()
 		var multiplier = TalentTree.skill_damage(casterCharacter.talents, self) if is_instance_valid(casterCharacter) else 1.0
+		var before = targetCharacter.charCurrentLife + targetCharacter.charShield
 		targetCharacter.deal_damage(skillBaseDamage, casterCharacter, false, multiplier)
+		if skillName == "Shadow Bolt" and is_instance_valid(casterCharacter):
+			MasteryEffects.shadow_echo(casterCharacter, targetCharacter, roundi(skillBaseDamage * multiplier), before - targetCharacter.charCurrentLife - targetCharacter.charShield)
