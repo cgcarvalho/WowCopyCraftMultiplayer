@@ -100,13 +100,15 @@ func run() -> void:
 		hero.free()
 	var selection = load("res://Scenes/Components/PlayerSelect/PlayerSelect.tscn").instantiate()
 	main.add_child(selection)
-	var rows = previews_in(selection)
-	check(rows.size() == selection.charList.size() * 4, "Selection screen exposes all four abilities for every playable character")
-	for row in rows:
-		var panel = row._make_custom_tooltip(row.tooltip_text)
-		check(row.mouse_filter == Control.MOUSE_FILTER_STOP and complete(panel, row.skill), row.skill.skillName + ": selection tooltip receives hover over the entire icon/name row")
-		check(row.get_child(0).texture != null and row.get_child(0).mouse_filter == Control.MOUSE_FILTER_IGNORE and row.get_child(1).mouse_filter == Control.MOUSE_FILTER_IGNORE, row.skill.skillName + ": icon and text preserve hover on the parent row")
-		panel.free()
+	for index in selection.charList.size():
+		selection.show_character(index, false)
+		var rows = previews_in(selection.detail_pages[index])
+		check(rows.size() == 4 and rows.all(func(row): return row.is_visible_in_tree()), selection.current_character().charName + ": the carousel exposes all four abilities of the highlighted hero")
+		for row in rows:
+			var panel = row._make_custom_tooltip(row.tooltip_text)
+			check(row.mouse_filter == Control.MOUSE_FILTER_STOP and complete(panel, row.skill), row.skill.skillName + ": selection tooltip receives hover over the entire icon/name row")
+			check(row.get_child(0).texture != null and row.get_child(0).mouse_filter == Control.MOUSE_FILTER_IGNORE and row.get_child(1).mouse_filter == Control.MOUSE_FILTER_IGNORE, row.skill.skillName + ": icon and text preserve hover on the parent row")
+			panel.free()
 	selection.queue_free()
 	get_tree().current_scene = self
 	main.queue_free()

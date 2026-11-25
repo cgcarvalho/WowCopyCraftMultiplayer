@@ -172,10 +172,12 @@ func run() -> void:
 	var selection = load("res://Scenes/Components/PlayerSelect/PlayerSelect.tscn").instantiate()
 	main.add_child(selection)
 	var panels = panels_in(selection)
-	check(panels.size() == selection.charList.size(), "Character selection shows a separate visible passive panel for every hero")
-	for panel in panels:
+	check(panels.size() == selection.charList.size(), "The carousel has a dedicated passive description for every hero")
+	for index in panels.size():
+		selection.show_character(index, false)
+		var panel = panels[index]
 		var info = ClassPassives.definition(panel.hero.charClass)
-		check(panel.selection and panel.title.text.contains("PASSIVA") and panel.detail.text == info.summary and not panel.progress.visible, panel.hero.charName + " selection shows the passive independently of active skills")
+		check(panel.is_visible_in_tree() and panel.selection and panel.title.text.contains("PASSIVA") and panel.detail.text == info.summary and not panel.progress.visible, panel.hero.charName + " selection shows the passive independently of active skills")
 		var passive_tooltip = panel._make_custom_tooltip(panel.tooltip_text)
 		check(text_in(passive_tooltip).contains(info.description), panel.hero.charName + " selection offers the complete passive tooltip")
 		passive_tooltip.free()

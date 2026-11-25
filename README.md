@@ -14,6 +14,14 @@ Protótipo multiplayer validado com Godot 4.7.1 (GDScript / Forward Plus).
 A conexão usa ENet/UDP na porta **8080**, com até quatro jogadores incluindo
    o host. Para jogar em LAN, permita essa porta no firewall do host.
 
+A seleção usa um **carrossel sem barra de rolagem**: o personagem em destaque
+fica no centro, com os dois vizinhos nas laterais. Navegue pelas setas na tela,
+pelos vizinhos, pelos nomes ou com **← / → e A / D**. **Enter** ou **Jogar com…**
+confirma a escolha. A ficha inferior mostra somente a passiva, o recurso e as
+quatro habilidades do personagem selecionado; passe o mouse para abrir as
+descrições completas. O botão de jogar permanece visível. A composição se
+adapta à largura e à altura da janela, incluindo 1280 × 720 e 1366 × 768.
+
 Movimento: WASD. Alvo: clique esquerdo, Tab ou Shift+Tab. O autoataque começa e retoma
 automaticamente contra um inimigo vivo selecionado no alcance, inclusive durante
 a caminhada. Conjuração e mira de áreas pausam o ataque; ao terminar,
@@ -276,8 +284,8 @@ papel e repertório. Os valores são um primeiro ajuste de balanceamento para o 
 Novo guerreiro com duas espadas, inspirado na referência fotográfica fornecida.
 Ele tem **140 HP**, alcance corpo a corpo de **155** e **100 de Fúria**, começando
 cada rodada em zero. A seleção mostra **Warrior · Duas armas**, com repertório
-próprio e duas trilhas de talentos. Os seis personagens usam uma grade que se
-adapta à largura da janela e permite rolagem.
+próprio e duas trilhas de talentos. Os seis personagens aparecem no carrossel
+de seleção, com navegação por mouse e teclado e uma ficha para o selecionado.
 
 O visual mantém o cabelo, sorriso e porte da referência, com armadura sem
 mangas e duas espadas. As nove animações e os seis ícones de habilidades e
@@ -411,10 +419,11 @@ Os ícones das classes seguem o estilo ilustrado dos originais, com moldura dour
 
 Passar o mouse sobre uma habilidade mostra efeito, tecla, custo no recurso da classe, recarga, tempo de conjuração, alcance e alvo. O tooltip permanece disponível durante o cooldown; o timer continua bloqueando novos lançamentos. Os talentos ativos aparecem em verde no painel, com o tempo de conjuração modificado quando aplicável.
 
-A seleção de personagens mostra os ícones originais e os nomes das **16 habilidades**.
-Passar o mouse em qualquer parte de cada linha, incluindo ícone e nome, abre o mesmo
-painel ilustrado da barra de combate. O papel da classe também tem tooltip de recurso
-e passiva. A tela preserva a rolagem em janelas menores.
+A seleção em carrossel mostra os ícones e os nomes das **quatro habilidades do
+personagem em destaque**. Passar o mouse em qualquer parte de cada linha,
+incluindo ícone e nome, abre o mesmo painel ilustrado da barra de combate.
+A passiva tem um painel separado com resumo e tooltip completo; o recurso
+aparece no título do repertório. A navegação troca a ficha sem exigir rolagem.
 
 ### Autoataque do Charger
 
