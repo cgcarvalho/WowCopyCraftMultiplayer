@@ -2,12 +2,14 @@ extends CanvasLayer
 
 signal playerSelected
 var charList: Array[Character] = []
+var card_grid: GridContainer
 const ROLES = {
 	"Warlock": "Sombras, maldições e explosão de DoTs",
 	"Warrior": "Combate corpo a corpo e resistência",
 	"Paladin": "Cura, proteção e áreas sagradas",
 	"Hunter": "Flechas à distância, veneno e ataques em área",
-	"Engineer": "Rebites, dispositivos e dano em área"
+	"Engineer": "Rebites, dispositivos e dano em área",
+	"DualWarrior": "Duas espadas, combos e contra-ataques"
 }
 
 func text_label(text: String, font_size: int, color = Color.WHITE) -> Label:
@@ -18,6 +20,12 @@ func text_label(text: String, font_size: int, color = Color.WHITE) -> Label:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	return label
+
+func layout_cards() -> void:
+	if not is_instance_valid(card_grid):
+		return
+	var width = get_viewport().get_visible_rect().size.x
+	card_grid.columns = 6 if width >= 1380 else (3 if width >= 700 else (2 if width >= 470 else 1))
 
 func _ready() -> void:
 	var backdrop = ColorRect.new()
@@ -39,10 +47,14 @@ func _ready() -> void:
 	content.add_theme_constant_override("separation", 12)
 	center.add_child(content)
 	content.add_child(text_label("ESCOLHA SEU PERSONAGEM", 26, Color("ffe299")))
-	var cards = HBoxContainer.new()
-	cards.add_theme_constant_override("separation", 12)
+	var cards = GridContainer.new()
+	card_grid = cards
+	layout_cards()
+	get_viewport().size_changed.connect(layout_cards)
+	cards.add_theme_constant_override("h_separation", 12)
+	cards.add_theme_constant_override("v_separation", 16)
 	content.add_child(cards)
-	charList = [Aurora.new(), SirGura.new(), Charger.new(), Lulu.new(), Engineer.new()]
+	charList = [Aurora.new(), SirGura.new(), DualWieldWarrior.new(), Charger.new(), Lulu.new(), Engineer.new()]
 	for character in charList:
 		character._enter_tree()
 		var panel = PanelContainer.new()
@@ -61,6 +73,8 @@ func _ready() -> void:
 		panel.add_child(column)
 		column.add_child(text_label(character.charName, 22))
 		var class_name_text = "Engenheiro de Campo" if character is Engineer else character.charClass
+		if character is DualWieldWarrior:
+			class_name_text = "Warrior · Duas armas"
 		column.add_child(text_label(class_name_text, 17, Color("ffe299")))
 		var portrait = TextureRect.new()
 		portrait.texture = load(character.portraitImagePath)

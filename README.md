@@ -22,7 +22,7 @@ alvo ou ficar fora do alcance interrompe os ataques. O servidor mantém a valida
 de alcance e do intervalo entre golpes.
 Habilidades: **1 / 2 / 3**; ultimate: **R ou 4**. Cura sem aliado selecionado usa o próprio personagem; Alt + cura força autocura.
 **Arrow Rain:** pressione R/4 ou clique no ícone, mire com o mouse e confirme com clique esquerdo; Esc ou botão direito cancela sem gastar recurso. Consecration sempre consagra o chão sob o paladino.
-**Tab / Shift+Tab:** percorrem os inimigos próximos, priorizando distância e direção de movimento. O HUD informa se o alvo está no alcance do autoataque. **F:** interrompe o Acólito selecionado ou Cataclismo Arcano (16s de recarga, alcance 200 para Warrior e 650 para as demais classes). Uma tentativa inválida não gasta a recarga.
+**Tab / Shift+Tab:** percorrem os inimigos próximos, priorizando distância e direção de movimento. O HUD informa se o alvo está no alcance do autoataque. **F:** interrompe o Acólito selecionado ou Cataclismo Arcano (16s de recarga, alcance 200 para os dois guerreiros e 650 para as demais classes). Uma tentativa inválida não gasta a recarga.
 
 ## Maestrias e encontros com inimigos menores
 
@@ -33,7 +33,7 @@ trilha. É possível jogar sem maestria. Redistribuir talentos remove uma escolh
 que perdeu o pré-requisito; mudar a classe também limpa a escolha. O servidor
 valida a classe, a trilha e o estado do lobby, e alterações cancelam seu Pronto.
 
-As dez opções aparecem com ícone, pré-requisito e descrição. O efeito escolhido
+As doze opções aparecem com ícone, pré-requisito e descrição. O efeito escolhido
 também aparece no HUD, no resumo do grupo, no resultado e na descrição da habilidade:
 
 - **Aurora — Contágio Sombrio:** Soul Reap copia seus DoTs para até dois inimigos
@@ -56,6 +56,10 @@ também aparece no HUD, no resumo do grupo, no resultado e na descrição da hab
 - **Téo — Rebite Condutor:** Circuito Fechado dispara um rebite de sete de dano
   em outro inimigo a até 180 unidades do atingido. **Circuito de Amparo:** o
   circuito renova seis de proteção por dois segundos nos aliados dentro da Baliza.
+- **Tiagolas — Frenesi Cruzado:** Corte Cruzado com três Cadências atinge também até
+  dois outros inimigos a até 140 unidades, por oito de dano cada. **Guarda Vingativa:**
+  o contra-ataque da Guarda causa 16 de dano e concede 12 de proteção por três
+  segundos ao aliado mais próximo a até 220 unidades.
 
 Proteções renováveis mantêm uma contribuição limitada por fonte e habilidade:
 ticks sucessivos não somam escudo indefinidamente. Os projéteis secundários não
@@ -267,6 +271,57 @@ godot --headless --path . res://tests/dot_presentation.tscn
 Cada classe tem três habilidades e uma ultimate. A seleção mostra classe,
 papel e repertório. Os valores são um primeiro ajuste de balanceamento para o protótipo.
 
+### Tiagolas, Lâminas Gêmeas
+
+Novo guerreiro com duas espadas, inspirado na referência fotográfica fornecida.
+Ele tem **140 HP**, alcance corpo a corpo de **155** e **100 de Fúria**, começando
+cada rodada em zero. A seleção mostra **Warrior · Duas armas**, com repertório
+próprio e duas trilhas de talentos. Os seis personagens usam uma grade que se
+adapta à largura da janela e permite rolagem.
+
+O visual mantém o cabelo, sorriso e porte da referência, com armadura sem
+mangas e duas espadas. As nove animações e os seis ícones de habilidades e
+maestrias foram produzidos no Ludo.ai. A origem e a preparação dos atlas estão
+documentadas em `Art/Chars/DualWarrior/README.md`.
+
+- **Passiva — Ritmo de Combate:** cada básico alterna dois golpes de cinco de
+  dano, separados por 0,18 segundo, a cada segundo. Cada acerto gera cinco de
+  Fúria. Completar o segundo golpe concede uma Cadência, até três, por quatro
+  segundos. O segundo golpe exige novamente alvo vivo, elegível e ao alcance;
+  morrer, sair do alcance ou reiniciar impede um golpe pendente.
+- **1 — Corte Cruzado:** instantâneo, seis segundos de recarga e custo zero.
+  Causa 18 de dano mais quatro por Cadência consumida (até 30 antes dos bônus)
+  e gera dez de Fúria ao acertar. Use os básicos para completar três cargas
+  antes de descarregar o combo.
+- **2 — Passo de Aço:** instantâneo, dez segundos de recarga e custo zero.
+  Avança até um inimigo a até 360 unidades, respeitando limites e obstáculos;
+  ao alcançá-lo, causa dez de dano e gera dez de Fúria. Uma investida que não
+  alcança o alvo não aplica o impacto nem a geração.
+- **3 — Guarda de Lâminas:** custa 30 de Fúria, tem 16 segundos de recarga e
+  concede 24 de proteção por três segundos. A primeira absorção feita por
+  essa proteção gera 12 de Fúria e contra-ataca um inimigo a até 180 unidades
+  por oito de dano. Proteção de outra origem e guarda expirada não ativam o
+  contra-ataque, que ocorre uma única vez por uso.
+- **R / 4 — Dança das Lâminas:** custa 65 de Fúria e tem 60 segundos de recarga.
+  Por quatro segundos, oito pulsos de seis atingem inimigos em raio 150, a
+  cada meio segundo. A área acompanha o guerreiro enquanto ele se move.
+
+**Frenesi** favorece o combo: Corte Cruzado ganha 25% de dano; Cadência passa a
+durar seis segundos; o último talento aumenta cada pulso da Dança de seis para
+oito. Sua maestria **Frenesi Cruzado**, liberada com dois pontos, adiciona até
+dois alvos secundários ao gastar três Cadências. Esses acertos encerram a cadeia.
+
+**Duelista** favorece sobrevivência e aproximação: a Guarda passa a 32 de proteção;
+o Passo recarrega em oito segundos; o último talento faz a Guarda recuperar 12
+de vida ao ativar. Sua maestria **Guarda Vingativa** dobra o contra-ataque para
+16 e protege o aliado mais próximo por 12 durante três segundos.
+
+Na prática, aproxime-se com **2**, alterne os básicos, descarregue **1** com três
+Cadências e reserve Fúria para **3** durante uma ameaça ou **R** com os inimigos
+agrupados. As escolhas 3/0 e 2/1 permanecem válidas. Dano, recursos, proteção,
+Cadência e recargas são controlados pelo servidor. As suítes `dual_warrior` e
+`dual_warrior_network` cobrem os efeitos, validação, entrada tardia e reinício.
+
 | Personagem | Classe | Habilidade 1 | Habilidade 2 | Habilidade 3 | Ultimate (R / 4) |
 | --- | --- | --- | --- | --- | --- |
 | Aurora | Warlock | Shadow Bolt (4s) | Corruption (2s) | Curse of Death (2s) | Soul Reap (60s): 45 + 12 por DoT próprio no alvo, em área |
@@ -274,6 +329,7 @@ papel e repertório. Os valores são um primeiro ajuste de balanceamento para o 
 | Charger | Paladin | Holy Light (8s): cura 32, conjuração 1,2s | Judgement (6s): 24 de dano sagrado | Consecration (16s): 8s no chão, 7 de dano/s e 3 de cura/s | Divine Dawn (65s): cura 40, proteção 35 e 35 de dano aos inimigos próximos |
 | Lulu | Hunter | Aimed Shot (6s): 32 de dano, conjuração 1s | Poison Arrow (10s): 8 inicial + 4/s por 8s | Multi-Shot (9s): até 3 flechas de 18 | Arrow Rain (60s): área fixa, 12 de dano/s por 7s |
 | Téo | Engenheiro de Campo | Tiro de Rebite (5s): 16 de dano e 18 de Pressão ao acertar | Baliza de Campo (12s): área de raio 165 por 10s | Estouro de Válvula (9s): 23 de dano em área, ou 31 dentro da Baliza | Sobrecarga (60s): quatro pulsos de 12 em torno da Baliza |
+| Tiagolas | Warrior · Duas armas | Corte Cruzado (6s): 18 + 4 por Cadência, gera 10 de Fúria | Passo de Aço (10s): investida, 10 de dano e 10 de Fúria | Guarda de Lâminas (16s): 24 de proteção e um contra-ataque | Dança das Lâminas (60s): oito pulsos de 6 em raio 150, acompanha o guerreiro |
 
 Téo começa a rodada com 20 de Pressão e ganha 7 a cada ataque básico que acerta.
 **Circuito Fechado** acrescenta 14 de dano e 5 de Pressão a cada terceiro acerto

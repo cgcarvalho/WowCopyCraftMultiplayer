@@ -364,7 +364,7 @@ func clear_effects() -> void:
 	if multiplayer.is_server():
 		conductor_health = Vector2i.ZERO
 	for node in get_parent().get_children():
-		if node is Skill or node is CombatProjectile or node is SkillFX or node is PiercingArrow:
+		if node is Skill or node is CombatProjectile or node is SkillFX or node is PiercingArrow or node is DualBasicAttack:
 			node.queue_free()
 	for player in MultiplayerManager.playerList.values():
 		if is_instance_valid(player):

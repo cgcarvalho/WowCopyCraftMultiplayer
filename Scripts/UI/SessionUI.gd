@@ -114,7 +114,7 @@ func _ready() -> void:
 		handler.request_interrupt.rpc_id(1, handler.interrupt_target_id()))
 	interrupt_button.position = Vector2(970, 555)
 	interrupt_button.size = Vector2(170, 44)
-	interrupt_button.tooltip_text = "Interrompe o Acólito selecionado ou Cataclismo Arcano. Recarga: 16s. Alcance: 200 para Warrior, 650 para as demais classes."
+	interrupt_button.tooltip_text = "Interrompe o Acólito selecionado ou Cataclismo Arcano. Recarga: 16s. Alcance: 200 para guerreiros, 650 para as demais classes."
 	screen.add_child(interrupt_button)
 	enemy_cast_text = label("", 13, Color("ffe9ae"))
 	enemy_cast_text.position = Vector2(0, 23)
@@ -181,7 +181,7 @@ func add_party() -> void:
 		var state = "Pronto" if member.ready else "Escolhendo / não pronto"
 		if session.stage == "victory":
 			state = "Melhoria escolhida" if member.reward != "" else "Escolhendo melhoria"
-		var text = "%s · %s · %s" % [member.name, member["class"] if member["class"] != "" else "Sem classe", state]
+		var text = "%s · %s · %s" % [member.name, ClassPassives.class_label(member["class"]) if member["class"] != "" else "Sem classe", state]
 		if member["class"] != "":
 			text += "\n" + TalentTree.summary(member["class"], member.get("talents", {}))
 			if not str(member.get("mastery", "")).is_empty():
@@ -195,7 +195,7 @@ func show_talents(value: bool) -> void:
 func add_talents(member: Dictionary) -> void:
 	var choices: Dictionary = member.get("talents", {})
 	var remaining = TalentTree.POINTS - TalentTree.spent(choices)
-	content.add_child(label("TALENTOS · %s" % member.get("class", ""), 26, Color("edcf8d")))
+	content.add_child(label("TALENTOS · %s" % ClassPassives.class_label(member.get("class", "")), 26, Color("edcf8d")))
 	content.add_child(label("%d / %d pontos disponíveis · Cada talento exige o anterior do mesmo caminho.\nVocê pode combinar caminhos. Alterações cancelam seu Pronto." % [remaining, TalentTree.POINTS], 15))
 	var columns = HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 16)
@@ -262,7 +262,7 @@ func add_report() -> void:
 		var column = VBoxContainer.new()
 		column.add_theme_constant_override("separation", 6)
 		card.add_child(column)
-		var title = "%s · %s · %s" % [row.name, row["class"], row.talents]
+		var title = "%s · %s · %s" % [row.name, ClassPassives.class_label(row["class"]), row.talents]
 		if not session.roster.has(id):
 			title += " · Desconectado"
 		column.add_child(label(title, 17, Color("edcf8d")))

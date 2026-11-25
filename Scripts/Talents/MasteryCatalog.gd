@@ -2,6 +2,8 @@ class_name MasteryCatalog
 extends RefCounted
 
 const DEFINITIONS = {
+	"cross_frenzy": {"class": "DualWarrior", "branch": "frenzy", "name": "Frenesi Cruzado", "text": "Corte Cruzado com 3 Cadências também atinge até 2 outros inimigos a até 140 por 8 de dano cada.", "icon": 0},
+	"vengeful_guard": {"class": "DualWarrior", "branch": "duelist", "name": "Guarda Vingativa", "text": "O contra-ataque da Guarda causa 16 de dano e concede 12 de proteção por 3 s ao aliado mais próximo a até 220.", "icon": 1},
 	"contagion": {"class": "Warlock", "branch": "affliction", "name": "Contágio Sombrio", "text": "Soul Reap espalha seus DoTs para até 2 inimigos em raio 130, por até 6 s.", "icon": 0},
 	"echo": {"class": "Warlock", "branch": "destruction", "name": "Eco Voraz", "text": "Shadow Bolt lança até 2 ecos de 35% do dano em inimigos a até 180 do impacto.", "icon": 1},
 	"drag": {"class": "Warrior", "branch": "berserker", "name": "Tempestade de Arrasto", "text": "Bladestorm puxa inimigos menores 35 unidades, uma vez a cada 2 s por inimigo.", "icon": 2},
@@ -36,6 +38,7 @@ static func summary(id: String) -> String:
 
 static func affects(id: String, skill: Skill) -> bool:
 	var abilities = {
+		"cross_frenzy": ["twin_cross"], "vengeful_guard": ["blade_guard"],
 		"contagion": ["soul_reap"], "shared_guard": ["second_wind"],
 		"drag": ["bladestorm"], "chain_light": ["holy_light"],
 		"protective_ground": ["consecration"], "infection": ["poison_arrow"],
@@ -47,6 +50,11 @@ static func affects(id: String, skill: Skill) -> bool:
 	return skill is HeroAbility and skill.ability_id in abilities.get(id, [])
 
 static func icon(id: String) -> Texture2D:
+	if id in ["cross_frenzy", "vengeful_guard"]:
+		var texture = AtlasTexture.new()
+		texture.atlas = load("res://Art/Chars/DualWarrior/SkillIcons.webp")
+		texture.region = Rect2(0 if id == "cross_frenzy" else 256, 512, 256, 256)
+		return texture
 	var path = "res://Art/Enemies/Ludo/MasteryIcons.webp"
 	if not DEFINITIONS.has(id) or not ResourceLoader.exists(path):
 		return null

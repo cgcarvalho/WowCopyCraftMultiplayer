@@ -169,7 +169,7 @@ func request_interrupt(target_id: int = 0) -> void:
 	var encounter = get_parent().get_node("BossEncounter")
 	if not is_instance_valid(caster) or caster.charCurrentLife <= 0 or caster.spectator or caster.interrupt_remaining > 0:
 		return
-	var reach = 200.0 if caster.charClass == "Warrior" else 650.0
+	var reach = 200.0 if caster.charClass in ["Warrior", "DualWarrior"] else 650.0
 	var target = MultiplayerManager.get_character(target_id) if target_id < 0 else caster.charCurrentTarget
 	if not is_instance_valid(target) or target.charTeam == caster.charTeam or target.charCurrentLife <= 0 or target.spectator:
 		target = encounter.boss
@@ -308,6 +308,14 @@ func play_basic_attack(caster_id: int, target_id: int, amount: int, style: Strin
 		# Base restart timing on accepted attacks; the server still enforces cadence.
 		caster.state_machine.next_basic_attack_at_msec = Time.get_ticks_msec() + roundi(caster.attack_interval * 1000)
 	caster.play_basic_attack_animation(target)
+	if caster is DualWieldWarrior:
+		if multiplayer.is_server():
+			var strike = DualBasicAttack.new()
+			strike.caster = caster
+			strike.target = target
+			strike.power = amount
+			get_parent().add_child(strike)
+		return
 	var projectile = CombatProjectile.new()
 	get_parent().add_child(projectile)
 	projectile.basic = true

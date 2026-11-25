@@ -28,6 +28,7 @@ OFFLINE = [
     ('fluid_combat', 'Fluid combat failures: 0'),
     ('engineer', 'Engineer failures: 0'),
     ('masteries_minions', 'Mastery and minion failures: 0'),
+    ('dual_warrior', 'Dual warrior failures: 0'),
 ]
 NETWORK = [
     ('boss_network', 'NETWORK'),
@@ -117,6 +118,8 @@ def main():
                          late_client_marker='RUNES_NETWORK_LATE_READY')
         total += network(args.godot, 'masteries_minions_network', 'MINIONS_NETWORK', clients=3,
                          late_client_marker='MINIONS_NETWORK_LATE_READY')
+        total += network(args.godot, 'dual_warrior_network', 'DUAL_NETWORK', clients=2,
+                         late_client_marker='DUAL_NETWORK_LATE_READY')
     print(f'Total: {total} checks passed')
 
 

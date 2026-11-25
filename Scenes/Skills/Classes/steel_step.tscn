@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Skills/DualWarriorAbility.gd" id="1"]
+
+[node name="steel_step" type="Area2D"]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1")
+ability = "steel_step"
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

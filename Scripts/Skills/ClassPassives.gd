@@ -12,8 +12,14 @@ const STEADY_SECONDS = 1.0
 const STEADY_DAMAGE = 0.15
 const STEADY_TALENT_DAMAGE = 0.25
 
+static func class_label(hero_class: String) -> String:
+	return "Warrior · Duas armas" if hero_class == "DualWarrior" else hero_class
+
 static func definition(hero_class: String, talents: Dictionary = {}) -> Dictionary:
 	match hero_class:
+		"DualWarrior":
+			return {"name": "Ritmo de Combate", "summary": "Dois golpes por básico: +10 Fúria. Complete o par para gerar Cadência (máx. 3).",
+				"description": "Cada básico aplica dois golpes, separados por 0,18 s. Cada acerto gera 5 de Fúria; o segundo concede 1 Cadência (máx. 3). Corte Cruzado consome as cargas e causa mais 4 de dano por carga. Cadência dura %d s sem completar um par de golpes. O segundo golpe exige alvo vivo e no alcance." % (6 if TalentTree.has(talents, "frenzy", 2) else 4)}
 		"Warlock":
 			return {"name": "Dot Master", "summary": "Ticks de DoT: %d%% de chance de liberar Shadow Bolt instantâneo." % roundi(DOT_CHANCE * 100),
 				"description": "Cada tick de Corruption ou Curse of Death tem %d%% de chance de liberar seu próximo Shadow Bolt instantaneamente, mesmo durante a recarga. O bônus não acumula e só é consumido ao lançar Shadow Bolt com sucesso. O custo de mana permanece." % roundi(DOT_CHANCE * 100)}
@@ -36,6 +42,8 @@ static func state(hero) -> Dictionary:
 	if hero.spectator or hero.charCurrentLife <= 0:
 		return {"text": "Inativa · espectador" if hero.spectator else "Inativa · personagem derrotado", "value": 0.0, "active": false}
 	match hero.charClass:
+		"DualWarrior":
+			return {"text": "%d/3 Cadências · Corte Cruzado +%d · %.1fs" % [hero.cadence, hero.cadence * 4, hero.cadence_remaining] if hero.cadence > 0 else "Alterne as duas armas para gerar Cadência · tecla 1 consome", "value": hero.cadence / 3.0, "active": hero.cadence > 0}
 		"Warlock":
 			return {"text": "PRONTO · Shadow Bolt instantâneo · tecla 1" if hero.shadow_bolt_ready else "Aguardando ativação · %d%% por tick de DoT" % roundi(DOT_CHANCE * 100), "value": 1.0 if hero.shadow_bolt_ready else 0.0, "active": hero.shadow_bolt_ready}
 		"Warrior":

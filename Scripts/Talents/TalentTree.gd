@@ -3,6 +3,16 @@ extends RefCounted
 
 const POINTS = 3
 const TREES = {
+	"DualWarrior": {
+		"frenzy": {"name": "Frenesi", "nodes": [
+			["Cruzamento brutal", "+25% de dano de Corte Cruzado, incluindo o bônus de Cadência."],
+			["Ritmo persistente", "Ritmo de Combate: Cadência dura 6 s em vez de 4 s."],
+			["Lâminas incessantes", "Dança das Lâminas causa 8 por pulso em vez de 6."]]},
+		"duelist": {"name": "Duelista", "nodes": [
+			["Aço firme", "Guarda de Lâminas concede 32 de proteção em vez de 24."],
+			["Passo disciplinado", "Passo de Aço: recarga reduzida de 10 para 8 s."],
+			["Retomada de fôlego", "Guarda de Lâminas também recupera 12 de vida ao ativar."]]}
+	},
 	"Warlock": {
 		"affliction": {"name": "Aflição", "nodes": [
 			["Sombras persistentes", "+20% de dano periódico causado por Aurora."],
@@ -102,6 +112,12 @@ static func configure_skill(skill: Skill, choices: Dictionary) -> void:
 			skill.data.duration = 6
 		if skill.ability_id == "overload" and has(choices, "workshop", 3):
 			skill.data.radius = 135
+		if skill.ability_id == "steel_step" and has(choices, "duelist", 2):
+			skill.skillCoolDownTime = 8
+		if skill.ability_id == "blade_guard" and has(choices, "duelist", 1):
+			skill.data.power = 32
+		if skill.ability_id == "blade_dance" and has(choices, "frenzy", 3):
+			skill.data.power = 8
 	# Each tooltip lists only the selected effects that can affect this skill.
 	var effects = PackedStringArray()
 	var hero_class = ""
@@ -128,6 +144,7 @@ static func skill_damage(choices: Dictionary, skill: Skill) -> float:
 		return 1.25
 	if skill is HeroAbility:
 		match skill.ability_id:
+			"twin_cross": return 1.25 if has(choices, "frenzy", 1) else 1.0
 			"soul_reap": return 1.25 if has(choices, "destruction", 3) else 1.0
 			"cleave": return 1.25 if has(choices, "berserker", 1) else 1.0
 			"bladestorm": return 1.25 if has(choices, "berserker", 3) else 1.0
